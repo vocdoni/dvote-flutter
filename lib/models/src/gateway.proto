@@ -1,0 +1,50 @@
+/// Type: Protocol model
+/// Info: https://vocdoni.io/docs/#/architecture/components/gateway
+
+syntax = "proto3";
+package dvote;
+
+// Implementing the data structure from https://vocdoni.io/docs/#/architecture/components/bootnode
+message BootNodeGateways {
+    message NetworkNodes {
+        message DVote {
+            string uri = 1;
+            repeated string apis = 2;
+            string pubKey = 3;
+        }
+        message Web3 {
+            string uri = 1;
+        }
+
+        repeated DVote dvote = 1;
+        repeated Web3 web3 = 2;
+    }
+
+    // network Id's
+    NetworkNodes homestead = 1;
+    NetworkNodes goerli = 2;
+
+    // EXTERNAL FIELDS
+    // Allow to use arbitrary key/values so that
+    // gateways can be organized by custom values.
+    map<string, string> meta = 100;
+}
+
+// Helper to serialize and store all cached data
+message GatewayInfoStore {
+    repeated GatewayInfo items = 1;
+}
+
+// Helper to store the DVote/Web3 information of one node together
+message GatewayInfo {
+    string dvote = 1;
+    repeated string supportedApis = 2;
+    string web3 = 3;
+    string networkId = 4;
+    string publicKey = 5; // Secp256k1 public key
+
+    // EXTERNAL FIELDS
+    // Allow to use arbitrary key/values so that
+    // gateways can be organized by custom values.
+    map<string, string> meta = 100;
+}

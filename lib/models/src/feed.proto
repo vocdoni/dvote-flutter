@@ -1,0 +1,51 @@
+/// Type: Client side helper model
+
+syntax = "proto3";
+package dvote;
+
+// The following models implement the structure of a JSON Feed
+// https://jsonfeed.org/version/1
+
+// Helper to serialize and store all cached posts from all entities
+message FeedStore {
+    repeated Feed items = 1;
+}
+
+// A JSON Feed, containing a collection of posts
+message Feed {
+    // OWN FIELDS
+    string version = 1;
+    string title = 2;
+    string home_page_url = 3;
+    string description = 4;
+    string feed_url = 5;
+    string icon = 6;
+    string favicon = 7;
+    bool expired = 8;
+
+    repeated FeedPost items = 9;
+
+    // EXTERNAL FIELDS
+    // Allow to use arbitrary key/values so that
+    // feeds can be organized by entity, language, etc.
+    map<string, string> meta = 100;
+}
+
+message FeedPost {
+    string id = 1; // or guid
+    string title = 2;
+    string summary = 3;
+    string content_text = 4;
+    string content_html = 5;
+    string url = 6;
+    string image = 7;
+    repeated string tags = 8;
+    string date_published = 9;
+    string date_modified = 10;
+
+    message Author {
+        string name = 1;
+        string url = 2;
+    }
+    Author author = 11;
+}

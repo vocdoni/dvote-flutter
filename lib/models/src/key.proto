@@ -1,0 +1,22 @@
+/// Type: Client side helper model
+
+syntax = "proto3";
+package dvote;
+
+message Key {
+    enum Type {
+        SECP256K1 = 0; // ETHEREUM
+        BABYJUB = 1;
+    }
+
+    Type type = 1;
+    string encryptedMnemonic = 2;    // Human friendly seed phrase
+    string encryptedPrivateKey = 3;
+    string publicKey = 4;
+    string address = 5;
+
+    // EXTERNAL FIELDS
+    // Allow to use arbitrary key/values so that
+    // keys can be organized by custom values.
+    map<string, string> meta = 100;
+}

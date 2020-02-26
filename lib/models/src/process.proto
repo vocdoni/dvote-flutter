@@ -1,0 +1,50 @@
+/// Type: Client side helper model
+
+syntax = "proto3";
+package dvote;
+
+// Helper to serialize and store all cached data
+message ProcessMetadataStore {
+    repeated ProcessMetadata items = 1;
+}
+
+message ProcessMetadata {
+    string version = 1;
+    string type = 2;
+
+    int32 startBlock = 3;
+    int32 numberOfBlocks = 4;
+
+    message Census {
+        string merkleRoot = 1;
+        string merkleTree = 2;
+    }
+    Census census = 5;
+
+    message Details {
+        string entityId = 1;
+        string encryptionPublicKey = 2;
+        map<string, string> title = 3;  // locale-aware value
+        map<string, string> description = 4;  // locale-aware value
+        string headerImage = 5;
+
+        message Question {
+            string type = 1;
+            map<string, string> question = 2;  // locale-aware value
+            map<string, string> description = 3;  // locale-aware value
+
+            message VoteOption {
+                map<string, string> title = 1;  // locale-aware value
+                string value = 2;
+            }
+            repeated VoteOption voteOptions = 4;
+        }
+        repeated Question questions = 6;
+    }
+    Details details = 6;
+
+    // EXTERNAL FIELDS
+    // Allow to use arbitrary key/values so that
+    // processes can be tagged and organized by custom values.
+    map<string, string> meta = 100;
+}

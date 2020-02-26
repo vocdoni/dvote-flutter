@@ -1,0 +1,56 @@
+/// Type: Client side helper model
+
+syntax = "proto3";
+package dvote;
+
+import "entity.proto";
+import "key.proto";
+
+// Helper to serialize and store a set of entries
+message IdentitiesStore {
+    repeated Identity items = 1; 
+}
+
+message Identity {
+    enum Type {
+        ECDSA_SECP256k1 = 0; // Ethereum key pair
+        IDEN3 = 1;
+    }
+    Type type = 1;
+    string alias = 2;
+    string identityId = 3;
+
+    // Associated keys
+    repeated Key keys = 4;
+
+    // Pointer to fetch the subscribed entities
+    message Peers {
+        repeated EntityReference entities = 1;
+        repeated PeerIdentity identities = 2;  // external identities that we have interacted with
+    }
+    Peers peers = 5;
+
+    message Claim {
+        string index = 1;  // The index on the Merkle Tree
+        string proof = 2;  // The Merkle Tree siblings of a ZK proof
+        string data = 3;  // The claim itself
+        repeated string tags = 4;
+    }
+    repeated Claim receivedClaims = 6;
+    repeated Claim issuedClaims = 7;
+
+    // EXTERNAL FIELDS
+    // Allow to use arbitrary key/values so that
+    // identities can be organized by custom values.
+    map<string, string> meta = 100;
+}
+
+message PeerIdentity {
+    enum Type {
+        ECDSA_SECP256k1 = 0; // Ethereum key pair
+        IDEN3 = 1;
+    }
+    Type type = 1;
+    string alias = 2;
+    string identityId = 3; 
+}
