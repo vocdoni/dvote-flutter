@@ -7,21 +7,25 @@ void hdWallet() {
 
     final wallet1 = EthereumWallet.random();
     expect(mnemonicRegExp.hasMatch(wallet1.mnemonic), true);
+    expect(wallet1.mnemonic.split(" ").length, 18);
 
     final wallet2 = EthereumWallet.random();
     expect(mnemonicRegExp.hasMatch(wallet2.mnemonic), true);
     expect(wallet1.mnemonic != wallet2.mnemonic, true);
+    expect(wallet2.mnemonic.split(" ").length, 18);
 
-    final wallet3 = EthereumWallet.random();
+    final wallet3 = EthereumWallet.random(size: 160);
     expect(mnemonicRegExp.hasMatch(wallet3.mnemonic), true);
     expect(wallet1.mnemonic != wallet3.mnemonic, true);
     expect(wallet2.mnemonic != wallet3.mnemonic, true);
+    expect(wallet3.mnemonic.split(" ").length, 15);
 
-    final wallet4 = EthereumWallet.random();
+    final wallet4 = EthereumWallet.random(size: 128);
     expect(mnemonicRegExp.hasMatch(wallet4.mnemonic), true);
     expect(wallet1.mnemonic != wallet4.mnemonic, true);
     expect(wallet2.mnemonic != wallet4.mnemonic, true);
     expect(wallet3.mnemonic != wallet4.mnemonic, true);
+    expect(wallet4.mnemonic.split(" ").length, 12);
   });
 
   test("Create a wallet for a given mnemonic", () {
@@ -45,8 +49,17 @@ void hdWallet() {
         'civil very heart sock decade library moment permit retreat unhappy clown infant');
     expect(wallet.privateKey,
         '0x1b3711c03353ecbbf7b686127e30d6a37a296ed797793498ef24c04504ca5048');
-    expect(wallet.publicKey, '0x04ae5f2ecb63c4b9c71e1b396c8206720c02bddceb01da7c9f590aa028f110c035fa54045f6361fa0c6b5914a33e0d6f2f435818f0268ec8196062d1521ea8451a');
+    expect(wallet.publicKey,
+        '0x04ae5f2ecb63c4b9c71e1b396c8206720c02bddceb01da7c9f590aa028f110c035fa54045f6361fa0c6b5914a33e0d6f2f435818f0268ec8196062d1521ea8451a');
     expect(wallet.address, '0x9612bd0deb9129536267d154d672a7f1281eb468');
+
+    wallet = EthereumWallet.fromMnemonic(
+        'life noble news naive know verb leaf parade brisk chuckle midnight play');
+    expect(wallet.privateKey,
+        '0x3c21df88530a25979494c4c7789334ba5dd1c8c73d23c4077a7f223c2274830f');
+    expect(wallet.publicKey,
+        '0x041d792012043464ac528d15e3309d4e55b41205380dfe14a01e2be95a30d0ac80a313dbc6881d5f034c38d091cb27a0301b42faca820274e6a84d2268f8c4f556');
+    expect(wallet.address, '0x34e3b8a0299dc7dc53de09ce8361b41a7d888ec4');
   });
 
   test("Compute the private key for a given mnemonic and derivation path", () {
@@ -66,7 +79,8 @@ void hdWallet() {
         hdPath: "m/44'/60'/0'/0/1");
     expect(wallet.privateKey,
         '0x2b8642b869998d77243669463b68058299260349eba6c893d892d4b74eae95d4');
-    expect(wallet.publicKey, '0x04d8b869ceb2d90c2ab0b0eecd2f4215f42cb40a82e7de854ca14e85a1a84e00a45e1c37334666acb08b62b19f42c18524d9d5952fb43054363350820f5190f17d');
+    expect(wallet.publicKey,
+        '0x04d8b869ceb2d90c2ab0b0eecd2f4215f42cb40a82e7de854ca14e85a1a84e00a45e1c37334666acb08b62b19f42c18524d9d5952fb43054363350820f5190f17d');
     expect(wallet.address, '0x67b5615fdc5c65afce9b97bd217804f1db04bc1b');
 
     // index 2
@@ -75,7 +89,8 @@ void hdWallet() {
         hdPath: "m/44'/60'/0'/0/2");
     expect(wallet.privateKey,
         '0x562870cd36727fdca458ada4c2a34e0170b7b4cc4d3dc3b60cba3582bf8c3167');
-    expect(wallet.publicKey, '0x04887f399e99ce751f82f73a9a88ab015db74b40f707534f54a807fa6e10982cbfaffe93414466b347b83cd43bc0d1a147443576446b49d0e3d6db24f37fe02567');
+    expect(wallet.publicKey,
+        '0x04887f399e99ce751f82f73a9a88ab015db74b40f707534f54a807fa6e10982cbfaffe93414466b347b83cd43bc0d1a147443576446b49d0e3d6db24f37fe02567');
     expect(wallet.address, '0x0887fb27273a36b2a641841bf9b47470d5c0e420');
   });
 }
