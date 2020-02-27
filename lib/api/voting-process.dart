@@ -113,7 +113,7 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
   })).then((result) => result.whereType<ProcessMetadata>().toList());
 }
 
-/// Returns number of existing blocks in the process
+/// Returns number of existing blocks in the blockchain
 Future<int> getBlockHeight(DVoteGateway dvoteGw) async {
   if (dvoteGw == null) throw Exception("Invalid parameters");
   try {
@@ -190,10 +190,9 @@ String getPollNullifier(String address, String processId) {
 }
 
 /// Returns estimated process remaining time in seconds
-Future<int> getTimeUntilEnd(String processId, int startBlock,
-    int numberOfBlocks, DVoteGateway dvoteGw) async {
-  if (!(processId is String) ||
-      !(startBlock is int) ||
+Future<int> getTimeUntilEnd(
+    int startBlock, int numberOfBlocks, DVoteGateway dvoteGw) async {
+  if (!(startBlock is int) ||
       !(numberOfBlocks is int) ||
       !(dvoteGw is DVoteGateway)) throw Exception("Invalid parameters");
   try {
@@ -209,11 +208,9 @@ Future<int> getTimeUntilEnd(String processId, int startBlock,
 }
 
 /// Returns estimated remaining time for the process start in seconds
-Future<int> getTimeUntilStart(
-    String processId, int startBlock, DVoteGateway dvoteGw) async {
-  if (!(processId is String) ||
-      !(startBlock is int) ||
-      !(dvoteGw is DVoteGateway)) throw Exception("Invalid parameters");
+Future<int> getTimeUntilStart(int startBlock, DVoteGateway dvoteGw) async {
+  if (!(startBlock is int) || !(dvoteGw is DVoteGateway))
+    throw Exception("Invalid parameters");
   try {
     int currentHeight = await getBlockHeight(dvoteGw);
     int remainingBlocks = startBlock - currentHeight;
