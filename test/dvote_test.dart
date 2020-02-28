@@ -1,4 +1,5 @@
 import "./unit/hd-wallet.dart";
+import "./unit/signature.dart";
 import "./unit/metadata.dart";
 import "./net/ens.dart";
 import "./net/bootnodes.dart";
@@ -8,6 +9,7 @@ import "./integration/voting.dart";
 
 void main() {
   hdWallet();
+  signature();
   dataModels();
 
   ens();

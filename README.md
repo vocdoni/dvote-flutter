@@ -27,10 +27,11 @@ import 'package:dvote/dvote.dart';
 Generating mnemonics and computing private/public keys
 
 ```dart
-final mnemonic = await generateMnemonic();
-final privateKey = await mnemonicToPrivateKey(mnemonic, hdPath: "m/44'/60'/0'/0/5");
-final publicKey = await mnemonicToPublicKey(mnemonic);
-final address = await mnemonicToAddress(mnemonic);
+final wallet = EthereumWallet.random(hdPath: "m/44'/60'/0'/0/5");
+final mnemonic = wallet.mnemonic;
+final privKey = wallet.privateKey;
+final pubKey = wallet.publicKey;
+final addr = wallet.address;
 ```
 
 ## Signing
@@ -39,14 +40,6 @@ Computing signatures using ECDSA cryptography
 ```dart
 final signature = await signString(messageToSign, privateKey);
 final valid = await verifySignature(signature, messageToSign, publicKey);
-```
-
-## Encryption
-Using symmetric AES-GCM encryption to store private data on a mobile device
-
-```dart
-final encrypted = await encryptString(myText, myPassphrase);
-final decrypted = await decryptString(encrypted, myPassphrase);
 ```
 
 ## Entity API

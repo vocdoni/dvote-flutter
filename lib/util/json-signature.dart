@@ -1,28 +1,31 @@
 import 'dart:convert';
 import '../crypto/signature.dart';
+import 'package:dvote/constants.dart';
 
 /// Sign the given body using privateKey. Returns an hex-encoded string with the signature.
-String signJsonPayload(Map<String, dynamic> body, String privateKey) {
+Future<String> signJsonPayload(Map<String, dynamic> body, String privateKey,
+    {int chainId = DEFAULT_CHAIN_ID}) {
   // Ensure alphabetically ordered key names
   final sortedBody = sortMapFields(body);
   final strBody = jsonEncode(sortedBody);
 
-  return signString(strBody, privateKey);
+  return signString(strBody, privateKey, chainId: chainId);
 }
 
 /// Check whether the given signature matches the given body and publicKey.
 /// Returns true if no publicKey is given
-bool isValidJsonSignature(
-    String signature, Map<String, dynamic> body, String publicKey) {
+Future<bool> isValidJsonSignature(
+    String signature, Map<String, dynamic> body, String publicKey,
+    {int chainId = DEFAULT_CHAIN_ID}) {
   if (signature == null || body == null)
     throw Exception("Invalid parameters");
-  else if (publicKey == null || publicKey == "") return true;
+  else if (publicKey == null || publicKey == "") return Future.value(true);
 
   // Ensure alphabetically ordered key names
   final sortedBody = sortMapFields(body);
   final strBody = jsonEncode(sortedBody);
 
-  return verifySignature(signature, strBody, publicKey);
+  return verifySignature(signature, strBody, publicKey, chainId: chainId);
 }
 
 // ----------------------------------------------------------------------------

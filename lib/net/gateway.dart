@@ -188,9 +188,9 @@ class DVoteGateway {
     }
 
     final nowTimestampBase = getTimestampForGateway();
-    final signatureValidFrom = nowTimestampBase - SIGNATURE_TIMESTAMP_TOLERANCE;
+    final signatureValidFrom = nowTimestampBase - SIGNATURE_TIMESTAMP_TOLERANCE_GW;
     final signatureValidUntil =
-        nowTimestampBase + SIGNATURE_TIMESTAMP_TOLERANCE;
+        nowTimestampBase + SIGNATURE_TIMESTAMP_TOLERANCE_GW;
 
     // ERROR RESPONSE CASE
     if (decodedMessage["error"] != null) {
