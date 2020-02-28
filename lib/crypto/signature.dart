@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dvote/constants.dart';
 import 'package:hex/hex.dart';
 import 'package:web3dart/web3dart.dart';
 // import 'package:web3dart/crypto.dart';
 
 /// Sign the given payload using the private key and return a hex signature
 Future<String> signString(String payload, String privateKey,
-    {int chainId = DEFAULT_CHAIN_ID}) async {
+    {int chainId}) async {
   if (payload == null)
     throw Exception("The payload is empty");
   else if (privateKey == null) throw Exception("The privateKey is empty");
@@ -21,10 +20,6 @@ Future<String> signString(String payload, String privateKey,
     final signature = await signerPrivKey.signPersonalMessage(
         Uint8List.fromList(utf8.encode(payload)),
         chainId: chainId);
-
-    // To stay compatible with Ethers.js, we return either 0x1b or 0x1c
-    signature[signature.length - 1] =
-        signature[signature.length - 1] + 0x1b - (chainId * 2 + 35);
 
     return "0x" + HEX.encode(signature);
 
@@ -68,7 +63,7 @@ Future<String> signString(String payload, String privateKey,
 /// public key
 Future<bool> verifySignature(
     String hexSignature, String strPayload, String hexPublicKey,
-    {int chainId = DEFAULT_CHAIN_ID}) {
+    {int chainId}) {
   if (hexSignature == null)
     throw Exception("The hexSignature is empty");
   else if (strPayload == null)

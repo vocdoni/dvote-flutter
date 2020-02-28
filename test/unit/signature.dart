@@ -40,4 +40,19 @@ void signature() {
     expect(signature,
         "0x12d77e67c734022f7ab66231377621b75b454d724303bb158019549cf9f02d384d9af1d33266ca017248d8914b111cbb68b7cc9f045e95ccbde5ce389254450f1b");
   });
+
+  test("Sign a plain string", () async {
+    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+        'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
+
+    String message = "hello";
+    String signature = await signString(message, wallet.privateKey);
+    expect(signature,
+        "0x9d06b4f31641aba791bb79dfb211c1141c4b3e346f230c05256c657c5c10916229a8f4cee40bfdbe0d90061d60e712ec5ec0c59cb90321814848ec2f6f7763181b");
+
+    message = "àèìòù";
+    signature = await signString(message, wallet.privateKey);
+    expect(signature,
+        "0x2cbf9ae0de3df7e975b68b4cf67e14a0b49a1f8ed5d54c6c13d2ff936585036232fb53846fd49331bf8832fcd7e4517c3f07c951b95d5e0e102e572bbbadda811c");
+  });
 }
