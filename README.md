@@ -38,8 +38,13 @@ final addr = wallet.address;
 Computing signatures using ECDSA cryptography
 
 ```dart
+// Signing plain text
 final signature = await signString(messageToSign, privateKey);
 final valid = await verifySignature(signature, messageToSign, publicKey);
+
+// Signing reproduceable JSON data
+final signature2 = await signJsonPayload({"hello": 1234}, privateKey)
+final valid2 = await isValidJsonSignature(signature2, {"hello": 1234}, publicKey)
 ```
 
 ## Entity API
