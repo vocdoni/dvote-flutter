@@ -19,6 +19,7 @@ dependencies:
   bip39: ^1.0.3
   bip32: ^1.0.5
   pinenacl: ^0.1.2
+  dvote_native: ^0.1.0
 
 dev_dependencies:
   flutter_test:

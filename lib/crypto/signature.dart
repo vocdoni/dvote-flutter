@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:hex/hex.dart';
 import 'package:web3dart/web3dart.dart';
 // import 'package:web3dart/crypto.dart';
+import 'package:dvote_native/dvote_native.dart' as dvoteNative;
 
 /// Sign the given payload using the private key and return a hex signature
 Future<String> signString(String payload, String privateKey,
@@ -70,9 +71,11 @@ Future<bool> verifySignature(
     throw Exception("The payload is empty");
   else if (hexPublicKey == null) throw Exception("The hexPublicKey is empty");
 
+  // TODO: CHAIN ID IS NOT USED
+
   try {
-    // TODO: UNAVAILABLE ON WEB3DART
-    throw Exception("UNIMPLEMENTED");
+    // TODO: USE FROM WEB3DART WHEN AVAILABLE
+    return dvoteNative.verifySignature(hexSignature, strPayload, hexPublicKey);
   } catch (err) {
     throw Exception("The signature could not be verified");
   }
