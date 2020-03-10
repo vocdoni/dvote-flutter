@@ -188,7 +188,8 @@ class DVoteGateway {
     }
 
     final nowTimestampBase = getTimestampForGateway();
-    final signatureValidFrom = nowTimestampBase - SIGNATURE_TIMESTAMP_TOLERANCE_GW;
+    final signatureValidFrom =
+        nowTimestampBase - SIGNATURE_TIMESTAMP_TOLERANCE_GW;
     final signatureValidUntil =
         nowTimestampBase + SIGNATURE_TIMESTAMP_TOLERANCE_GW;
 
@@ -273,8 +274,8 @@ class DVoteGateway {
   /// Calls `getGatewayInfo` on the currently connected node.
   /// Connects to it if not already.
   Future<Map<String, dynamic>> getInfo() {
-    return this
-        .sendRequest({"method": "getGatewayInfo", "timestamp": getTimestampForGateway()});
+    return this.sendRequest(
+        {"method": "getGatewayInfo", "timestamp": getTimestampForGateway()});
   }
 
   // /// Adds a callback to be invoked in case of incoming notification
@@ -315,7 +316,7 @@ class DVoteGateway {
         .toList();
   }
 
-  /// Checks the health of the current GW by calling https://<host>/ping or http://<host>/ping.
+  /// Checks the health of the given GW by calling https://<host>/ping or http://<host>/ping.
   /// Returns false if the response is invalid or after 5 seconds of inactivity.
   static Future<bool> isUp(String gatewayUri) {
     final uri = Uri.parse(gatewayUri);

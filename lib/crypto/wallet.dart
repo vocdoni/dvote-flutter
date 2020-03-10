@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:web3dart/credentials.dart';
 import 'package:web3dart/crypto.dart';
 import "package:hex/hex.dart";
 import 'package:bip32/bip32.dart' as bip32;
@@ -53,31 +54,7 @@ class EthereumWallet {
     final pubKeyBytes = privateKeyToPublic(privKeyBigInt);
 
     final addrBytes = publicKeyToAddress(pubKeyBytes);
-    final addrHex = HEX.encode(addrBytes);
-
-    // TODO: CHECKSUM CASE
-
-    // address = address.toLowerCase();
-
-    // let chars = address.substring(2).split('');
-
-    // let hashed = new Uint8Array(40);
-    // for (let i = 0; i < 40; i++) {
-    //   hashed[i] = chars[i].charCodeAt(0);
-    // }
-    // hashed = arrayify(keccak256(hashed));
-
-    // for (var i = 0; i < 40; i += 2) {
-    //   if ((hashed[i >> 1] >> 4) >= 8) {
-    //     chars[i] = chars[i].toUpperCase();
-    //   }
-    //   if ((hashed[i >> 1] & 0x0f) >= 8) {
-    //     chars[i + 1] = chars[i + 1].toUpperCase();
-    //   }
-    // }
-
-    // return '0x' + chars.join('');
-
-    return '0x' + addrHex;
+    final addr = EthereumAddress(addrBytes);
+    return addr.hexEip55;
   }
 }
