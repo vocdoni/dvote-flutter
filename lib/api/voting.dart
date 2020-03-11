@@ -269,8 +269,8 @@ Future<String> packageSnarkEnvelope(
   */
 }
 
-Future<Map<String, String>> packagePollEnvelope(List<int> votes,
-    String merkleProof, String processId, String signingPrivateKey) async {
+Map<String, String> packagePollEnvelope(List<int> votes, String merkleProof,
+    String processId, String signingPrivateKey) {
   if (!(votes is List) ||
       !(processId is String) ||
       !(merkleProof is String) ||
@@ -290,7 +290,7 @@ Future<Map<String, String>> packagePollEnvelope(List<int> votes,
       //singature:  Must be unset because the body must be singed without the  signature
     };
 
-    final signature = await signJsonPayload(package, signingPrivateKey);
+    final signature = signJsonPayload(package, signingPrivateKey);
     package["signature"] = signature;
 
     return package;

@@ -97,7 +97,7 @@ Future<void> vote() async {
     // Generate Envelope
     print("\nGenerating the Vote Envelope");
     final voteValues = [1, 2, 1];
-    pollVoteEnvelope = await packagePollEnvelope(
+    pollVoteEnvelope = packagePollEnvelope(
         voteValues, merkleProof, processMeta.meta["id"], privateKey);
     print("Poll vote envelope:  $pollVoteEnvelope");
 

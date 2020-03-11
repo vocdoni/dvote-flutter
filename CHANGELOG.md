@@ -1,3 +1,7 @@
+## 0.8.1
+
+- Using synchronous signing primitives
+
 ## 0.8.0
 
 - Publishing the library as a pure Dart Package instead of a Flutter Plugin

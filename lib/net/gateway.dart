@@ -129,7 +129,7 @@ class DVoteGateway {
     if (privateKey == null || privateKey == "") {
       requestPayload = {"id": id, "request": requestBody, "signature": ""};
     } else {
-      final signature = await signJsonPayload(requestBody, privateKey);
+      final signature = signJsonPayload(requestBody, privateKey);
       requestPayload = {
         "id": id,
         "request": requestBody,
@@ -215,8 +215,8 @@ class DVoteGateway {
           error["timestamp"] > signatureValidUntil) {
         return req.completer
             .completeError(Exception("The response timestamp is invalid"));
-      } else if (!(await isValidJsonSignature(
-          decodedMessage["signature"], error, publicKey))) {
+      } else if (!isValidJsonSignature(
+          decodedMessage["signature"], error, publicKey)) {
         return req.completer
             .completeError(Exception("The response signature is not valid"));
       } else if (!(error["message"] is String)) {
@@ -247,8 +247,8 @@ class DVoteGateway {
         decodedResponse["timestamp"] > signatureValidUntil) {
       return req.completer
           .completeError(Exception("The response timestamp is invalid"));
-    } else if (!(await isValidJsonSignature(
-        decodedMessage["signature"], decodedResponse, publicKey))) {
+    } else if (!isValidJsonSignature(
+        decodedMessage["signature"], decodedResponse, publicKey)) {
       return req.completer
           .completeError(Exception("The response signature is not valid"));
     }

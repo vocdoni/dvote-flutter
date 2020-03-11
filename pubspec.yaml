@@ -1,6 +1,6 @@
 name: dvote
 description: Decentralized, end-to-end verifiable governance platform client library for Dart.
-version: 0.8.0
+version: 0.8.1
 homepage: https://gitlab.com/vocdoni/dvote-flutter
 repository: https://gitlab.com/vocdoni/dvote-flutter.git
 documentation: https://pub.dev/documentation/dvote/latest/
@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
   http: ^0.12.0+4
   hex: ^0.1.2
-  web3dart: ^1.2.3
+  web3dart: ^2.0.0-dev.1
   convert: ^2.1.1
   protobuf: ^1.0.1
   bip39: ^1.0.3
