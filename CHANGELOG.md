@@ -1,3 +1,7 @@
+## 0.8.2
+
+- Extracting symmetric encryption into the library
+
 ## 0.8.1
 
 - Using synchronous signing primitives
