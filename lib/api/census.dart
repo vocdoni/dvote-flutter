@@ -1,12 +1,17 @@
 import 'package:dvote/dvote.dart';
 import 'package:dvote/util/dev.dart';
+import 'package:flutter/foundation.dart';
 import '../net/gateway.dart';
-import "../crypto/hashing.dart";
+import 'package:dvote_native/dvote_native.dart' as dvoteNative;
 
 /// Returns the Poseidon hash of the given hex ECDSA public key.
 /// The result is provided in base64
 Future<String> digestHexClaim(String hexPublicKey) {
-  return poseidonHash(hexPublicKey);
+  if (!(hexPublicKey is String) || hexPublicKey.length == 0)
+    throw Exception("The payload is empty");
+
+  // Use `compute` to make an async computation that does not block the UI thread
+  return compute<String, String>(dvoteNative.digestHexClaim, hexPublicKey);
 }
 
 /// Fetch the Merkle Proof that proves that the given claim is part

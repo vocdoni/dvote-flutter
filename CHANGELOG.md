@@ -1,3 +1,7 @@
+## 0.9.0
+
+* Importing the native poseidon hash and ZK proofs generators
+
 ## 0.8.2
 
 - Extracting symmetric encryption into the library

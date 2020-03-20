@@ -5,7 +5,6 @@ export './api/voting.dart';
 export './api/census.dart';
 export './api/file.dart';
 export './crypto/encryption.dart';
-export './crypto/hashing.dart';
 export './crypto/signature.dart';
 export './crypto/wallet.dart';
 export './net/gateway.dart';

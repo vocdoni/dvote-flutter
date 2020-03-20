@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:convert';
 import 'dart:math';
 import 'package:convert/convert.dart';
@@ -14,6 +15,7 @@ import '../models/dart/entity.pb.dart';
 import '../models/dart/process.pb.dart';
 import '../util/json-signature.dart';
 import '../constants.dart';
+import 'package:dvote_native/dvote_native.dart' as dvoteNative;
 
 enum ProcessContractGetResultIdx {
   PROCESS_TYPE,
@@ -297,6 +299,35 @@ Map<String, String> packagePollEnvelope(List<int> votes, String merkleProof,
   } catch (error) {
     throw Exception("Poll vote Envelope could not be generated");
   }
+}
+
+/// Returns a zero-knowledge proof computed on the given circuit inputs
+/// using the given proving key path. The proving key file needs to be accessible
+/// on the filesystem.
+Future<String> generateZkProof(
+    Map<String, dynamic> circuitInputs, String provingKeyPath) async {
+  final fd = File(provingKeyPath);
+  if (!(await fd.exists())) {
+    throw Exception("The proving key does not exist");
+  }
+
+  // Use `compute` to make an async computation that does not block the UI thread
+  return compute<List<dynamic>, String>(
+      _generateZkProof, [circuitInputs, provingKeyPath]);
+}
+
+String _generateZkProof(List<dynamic> args) {
+  if (!(args is List) || args.length != 2)
+    throw Exception("The function expects a list of two arguments");
+  else if (!(args[0] is Map))
+    throw Exception(
+        "The first argument has to be a Map with the circuit inputs");
+  else if (!(args[1] is String))
+    throw Exception("The second argument has to be a String with a path");
+
+  final Map<String, dynamic> circuitInputs = args[0];
+  final String provingKeyPath = args[1];
+  return dvoteNative.generateZkProof(circuitInputs, provingKeyPath);
 }
 
 // ////////////////////////////////////////////////////////////////////////////
