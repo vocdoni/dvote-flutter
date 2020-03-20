@@ -1,3 +1,7 @@
+## 0.9.1
+
+* Adding async versions of ECDSA signing functions
+
 ## 0.9.0
 
 * Importing the native poseidon hash and ZK proofs generators

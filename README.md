@@ -39,12 +39,28 @@ Computing signatures using ECDSA cryptography
 
 ```dart
 // Signing plain text
-final signature = signString(messageToSign, privateKey);
-final valid = verifySignature(signature, messageToSign, publicKey);
+final hexSignature = signString(messageToSign, privateKey);
+final recoveredPubKey = recoverSignerPubKey(hexSignature, messageToSign);
+final valid = isValidSignature(hexSignature, messageToSign, publicKey);
 
 // Signing reproduceable JSON data
-final signature2 = signJsonPayload({"hello": 1234}, privateKey)
-final valid2 = isValidJsonSignature(signature2, {"hello": 1234}, publicKey)
+final hexSignature2 = signJsonPayload({"hello": 1234}, privateKey);
+final recoveredPubKey = recoverJsonSignerPubKey(hexSignature2, {"hello": 1234});
+final valid2 = isValidJsonSignature(hexSignature2, {"hello": 1234}, publicKey);
+```
+
+Also available as async non-UI blocking functions:
+
+```dart
+// Signing plain text
+final hexSignature = await signStringAsync(messageToSign, privateKey);
+final recoveredPubKey = await recoverSignerPubKeyAsync(hexSignature, messageToSign);
+final valid = await isValidSignatureAsync(hexSignature, messageToSign, publicKey);
+
+// Signing reproduceable JSON data
+final hexSignature2 = await signJsonPayloadAsync({"hello": 1234}, privateKey);
+final recoveredPubKey = await recoverJsonSignerPubKeyAsync(hexSignature2, {"hello": 1234});
+final valid2 = await isValidJsonSignatureAsync(hexSignature2, {"hello": 1234}, publicKey);
 ```
 
 ## Entity API
@@ -177,3 +193,7 @@ Raw JSON data can't be directly serialized into a Protobuf object. For this reas
 ## Example
 
 - See `example/lib/main.dart` for a usage example.
+
+## TO DO
+
+- [ ] Document examples of Poseidon hash, generate Merkle Proofs and ZK proofs

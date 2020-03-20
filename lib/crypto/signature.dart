@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:hex/hex.dart';
 // import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/crypto.dart' as crypto;
@@ -137,7 +138,81 @@ bool isValidSignature(
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// WRAPPERS
+///////////////////////////////////////////////////////////////////////////////
+
+/// Async version of signString
+Future<String> signStringAsync(String payload, String hexPrivateKey,
+    {int chainId}) {
+  return compute<List<dynamic>, String>(
+      _signStringAsync, [payload, hexPrivateKey, chainId]);
+}
+
+String _signStringAsync(List<dynamic> args) {
+  if (!(args is List) || args.length != 3)
+    throw Exception("The function expects a list of three arguments");
+  else if (!(args[0] is String))
+    throw Exception(
+        "The first argument must be a String with the payload to sign");
+  else if (!(args[1] is String))
+    throw Exception(
+        "The second argument must be a hex String with the private key");
+  else if (!(args[2] is int) && args[2] != null)
+    throw Exception("The third argument must be either the chainId or null");
+
+  return signString(args[0], args[1], chainId: args[2]);
+}
+
+Future<String> recoverSignerPubKeyAsync(String hexSignature, String strPayload,
+    {int chainId}) {
+  return compute<List<dynamic>, String>(
+      _recoverSignerPubKeyAsyncAsync, [hexSignature, strPayload, chainId]);
+}
+
+String _recoverSignerPubKeyAsyncAsync(List<dynamic> args) {
+  if (!(args is List) || args.length != 3)
+    throw Exception("The function expects a list of three arguments");
+  else if (!(args[0] is String))
+    throw Exception(
+        "The first argument must be a String with the hex signature");
+  else if (!(args[1] is String))
+    throw Exception(
+        "The second argument must be a String with the signed payload");
+  else if (!(args[2] is int) && args[2] != null)
+    throw Exception("The third argument must be either the chainId or null");
+
+  return recoverSignerPubKey(args[0], args[1], chainId: args[2]);
+}
+
+Future<bool> isValidSignatureAsync(
+    String hexSignature, String strPayload, String hexPublicKey,
+    {int chainId}) {
+  return compute<List<dynamic>, bool>(_isValidSignatureAsync,
+      [hexSignature, strPayload, hexPublicKey, chainId]);
+}
+
+bool _isValidSignatureAsync(List<dynamic> args) {
+  if (!(args is List) || args.length != 4)
+    throw Exception("The function expects a list of three arguments");
+  else if (!(args[0] is String))
+    throw Exception(
+        "The first argument must be a hex String with the signature");
+  else if (!(args[1] is String))
+    throw Exception(
+        "The second argument must be a String with the signed payload");
+  else if (!(args[2] is String))
+    throw Exception(
+        "The first argument must be a hex String with the expected public key");
+  else if (!(args[3] is int) && args[3] != null)
+    throw Exception("The third argument must be either the chainId or null");
+
+  return isValidSignature(args[0], args[1], args[2], chainId: args[3]);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // INTERNAL
+///////////////////////////////////////////////////////////////////////////////
 
 Uint8List _hashPayloadForSignature(String payload) {
   final payloadBytes = Uint8List.fromList(utf8.encode(payload));
