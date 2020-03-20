@@ -8,9 +8,7 @@ import '../crypto/signature.dart';
 /// Sign the given body using privateKey. Returns an hex-encoded string with the signature.
 String signJsonPayload(Map<String, dynamic> body, String privateKey,
     {int chainId}) {
-  // Ensure alphabetically ordered key names
-  final sortedBody = sortJsonFields(body);
-  final strBody = jsonEncode(sortedBody);
+  final strBody = serializeJsonBody(body);
 
   return signString(strBody, privateKey, chainId: chainId);
 }
@@ -20,10 +18,7 @@ String recoverJsonSignerPubKey(String signature, Map<String, dynamic> body,
     {int chainId}) {
   if (signature == null || body == null) throw Exception("Invalid parameters");
 
-  // Ensure alphabetically ordered key names
-  final sortedBody = sortJsonFields(body);
-  final strBody = jsonEncode(sortedBody);
-
+  final strBody = serializeJsonBody(body);
   return recoverSignerPubKey(signature, strBody, chainId: chainId);
 }
 
@@ -36,10 +31,7 @@ bool isValidJsonSignature(
     throw Exception("Invalid parameters");
   else if (publicKey == null || publicKey == "") return true;
 
-  // Ensure alphabetically ordered key names
-  final sortedBody = sortJsonFields(body);
-  final strBody = jsonEncode(sortedBody);
-
+  final strBody = serializeJsonBody(body);
   return isValidSignature(signature, strBody, publicKey, chainId: chainId);
 }
 
@@ -51,10 +43,7 @@ bool isValidJsonSignature(
 Future<String> signJsonPayloadAsync(
     Map<String, dynamic> body, String privateKey,
     {int chainId}) {
-  // Ensure alphabetically ordered key names
-  final sortedBody = sortJsonFields(body);
-  final strBody = jsonEncode(sortedBody);
-
+  final strBody = serializeJsonBody(body);
   return signStringAsync(strBody, privateKey, chainId: chainId);
 }
 
@@ -64,10 +53,7 @@ Future<String> recoverJsonSignerPubKeyAsync(
     {int chainId}) {
   if (signature == null || body == null) throw Exception("Invalid parameters");
 
-  // Ensure alphabetically ordered key names
-  final sortedBody = sortJsonFields(body);
-  final strBody = jsonEncode(sortedBody);
-
+  final strBody = serializeJsonBody(body);
   return recoverSignerPubKeyAsync(signature, strBody, chainId: chainId);
 }
 
@@ -80,16 +66,20 @@ Future<bool> isValidJsonSignatureAsync(
     throw Exception("Invalid parameters");
   else if (publicKey == null || publicKey == "") return Future.value(true);
 
-  // Ensure alphabetically ordered key names
-  final sortedBody = sortJsonFields(body);
-  final strBody = jsonEncode(sortedBody);
-
+  final strBody = serializeJsonBody(body);
   return isValidSignatureAsync(signature, strBody, publicKey, chainId: chainId);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // HELPERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// Returns a serialized, reproduceable string from the JSON body, used to compute signatures
+String serializeJsonBody(dynamic body) {
+  // Ensure alphabetically ordered key names
+  final sortedBody = sortJsonFields(body);
+  return jsonEncode(sortedBody);
+}
 
 /// Signatures need to be computed over objects that can be 100% reproduceable.
 /// Since the ordering is not guaranteed, this function returns a recursively
