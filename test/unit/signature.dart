@@ -215,4 +215,40 @@ void signature() {
         await isValidSignatureAsync(signature2, message, wallet.publicKey);
     expect(isValid1, isValid2);
   });
+
+  test("Sync and async should match with JSON", () async {
+    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+        'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
+
+    // Plain json
+    Map<String, dynamic> payload = {"hello": 1234, "abcde": 2345};
+    String signature1 = signJsonPayload(payload, wallet.privateKey);
+    String signature2 = await signJsonPayloadAsync(payload, wallet.privateKey);
+    expect(signature1, signature2);
+
+    String recoveredPubKey1 = recoverJsonSignerPubKey(signature1, payload);
+    String recoveredPubKey2 =
+        await recoverJsonSignerPubKeyAsync(signature2, payload);
+    expect(recoveredPubKey1, recoveredPubKey2);
+
+    bool isValid1 = isValidJsonSignature(signature1, payload, wallet.publicKey);
+    bool isValid2 =
+        await isValidJsonSignatureAsync(signature2, payload, wallet.publicKey);
+    expect(isValid1, isValid2);
+
+    // UTF-8 json
+    payload = {"Z": 1234, "àèìòù": 2345};
+    signature1 = signJsonPayload(payload, wallet.privateKey);
+    signature2 = await signJsonPayloadAsync(payload, wallet.privateKey);
+    expect(signature1, signature2);
+
+    recoveredPubKey1 = recoverJsonSignerPubKey(signature1, payload);
+    recoveredPubKey2 = await recoverJsonSignerPubKeyAsync(signature2, payload);
+    expect(recoveredPubKey1, recoveredPubKey2);
+
+    isValid1 = isValidJsonSignature(signature1, payload, wallet.publicKey);
+    isValid2 =
+        await isValidJsonSignatureAsync(signature2, payload, wallet.publicKey);
+    expect(isValid1, isValid2);
+  });
 }
