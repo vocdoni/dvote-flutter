@@ -1,3 +1,7 @@
+## 0.9.2
+
+* Verifying signatures against compressed public keys
+
 ## 0.9.1
 
 * Adding async versions of ECDSA signing functions

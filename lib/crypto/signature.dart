@@ -100,31 +100,30 @@ bool isValidSignature(
     throw Exception("The hexSignature is invalid");
   else if (strPayload == null)
     throw Exception("The payload is empty");
-  else if (hexPublicKey == null ||
-      hexPublicKey.length != 132 ||
-      !hexPublicKey.startsWith("0x04"))
-    throw Exception(
-        "The hexPublicKey should be an expanded hex string starting by 0x04");
+  else if (hexPublicKey == null || !hexPublicKey.startsWith("0"))
+    throw Exception("The hexPublicKey should be a hex string");
+
+  if (hexSignature.startsWith("0x"))
+    hexSignature = hexSignature.substring(2); // Strip 0x
+  if (hexPublicKey.startsWith("0x"))
+    hexPublicKey = hexPublicKey.substring(2); // Strip 0x
+
+  // expand the pubKey if not already
+  hexPublicKey =
+      HEX.encode(crypto.decompressPublicKey(HEX.decode(hexPublicKey)));
 
   // TODO: CHAIN ID IS NOT USED
 
   try {
     final pubKeyBytes =
-        Uint8List.fromList(HEX.decode(hexPublicKey.substring(4))); // Strip 0x04
+        Uint8List.fromList(HEX.decode(hexPublicKey.substring(2))); // Strip 04
 
     final hashedPayload = _hashPayloadForSignature(strPayload);
     final messageHashBytes = crypto.keccak256(hashedPayload);
 
-    String rStr, sStr, vStr;
-    if (hexSignature.startsWith("0x")) {
-      rStr = hexSignature.substring(0 + 2, 64 + 2);
-      sStr = hexSignature.substring(64 + 2, 128 + 2);
-      vStr = hexSignature.substring(128 + 2, 130 + 2);
-    } else {
-      rStr = hexSignature.substring(0, 64);
-      sStr = hexSignature.substring(64, 128);
-      vStr = hexSignature.substring(128, 130);
-    }
+    final rStr = hexSignature.substring(0, 64);
+    final sStr = hexSignature.substring(64, 128);
+    final vStr = hexSignature.substring(128, 130);
 
     final r = BigInt.parse(rStr, radix: 16);
     final s = BigInt.parse(sStr, radix: 16);
