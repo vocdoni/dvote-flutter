@@ -1,3 +1,7 @@
+## 0.9.3
+
+* Handling Ethereum signatures with a version byte below 0x1b
+
 ## 0.9.2
 
 * Verifying signatures against compressed public keys

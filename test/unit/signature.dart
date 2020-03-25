@@ -59,6 +59,23 @@ void signature() {
     expect(valid, true, reason: "The signature should be valid");
   });
 
+  test("Verify a signature received externally with 'v' below 72", () {
+    final publicKey =
+        "0x04d811f8ade566618a667715c637a7f3019f46ae0ffc8b2ec3b16b1f72999e2e2f9e9b50c78ca34175d78942de88798cce5d53569f96579a95ec9bab17c0131d4f";
+
+    String message = "hello";
+    String signature =
+        "0x9d06b4f31641aba791bb79dfb211c1141c4b3e346f230c05256c657c5c10916229a8f4cee40bfdbe0d90061d60e712ec5ec0c59cb90321814848ec2f6f77631800";
+    bool valid = isValidSignature(signature, message, publicKey);
+    expect(valid, true, reason: "The signature should be valid");
+
+    message = "àèìòù";
+    signature =
+        "0x2cbf9ae0de3df7e975b68b4cf67e14a0b49a1f8ed5d54c6c13d2ff936585036232fb53846fd49331bf8832fcd7e4517c3f07c951b95d5e0e102e572bbbadda8101";
+    valid = isValidSignature(signature, message, publicKey);
+    expect(valid, true, reason: "The signature should be valid");
+  });
+
   // Signed here
 
   test("Recover the public key of signatures generated locally", () {

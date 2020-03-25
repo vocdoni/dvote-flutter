@@ -127,7 +127,12 @@ bool isValidSignature(
 
     final r = BigInt.parse(rStr, radix: 16);
     final s = BigInt.parse(sStr, radix: 16);
-    final v = int.parse(vStr, radix: 16);
+    var v = int.parse(vStr, radix: 16);
+
+    // v should be 27 or 28, but 0 and 1 are also possible versions
+    if (v < 27) {
+      v += 27;
+    }
 
     final signatureData = crypto.MsgSignature(r, s, v);
     return crypto.isValidSignature(
