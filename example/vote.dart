@@ -88,7 +88,7 @@ Future<void> vote() async {
     // Merkle Proof
     print("\nRequesting Merkle Proof");
     merkleProof = await generateProof(
-        processMeta.census.merkleRoot, pubKeyClaim, dvoteGw);
+        processMeta.census.merkleRoot, pubKeyClaim, true, dvoteGw);
     // merkleProof = await generateProof(censusMerkleRoot, pubKeyClaim, dvoteGw);
     if (!(merkleProof is String))
       throw Exception("The Merkle Proof is not valid");
