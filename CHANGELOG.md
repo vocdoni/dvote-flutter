@@ -1,3 +1,7 @@
+## 0.10.0
+
+* Updating the API to generate and check census proofs
+
 ## 0.9.3
 
 * Handling Ethereum signatures with a version byte below 0x1b

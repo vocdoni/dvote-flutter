@@ -17,13 +17,14 @@ Future<String> digestHexClaim(String hexPublicKey) {
 /// Fetch the Merkle Proof that proves that the given claim is part
 /// of the Census Merkle Tree with the given Root Hash
 Future<String> generateProof(String censusMerkleRootHash, String base64Claim,
-    DVoteGateway dvoteGw) async {
+    bool isDigested, DVoteGateway dvoteGw) async {
   if (!(censusMerkleRootHash is String) || !(base64Claim is String))
     throw Exception('Invalid parameters');
   try {
     Map<String, dynamic> reqParams = {
       "method": "genProof",
       "censusId": censusMerkleRootHash,
+      "digested": isDigested,
       "claimData": base64Claim,
     };
     final response = await dvoteGw.sendRequest(reqParams, timeout: 20);
@@ -41,13 +42,14 @@ Future<String> generateProof(String censusMerkleRootHash, String base64Claim,
 
 /// Determine whether the Merkle Proof is valid for the given claim
 Future<bool> checkProof(String censusMerkleRootHash, String base64Claim,
-    String proofData, DVoteGateway dvoteGw) async {
+    bool isDigested, String proofData, DVoteGateway dvoteGw) async {
   if (!(censusMerkleRootHash is String) || !(base64Claim is String))
     throw Exception('Invalid parameters');
   try {
     Map<String, dynamic> reqParams = {
       "method": "checkProof",
       "censusId": censusMerkleRootHash,
+      "digested": isDigested,
       "claimData": base64Claim,
       "proofData": proofData
     };
