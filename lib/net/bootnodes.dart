@@ -17,8 +17,8 @@ import '../util/parsers.dart';
 
 var random = Random.secure();
 
-/// Retrieve the Content URI of the boot nodes Content URI provided by Vocdoni
-/// @param networkId Either "homestead" (mainnet) or "goerli" (test)
+/// Retrieve the Content URI of the boot nodes Content URI provided by Vocdoni.
+/// `networkId` should be either "homestead" or "goerli"
 Future<ContentURI> getDefaultBootnodeContentUri(String networkId) async {
   List<String> providerUris;
 
@@ -59,7 +59,7 @@ Future<ContentURI> getDefaultBootnodeContentUri(String networkId) async {
   throw Exception("The boot nodes Content URI is not defined on " + networkId);
 }
 
-/// Retrieve a set of gateways provided by default by Vocdoni
+/// Fetch the blockchain to retrieve the default gateways provided by Vocdoni
 Future<BootNodeGateways> getDefaultGatewaysDetails(String networkId) {
   return getDefaultBootnodeContentUri(networkId)
       .then((uri) => getGatewaysDetailsFromBootNode(uri.toString()));
