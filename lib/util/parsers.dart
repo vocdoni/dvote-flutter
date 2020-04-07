@@ -156,6 +156,9 @@ ProcessMetadata parseProcessMetadata(String json) {
       if (detailsMap["headerImage"] is String) {
         details.headerImage = detailsMap["headerImage"];
       }
+      if (detailsMap["streamUrl"] is String) {
+        details.streamUrl = detailsMap["streamUrl"];
+      }
 
       if (detailsMap["questions"] is List) {
         final questions = _parseQuestions(detailsMap["questions"]);
@@ -188,7 +191,12 @@ List<ProcessMetadata_Details_Question> _parseQuestions(List items) {
       final result = ProcessMetadata_Details_Question_VoteOption();
       if (item["title"] is Map)
         result.title.addAll(item["title"]?.cast<String, String>() ?? {});
-      if (item["value"] is String) result.value = item["value"];
+      if (item["value"] is int)
+        result.value = item["value"];
+      else if (item["value"] is String)
+        result.value = int.parse(item["value"]);
+      else
+        throw Exception("The vote value is not valid");
 
       return result;
     }).toList();

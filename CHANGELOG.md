@@ -1,3 +1,7 @@
+## 0.10.2
+
+* Use the new process metadata scheme from dvote-protobuf
+
 ## 0.10.1
 
 * Submitting vote packages with an updated format
