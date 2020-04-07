@@ -233,7 +233,7 @@ Future<void> submitEnvelope(
   } else if (!(voteEnvelope["processId"] is String) ||
       !(voteEnvelope["proof"] is String) ||
       !(voteEnvelope["nonce"] is String) ||
-      !(voteEnvelope["vote-package"] is String) ||
+      !(voteEnvelope["votePackage"] is String) ||
       !(voteEnvelope["signature"] is String)) {
     throw Exception("Invalid parameters");
   }
@@ -265,7 +265,7 @@ Future<String> packageSnarkEnvelope(
     "proof": proof, // ZK Proof
     "nonce": nonce, // Unique number per vote attempt, so that replay attacks can't reuse this payload
     "nullifier": "0x1234...", // Hash of the private key
-    "vote-package": votePackage, // base64(jsonString) is encrypted
+    "votePackage": votePackage, // base64(jsonString) is encrypted
   };
   return jsonEncode(package);
   */
@@ -288,7 +288,7 @@ Map<String, String> packagePollEnvelope(List<int> votes, String merkleProof,
       "proof": merkleProof,
       "nonce":
           nonce, // Unique number per vote attempt, so that replay attacks can't reuse this payload
-      "vote-package": votePackage
+      "votePackage": votePackage
       //singature:  Must be unset because the body must be singed without the  signature
     };
 

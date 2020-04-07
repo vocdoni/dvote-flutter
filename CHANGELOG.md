@@ -1,3 +1,7 @@
+## 0.10.1
+
+* Submitting vote packages with an updated format
+
 ## 0.10.0
 
 * Updating the API to generate and check census proofs
