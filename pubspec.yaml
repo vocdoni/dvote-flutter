@@ -3,8 +3,7 @@ description: Decentralized, end-to-end verifiable governance platform client lib
 version: 0.10.2
 homepage: https://gitlab.com/vocdoni/dvote-flutter
 repository: https://gitlab.com/vocdoni/dvote-flutter.git
-documentation: https://pub.dev/documentation/dvote/latest/
-# documentation: https://vocdoni.io/docs
+documentation: https://vocdoni.io/docs
 
 environment:
   sdk: ">=2.2.0 <3.0.0"

@@ -1,3 +1,7 @@
+## 0.10.3
+
+* Update the metadata to reference the docs
+
 ## 0.10.2
 
 * Use the new process metadata scheme from dvote-protobuf
