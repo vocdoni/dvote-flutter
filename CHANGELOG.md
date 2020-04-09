@@ -1,5 +1,6 @@
 ## 0.10.3
 
+* Updating dvote-flutter-native to support iOS ARMv7 targets
 * Update the metadata to reference the docs
 
 ## 0.10.2
