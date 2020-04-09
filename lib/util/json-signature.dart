@@ -1,16 +1,20 @@
 import 'dart:convert';
 import '../crypto/signature.dart';
 
-////////////////////////////////////////////////////////////////////////////////
-// SYNC VERSION
-////////////////////////////////////////////////////////////////////////////////
-
 /// Sign the given body using privateKey. Returns an hex-encoded string with the signature.
 String signJsonPayload(Map<String, dynamic> body, String privateKey,
     {int chainId}) {
   final strBody = serializeJsonBody(body);
 
   return signString(strBody, privateKey, chainId: chainId);
+}
+
+/// Sign the given body using privateKey. Returns an hex-encoded string with the signature.
+Future<String> signJsonPayloadAsync(
+    Map<String, dynamic> body, String privateKey,
+    {int chainId}) {
+  final strBody = serializeJsonBody(body);
+  return signStringAsync(strBody, privateKey, chainId: chainId);
 }
 
 /// Recover the public key that signed the given JSON payload into the given signature
@@ -20,6 +24,16 @@ String recoverJsonSignerPubKey(String signature, Map<String, dynamic> body,
 
   final strBody = serializeJsonBody(body);
   return recoverSignerPubKey(signature, strBody, chainId: chainId);
+}
+
+/// Recover the public key that signed the given JSON payload into the given signature
+Future<String> recoverJsonSignerPubKeyAsync(
+    String signature, Map<String, dynamic> body,
+    {int chainId}) {
+  if (signature == null || body == null) throw Exception("Invalid parameters");
+
+  final strBody = serializeJsonBody(body);
+  return recoverSignerPubKeyAsync(signature, strBody, chainId: chainId);
 }
 
 /// Check whether the given signature matches the given body and publicKey.
@@ -33,28 +47,6 @@ bool isValidJsonSignature(
 
   final strBody = serializeJsonBody(body);
   return isValidSignature(signature, strBody, publicKey, chainId: chainId);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// ASYNC VERSION
-////////////////////////////////////////////////////////////////////////////////
-
-/// Sign the given body using privateKey. Returns an hex-encoded string with the signature.
-Future<String> signJsonPayloadAsync(
-    Map<String, dynamic> body, String privateKey,
-    {int chainId}) {
-  final strBody = serializeJsonBody(body);
-  return signStringAsync(strBody, privateKey, chainId: chainId);
-}
-
-/// Recover the public key that signed the given JSON payload into the given signature
-Future<String> recoverJsonSignerPubKeyAsync(
-    String signature, Map<String, dynamic> body,
-    {int chainId}) {
-  if (signature == null || body == null) throw Exception("Invalid parameters");
-
-  final strBody = serializeJsonBody(body);
-  return recoverSignerPubKeyAsync(signature, strBody, chainId: chainId);
 }
 
 /// Check whether the given signature matches the given body and publicKey.

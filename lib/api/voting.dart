@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:math';
 import 'package:convert/convert.dart';
+import 'package:dvote/crypto/asyncify.dart';
 import 'package:dvote/dvote.dart';
 import 'package:dvote/util/parsers.dart';
 import 'package:flutter/foundation.dart';
@@ -311,9 +312,8 @@ Future<String> generateZkProof(
     throw Exception("The proving key does not exist");
   }
 
-  // Use `compute` to make an async computation that does not block the UI thread
-  return compute<List<dynamic>, String>(
-      _generateZkProof, [circuitInputs, provingKeyPath]);
+  return wrap2ParamFunc<String, Map<String, dynamic>, String>(
+      _generateZkProof, circuitInputs, provingKeyPath);
 }
 
 String _generateZkProof(List<dynamic> args) {

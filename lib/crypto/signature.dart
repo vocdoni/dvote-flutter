@@ -1,16 +1,71 @@
 import 'dart:convert';
 import 'dart:typed_data';
-
-import 'package:flutter/foundation.dart';
+import 'package:dvote/crypto/asyncify.dart';
 import 'package:hex/hex.dart';
-// import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/crypto.dart' as crypto;
-import 'package:web3dart/src/utils/typed_data.dart' as typed;
+
+// ////////////////////////////////////////////////////////////////////////////
+// / EXPORTED
+// ////////////////////////////////////////////////////////////////////////////
+
+/// Sign the given payload using the private key and return a hex signature
+String signString(String payload, String hexPrivateKey, {int chainId}) {
+  return _signString([payload, hexPrivateKey, chainId]);
+}
+
+/// Sign the given payload using the private key and return a hex signature
+Future<String> signStringAsync(String payload, String hexPrivateKey,
+    {int chainId}) {
+  return wrap3ParamFunc<String, String, String, int>(
+      _signString, payload, hexPrivateKey, chainId);
+}
+
+/// Recover the public key that signed the given message into the given signature
+String recoverSignerPubKey(String hexSignature, String strPayload,
+    {int chainId}) {
+  return _recoverSignerPubKey([hexSignature, strPayload, chainId]);
+}
+
+/// Recover the public key that signed the given message into the given signature
+Future<String> recoverSignerPubKeyAsync(String hexSignature, String strPayload,
+    {int chainId}) {
+  return wrap3ParamFunc<String, String, String, int>(
+      _recoverSignerPubKey, hexSignature, strPayload, chainId);
+}
+
+/// Check whether the given signature is valid and belongs to the given message and
+/// public key
+bool isValidSignature(
+    String hexSignature, String strPayload, String hexPublicKey,
+    {int chainId}) {
+  return _isValidSignature([hexSignature, strPayload, hexPublicKey, chainId]);
+}
+
+/// Check whether the given signature is valid and belongs to the given message and
+/// public key
+Future<bool> isValidSignatureAsync(
+    String hexSignature, String strPayload, String hexPublicKey,
+    {int chainId}) {
+  return wrap4ParamFunc<bool, String, String, String, int>(
+      _isValidSignature, hexSignature, strPayload, hexPublicKey, chainId);
+}
+
+// ////////////////////////////////////////////////////////////////////////////
+// / IMPLEMENTATION
+// ////////////////////////////////////////////////////////////////////////////
 
 const SIGNATURE_MESSAGE_PREFIX = '\u0019Ethereum Signed Message:\n';
 
 /// Sign the given payload using the private key and return a hex signature
-String signString(String payload, String hexPrivateKey, {int chainId}) {
+String _signString(List<dynamic> args) {
+  assert(args.length == 2 || args.length == 3);
+  final payload = args[0];
+  assert(payload is String);
+  final hexPrivateKey = args[1];
+  assert(hexPrivateKey is String);
+  final chainId = args[2];
+  assert(chainId is int || chainId == null);
+
   if (payload == null)
     throw Exception("The payload is empty");
   else if (hexPrivateKey == null) throw Exception("The privateKey is empty");
@@ -40,11 +95,11 @@ String signString(String payload, String hexPrivateKey, {int chainId}) {
     final chainIdV =
         chainId != null ? (signature.v - 27 + (chainId * 2 + 35)) : signature.v;
 
-    final r = typed.padUint8ListTo32(crypto.intToBytes(signature.r));
-    final s = typed.padUint8ListTo32(crypto.intToBytes(signature.s));
+    final r = _padUint8ListTo32(crypto.intToBytes(signature.r));
+    final s = _padUint8ListTo32(crypto.intToBytes(signature.s));
     final v = crypto.intToBytes(BigInt.from(chainIdV));
 
-    final sigBytes = typed.uint8ListFromList(r + s + v);
+    final sigBytes = _uint8ListFromList(r + s + v);
     return "0x" + HEX.encode(sigBytes);
   } catch (err) {
     throw Exception("The signature could not be computed");
@@ -52,8 +107,15 @@ String signString(String payload, String hexPrivateKey, {int chainId}) {
 }
 
 /// Recover the public key that signed the given message into the given signature
-String recoverSignerPubKey(String hexSignature, String strPayload,
-    {int chainId}) {
+String _recoverSignerPubKey(List<dynamic> args) {
+  assert(args.length == 2 || args.length == 3);
+  final hexSignature = args[0];
+  assert(hexSignature is String);
+  final strPayload = args[1];
+  assert(strPayload is String);
+  final chainId = args[2];
+  assert(chainId is int || chainId == null);
+
   if (hexSignature == null ||
       hexSignature.length < 130 ||
       hexSignature.length > 132)
@@ -91,9 +153,17 @@ String recoverSignerPubKey(String hexSignature, String strPayload,
 
 /// Check whether the given signature is valid and belongs to the given message and
 /// public key
-bool isValidSignature(
-    String hexSignature, String strPayload, String hexPublicKey,
-    {int chainId}) {
+bool _isValidSignature(List<dynamic> args) {
+  assert(args.length == 3 || args.length == 4);
+  var hexSignature = args[0];
+  assert(hexSignature is String);
+  final strPayload = args[1];
+  assert(strPayload is String);
+  var hexPublicKey = args[2];
+  assert(hexPublicKey is String);
+  final chainId = args[3];
+  assert(chainId is int || chainId == null);
+
   if (hexSignature == null ||
       hexSignature.length < 130 ||
       hexSignature.length > 132)
@@ -142,85 +212,34 @@ bool isValidSignature(
   }
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// WRAPPERS
-///////////////////////////////////////////////////////////////////////////////
-
-/// Async version of signString
-Future<String> signStringAsync(String payload, String hexPrivateKey,
-    {int chainId}) {
-  return compute<List<dynamic>, String>(
-      _signStringAsync, [payload, hexPrivateKey, chainId]);
-}
-
-String _signStringAsync(List<dynamic> args) {
-  if (!(args is List) || args.length != 3)
-    throw Exception("The function expects a list of three arguments");
-  else if (!(args[0] is String))
-    throw Exception(
-        "The first argument must be a String with the payload to sign");
-  else if (!(args[1] is String))
-    throw Exception(
-        "The second argument must be a hex String with the private key");
-  else if (!(args[2] is int) && args[2] != null)
-    throw Exception("The third argument must be either the chainId or null");
-
-  return signString(args[0], args[1], chainId: args[2]);
-}
-
-Future<String> recoverSignerPubKeyAsync(String hexSignature, String strPayload,
-    {int chainId}) {
-  return compute<List<dynamic>, String>(
-      _recoverSignerPubKeyAsyncAsync, [hexSignature, strPayload, chainId]);
-}
-
-String _recoverSignerPubKeyAsyncAsync(List<dynamic> args) {
-  if (!(args is List) || args.length != 3)
-    throw Exception("The function expects a list of three arguments");
-  else if (!(args[0] is String))
-    throw Exception(
-        "The first argument must be a String with the hex signature");
-  else if (!(args[1] is String))
-    throw Exception(
-        "The second argument must be a String with the signed payload");
-  else if (!(args[2] is int) && args[2] != null)
-    throw Exception("The third argument must be either the chainId or null");
-
-  return recoverSignerPubKey(args[0], args[1], chainId: args[2]);
-}
-
-Future<bool> isValidSignatureAsync(
-    String hexSignature, String strPayload, String hexPublicKey,
-    {int chainId}) {
-  return compute<List<dynamic>, bool>(_isValidSignatureAsync,
-      [hexSignature, strPayload, hexPublicKey, chainId]);
-}
-
-bool _isValidSignatureAsync(List<dynamic> args) {
-  if (!(args is List) || args.length != 4)
-    throw Exception("The function expects a list of three arguments");
-  else if (!(args[0] is String))
-    throw Exception(
-        "The first argument must be a hex String with the signature");
-  else if (!(args[1] is String))
-    throw Exception(
-        "The second argument must be a String with the signed payload");
-  else if (!(args[2] is String))
-    throw Exception(
-        "The first argument must be a hex String with the expected public key");
-  else if (!(args[3] is int) && args[3] != null)
-    throw Exception("The third argument must be either the chainId or null");
-
-  return isValidSignature(args[0], args[1], args[2], chainId: args[3]);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// INTERNAL
-///////////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////////
+// / INTERNAL
+// ////////////////////////////////////////////////////////////////////////////
 
 Uint8List _hashPayloadForSignature(String payload) {
   final payloadBytes = Uint8List.fromList(utf8.encode(payload));
   final prefix = SIGNATURE_MESSAGE_PREFIX + payloadBytes.length.toString();
   final prefixBytes = ascii.encode(prefix);
-  return typed.uint8ListFromList(prefixBytes + payloadBytes);
+  return _uint8ListFromList(prefixBytes + payloadBytes);
+}
+
+// ////////////////////////////////////////////////////////////////////////////
+// / BORROWED
+// ////////////////////////////////////////////////////////////////////////////
+
+// _uint8ListFromList and _padUint8ListTo32 are borrowed from 'package:web3dart/src/utils/typed_data.dart'
+// as web3dart does not export them
+
+Uint8List _uint8ListFromList(List<int> data) {
+  if (data is Uint8List) return data;
+
+  return Uint8List.fromList(data);
+}
+
+Uint8List _padUint8ListTo32(Uint8List data) {
+  assert(data.length <= 32);
+  if (data.length == 32) return data;
+
+  // todo there must be a faster way to do this?
+  return Uint8List(32)..setRange(32 - data.length, 32, data);
 }

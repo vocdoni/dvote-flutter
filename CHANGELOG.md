@@ -1,3 +1,7 @@
+## 0.10.4
+
+* Providing consistent non-blocking async versions of the cryptographic functions (wallet, signing, encryption, hashing and ZK proofs)
+
 ## 0.10.3
 
 * Updating dvote-flutter-native to support iOS ARMv7 targets
