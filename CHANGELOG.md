@@ -1,3 +1,7 @@
+## 0.11.0
+
+* Breaking change on a few crypto functions that are now async, for the UI thread to get control back
+
 ## 0.10.4
 
 * Providing consistent non-blocking async versions of the cryptographic functions (wallet, signing, encryption, hashing and ZK proofs)

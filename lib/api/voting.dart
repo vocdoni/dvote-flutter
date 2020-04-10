@@ -176,12 +176,24 @@ Future<bool> getEnvelopeStatus(
 
 /// Computes the nullifier of the user's vote within a voting process.
 /// Returns a hex string with kecak256(bytes(address) + bytes(processId))
-String getPollNullifier(String address, String processId) {
+Future<String> getPollNullifier(String address, String processId) {
   address = address.replaceFirst(new RegExp(r'^0x'), '');
   processId = processId.replaceFirst(new RegExp(r'^0x'), '');
 
-  if (address.length != 40) return null;
-  if (processId.length != 64) return null;
+  if (address.length != 40) return Future.value(null);
+  if (processId.length != 64) return Future.value(null);
+
+  return wrap2ParamFunc<String, String, String>(
+      _getPollNullifier, address, processId);
+}
+
+// internal wrapped function to run the hash computation out of the UI thread
+String _getPollNullifier(List<dynamic> args) {
+  assert(args.length == 2);
+  final address = args[0];
+  assert(address is String);
+  final processId = args[1];
+  assert(processId is String);
 
   final addressBytes = hex.decode(address);
   final processIdBytes = hex.decode(processId);
@@ -272,8 +284,8 @@ Future<String> packageSnarkEnvelope(
   */
 }
 
-Map<String, String> packagePollEnvelope(List<int> votes, String merkleProof,
-    String processId, String signingPrivateKey) {
+Future<Map<String, String>> packagePollEnvelope(List<int> votes,
+    String merkleProof, String processId, String signingPrivateKey) async {
   if (!(votes is List) ||
       !(processId is String) ||
       !(merkleProof is String) ||
@@ -293,7 +305,7 @@ Map<String, String> packagePollEnvelope(List<int> votes, String merkleProof,
       //singature:  Must be unset because the body must be singed without the  signature
     };
 
-    final signature = signJsonPayload(package, signingPrivateKey);
+    final signature = await signJsonPayloadAsync(package, signingPrivateKey);
     package["signature"] = signature;
 
     return package;
