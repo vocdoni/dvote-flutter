@@ -1,3 +1,7 @@
+## 0.12.0
+
+* Breaking change: Poseidon hashes are now little-endian
+
 ## 0.11.0
 
 * Breaking change on a few crypto functions that are now async, for the UI thread to get control back
