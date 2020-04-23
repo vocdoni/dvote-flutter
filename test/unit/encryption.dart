@@ -1,13 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:dvote/crypto/encryption.dart';
+import 'dart:convert';
+// import 'package:convert/convert.dart';
 import 'dart:typed_data';
+import 'package:dvote/crypto/encryption.dart';
+// import 'package:pinenacl/secret.dart'
+//     show SecretBox, SealedBox, PrivateKey, PublicKey, EncryptedMessage;
 
 void encryption() {
-  testBoxEncryptionWrapper();
+  testSymmetricEncryptionWrapper();
+  testSymmetricEncryptionAsyncWrapper();
+
+  testAsymmetricEncriptionWrapper();
+  testAsymmetricEncriptionAsyncWrapper();
 }
 
-testBoxEncryptionWrapper() {
+// SYMMETRIC ENCRYPTION
+
+testSymmetricEncryptionWrapper() {
   final msg1 =
       "Change is a tricky thing, it threatens what we find familiar with...";
   final msg2 =
@@ -140,7 +149,7 @@ Decrypting should have failed but didn't
   });
 }
 
-testBoxEncryptionAsyncWrapper() {
+testSymmetricEncryptionAsyncWrapper() {
   final msg1 =
       "Change is a tricky thing, it threatens what we find familiar with...";
   final msg2 =
@@ -152,12 +161,12 @@ testBoxEncryptionAsyncWrapper() {
   test('Encryption wrapper: Sync and async should match', () async {
     final encrypted1 = Symmetric.encryptString(msg1, passphrase1);
     final encrypted2 = await Symmetric.encryptStringAsync(msg1, passphrase1);
-    expect(encrypted1, encrypted2, reason: "Sync and async should match");
 
     final decrypted1 = Symmetric.decryptString(encrypted1, passphrase1);
     final decrypted2 =
-        await Symmetric.decryptStringAsync(encrypted1, passphrase1);
-    expect(decrypted1, decrypted2, reason: "Sync and async should match");
+        await Symmetric.decryptStringAsync(encrypted2, passphrase1);
+    expect(decrypted1, decrypted2,
+        reason: "Sync and async decrypted should match");
   });
 
   test('Encryption wrapper: String encryption should match [async]', () async {
@@ -182,7 +191,8 @@ testBoxEncryptionAsyncWrapper() {
     expect(decrypted4, msg2, reason: "Decrypted string does not match");
   });
 
-  test('Encryption wrapper: Byte array encryption should match [async]', () async {
+  test('Encryption wrapper: Byte array encryption should match [async]',
+      () async {
     final msg1Buffer = Uint8List.fromList([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     final msg2Buffer =
         Uint8List.fromList([100, 101, 102, 103, 104, 105, 106, 107, 108, 109]);
@@ -258,7 +268,7 @@ Decrypting should have failed but didn't
     } on TestFailure catch (err) {
       if (err.message == unexpectedErrorString) throw err.message;
     } catch (err) {
-      if (err != expectedErrorString) throw err;
+      if (err.message != expectedErrorString) throw err;
     }
 
     try {
@@ -269,7 +279,7 @@ Decrypting should have failed but didn't
     } on TestFailure catch (err) {
       if (err.message == unexpectedErrorString) throw err.message;
     } catch (err) {
-      if (err != expectedErrorString) throw err;
+      if (err.message != expectedErrorString) throw err;
     }
 
     try {
@@ -280,7 +290,7 @@ Decrypting should have failed but didn't
     } on TestFailure catch (err) {
       if (err.message == unexpectedErrorString) throw err.message;
     } catch (err) {
-      if (err != expectedErrorString) throw err;
+      if (err.message != expectedErrorString) throw err;
     }
 
     try {
@@ -291,7 +301,242 @@ Decrypting should have failed but didn't
     } on TestFailure catch (err) {
       if (err.message == unexpectedErrorString) throw err.message;
     } catch (err) {
-      if (err != expectedErrorString) throw err;
+      if (err.message != expectedErrorString) throw err;
+    }
+  });
+}
+
+// ASYMMETRIC ENCRYPTION
+
+testAsymmetricEncriptionWrapper() {
+  final messages = [
+    "",
+    "hello",
+    "!·\$%&/)1234567890",
+    "UTF-8-charsàèìòù",
+    "😃🌟🌹⚖️🚀",
+    "Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. "
+  ];
+  final List<Uint8List> msgBuffers = [
+    Uint8List.fromList([]),
+    Uint8List.fromList([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+    Uint8List.fromList([100, 101, 102, 103, 104, 105, 106, 107, 108, 109]),
+    Uint8List.fromList([
+      0,
+      30,
+      60,
+      90,
+      120,
+      150,
+      180,
+      210,
+      240,
+      255,
+      0,
+      30,
+      60,
+      90,
+      120,
+      150,
+      180,
+      210,
+      240,
+      255,
+      0,
+      30,
+      60,
+      90,
+      120,
+      150,
+      180,
+      210,
+      240,
+      255,
+      0,
+      30,
+      60,
+      90,
+      120,
+      150,
+      180,
+      210,
+      240,
+      255,
+      0,
+      30,
+      60,
+      90,
+      120,
+      150,
+      180,
+      210,
+      240,
+      255
+    ]),
+  ];
+
+  final privKey =
+      "91f86dd7a9ac258c4908ca8fbdd3157f84d1f74ffffcb9fa428fba14a1d40150";
+  final pubKey =
+      "6876524df21d6983724a2b032e41471cc9f1772a9418c4d701fcebb6c306af50";
+
+  test("Encryption wrapper: Should seal a message using a public key", () {
+    String encrypted, decrypted;
+
+    for (String msg in messages) {
+      encrypted = Asymmetric.encryptString(msg, pubKey);
+      base64.decode(encrypted); // should not fail
+      decrypted = Asymmetric.decryptString(encrypted, privKey);
+      expect(decrypted, msg,
+          reason: "The decrypted message should match the original one");
+    }
+  });
+
+  test('Encryption wrapper: Byte array encryption should match', () {
+    String encrypted;
+    Uint8List decrypted;
+
+    for (Uint8List msg in msgBuffers) {
+      encrypted = Asymmetric.encryptBytes(msg, pubKey);
+      decrypted = Asymmetric.decryptBytes(encrypted, privKey);
+      expect(decrypted.join(","), msg.join(","),
+          reason: "Decrypted string does not match");
+    }
+  });
+
+  test('Encryption wrapper: Bytes should match', () {
+    Uint8List encrypted, decrypted;
+
+    for (Uint8List msg in msgBuffers) {
+      encrypted = Asymmetric.encryptRaw(msg, pubKey);
+      decrypted = Asymmetric.decryptRaw(encrypted, privKey);
+      expect(decrypted.join(","), msg.join(","),
+          reason: "Decrypted string does not match");
+    }
+  });
+}
+
+testAsymmetricEncriptionAsyncWrapper() {
+  final messages = [
+    "",
+    "hello",
+    "!·\$%&/)1234567890",
+    "UTF-8-charsàèìòù",
+    "😃🌟🌹⚖️🚀",
+    "Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. Longer message here and there, one two, three. "
+  ];
+
+  final List<Uint8List> msgBuffers = [
+    Uint8List.fromList([]),
+    Uint8List.fromList([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+    Uint8List.fromList([100, 101, 102, 103, 104, 105, 106, 107, 108, 109]),
+    Uint8List.fromList([
+      0,
+      30,
+      60,
+      90,
+      120,
+      150,
+      180,
+      210,
+      240,
+      255,
+      0,
+      30,
+      60,
+      90,
+      120,
+      150,
+      180,
+      210,
+      240,
+      255,
+      0,
+      30,
+      60,
+      90,
+      120,
+      150,
+      180,
+      210,
+      240,
+      255,
+      0,
+      30,
+      60,
+      90,
+      120,
+      150,
+      180,
+      210,
+      240,
+      255,
+      0,
+      30,
+      60,
+      90,
+      120,
+      150,
+      180,
+      210,
+      240,
+      255
+    ]),
+  ];
+
+  final privKey =
+      "91f86dd7a9ac258c4908ca8fbdd3157f84d1f74ffffcb9fa428fba14a1d40150";
+  final pubKey =
+      "6876524df21d6983724a2b032e41471cc9f1772a9418c4d701fcebb6c306af50";
+
+  test("Encryption wrapper: Should seal a message using a public key",
+      () async {
+    String encrypted, decrypted;
+
+    for (String msg in messages) {
+      encrypted = await Asymmetric.encryptStringAsync(msg, pubKey);
+      base64.decode(encrypted); // should not fail
+      decrypted = await Asymmetric.decryptStringAsync(encrypted, privKey);
+      expect(decrypted, msg,
+          reason: "The decrypted message should match the original one");
+    }
+  });
+
+  test('Encryption wrapper: Byte array encryption should match', () async {
+    String encrypted;
+    Uint8List decrypted;
+
+    for (Uint8List msg in msgBuffers) {
+      encrypted = await Asymmetric.encryptBytesAsync(msg, pubKey);
+      decrypted = await Asymmetric.decryptBytesAsync(encrypted, privKey);
+      expect(decrypted.join(","), msg.join(","),
+          reason: "Decrypted string does not match");
+    }
+  });
+
+  test('Encryption wrapper: Bytes should match', () async {
+    Uint8List encrypted, decrypted;
+
+    for (Uint8List msg in msgBuffers) {
+      encrypted = await Asymmetric.encryptRawAsync(msg, pubKey);
+      decrypted = await Asymmetric.decryptRawAsync(encrypted, privKey);
+      expect(decrypted.join(","), msg.join(","),
+          reason: "Decrypted string does not match");
+    }
+  });
+
+  test("The sealed message should match the sync/async version", () async {
+    String sEncrypted, sDecrypted, aEncrypted, aDecrypted;
+
+    for (String msg in messages) {
+      sEncrypted = Asymmetric.encryptString(msg, pubKey);
+      sDecrypted = Asymmetric.decryptString(sEncrypted, privKey);
+      aEncrypted = await Asymmetric.encryptStringAsync(msg, pubKey);
+      aDecrypted = await Asymmetric.decryptStringAsync(aEncrypted, privKey);
+      expect(sDecrypted, aDecrypted,
+          reason: "The decrypted messages should match");
+      expect(sDecrypted, msg,
+          reason: "The decrypted message should match the original one");
     }
   });
 }

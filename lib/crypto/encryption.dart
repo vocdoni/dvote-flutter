@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'package:convert/convert.dart';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart'; // To hash the passphrase to a fixed length
 import 'package:dvote/crypto/asyncify.dart';
-import 'package:pinenacl/public.dart';
-import 'package:pinenacl/secret.dart' show SecretBox;
+import 'package:pinenacl/secret.dart'
+    show SecretBox, SealedBox, PrivateKey, PublicKey, EncryptedMessage;
 
 // All of the methods below provide two versions, a sync and an async one.
 // Async versions allow to detach heavy computations from the UI thread.
@@ -53,7 +54,7 @@ class Symmetric {
   /// Decrypts a byte array containing `nonce[24] + cipherText[]` using NaCl SecretBox:
   /// https://github.com/ilap/pinenacl-dart#a-secret-key-encryption-example
   static Uint8List decryptRaw(Uint8List encryptedBuffer, String passphrase) {
-    return _decryptRaw([encryptedBuffer, passphrase]);
+    return _decryptSymmetricRaw([encryptedBuffer, passphrase]);
   }
 
   /// Decrypts a byte array containing `nonce[24] + cipherText[]` using NaCl SecretBox:
@@ -61,13 +62,13 @@ class Symmetric {
   static Future<Uint8List> decryptRawAsync(
       Uint8List encryptedBuffer, String passphrase) {
     return wrap2ParamFunc<Uint8List, Uint8List, String>(
-        _decryptRaw, encryptedBuffer, passphrase);
+        _decryptSymmetricRaw, encryptedBuffer, passphrase);
   }
 
   /// Decrypts a byte array containing `nonce[24] + cipherText[]` using NaCl SecretBox:
   /// https://github.com/ilap/pinenacl-dart#a-secret-key-encryption-example
   static Uint8List decryptBytes(String encryptedBase64, String passphrase) {
-    return _decryptBytes([encryptedBase64, passphrase]);
+    return _decryptSymmetricBytes([encryptedBase64, passphrase]);
   }
 
   /// Decrypts a byte array containing `nonce[24] + cipherText[]` using NaCl SecretBox:
@@ -75,13 +76,13 @@ class Symmetric {
   static Future<Uint8List> decryptBytesAsync(
       String encryptedBase64, String passphrase) {
     return wrap2ParamFunc<Uint8List, String, String>(
-        _decryptBytes, encryptedBase64, passphrase);
+        _decryptSymmetricBytes, encryptedBase64, passphrase);
   }
 
   /// Decrypts a byte array containing `nonce[24] + cipherText[]` into a String using NaCl SecretBox:
   /// https://github.com/ilap/pinenacl-dart#a-secret-key-encryption-example
   static String decryptString(String encryptedBase64, String passphrase) {
-    return _decryptString([encryptedBase64, passphrase]);
+    return _decryptSymmetricString([encryptedBase64, passphrase]);
   }
 
   /// Decrypts a byte array containing `nonce[24] + cipherText[]` into a String Future using NaCl SecretBox:
@@ -89,18 +90,69 @@ class Symmetric {
   static Future<String> decryptStringAsync(
       String encryptedBase64, String passphrase) {
     return wrap2ParamFunc<String, String, String>(
-        _decryptString, encryptedBase64, passphrase);
+        _decryptSymmetricString, encryptedBase64, passphrase);
   }
 }
 
-// TODO: Implement for vote encryption
 class Asymmetric {
-  static String encryptString(String strPayload, String hexPublicKey) {
-    throw Exception("Unimplemented");
+  static Uint8List encryptRaw(Uint8List payload, String hexPublicKey) {
+    return _encryptAsymmetricRaw([payload, hexPublicKey]);
   }
 
-  static String decryptString(String strPayload, String hexPrivateKey) {
-    throw Exception("Unimplemented");
+  static Future<Uint8List> encryptRawAsync(
+      Uint8List payload, String hexPublicKey) {
+    return wrap2ParamFunc<Uint8List, Uint8List, String>(
+        _encryptAsymmetricRaw, payload, hexPublicKey);
+  }
+
+  static String encryptBytes(Uint8List payload, String hexPublicKey) {
+    return _encryptAsymmetricBytes([payload, hexPublicKey]);
+  }
+
+  static Future<String> encryptBytesAsync(
+      Uint8List payload, String hexPublicKey) {
+    return wrap2ParamFunc<String, Uint8List, String>(
+        _encryptAsymmetricBytes, payload, hexPublicKey);
+  }
+
+  static String encryptString(String message, String hexPublicKey) {
+    return _encryptAsymmetricString([message, hexPublicKey]);
+  }
+
+  static Future<String> encryptStringAsync(
+      String message, String hexPublicKey) {
+    return wrap2ParamFunc<String, String, String>(
+        _encryptAsymmetricString, message, hexPublicKey);
+  }
+
+  static Uint8List decryptRaw(Uint8List encryptedBuffer, String hexPrivateKey) {
+    return _decryptAsymmetricRaw([encryptedBuffer, hexPrivateKey]);
+  }
+
+  static Uint8List decryptBytes(String encryptedBase64, String hexPrivateKey) {
+    return _decryptAsymmetricBytes([encryptedBase64, hexPrivateKey]);
+  }
+
+  static String decryptString(String encryptedBase64, String hexPrivateKey) {
+    return _decryptAsymmetricString([encryptedBase64, hexPrivateKey]);
+  }
+
+  static Future<Uint8List> decryptRawAsync(
+      Uint8List encryptedBuffer, String hexPrivateKey) {
+    return wrap2ParamFunc<Uint8List, Uint8List, String>(
+        _decryptAsymmetricRaw, encryptedBuffer, hexPrivateKey);
+  }
+
+  static Future<Uint8List> decryptBytesAsync(
+      String encryptedBase64, String hexPrivateKey) {
+    return wrap2ParamFunc<Uint8List, String, String>(
+        _decryptAsymmetricBytes, encryptedBase64, hexPrivateKey);
+  }
+
+  static Future<String> decryptStringAsync(
+      String encryptedBase64, String hexPrivateKey) {
+    return wrap2ParamFunc<String, String, String>(
+        _decryptAsymmetricString, encryptedBase64, hexPrivateKey);
   }
 }
 
@@ -158,7 +210,7 @@ String _encryptString(List<dynamic> args) {
 
 /// Decrypts a byte array containing `nonce[24] + cipherText[]` using NaCl SecretBox:
 /// https://github.com/ilap/pinenacl-dart#a-secret-key-encryption-example
-Uint8List _decryptRaw(List<dynamic> args) {
+Uint8List _decryptSymmetricRaw(List<dynamic> args) {
   assert(args.length == 2);
   final encryptedBuffer = args[0];
   assert(encryptedBuffer is Uint8List);
@@ -178,7 +230,7 @@ Uint8List _decryptRaw(List<dynamic> args) {
 
 /// Decrypts a byte array containing `nonce[24] + cipherText[]` using NaCl SecretBox:
 /// https://github.com/ilap/pinenacl-dart#a-secret-key-encryption-example
-Uint8List _decryptBytes(List<dynamic> args) {
+Uint8List _decryptSymmetricBytes(List<dynamic> args) {
   assert(args.length == 2);
   final encryptedBase64 = args[0];
   assert(encryptedBase64 is String);
@@ -186,12 +238,12 @@ Uint8List _decryptBytes(List<dynamic> args) {
   assert(passphrase is String);
 
   final encryptedBuffer = base64.decode(encryptedBase64);
-  return _decryptRaw([encryptedBuffer, passphrase]);
+  return _decryptSymmetricRaw([encryptedBuffer, passphrase]);
 }
 
 /// Decrypts a byte array containing `nonce[24] + cipherText[]` into a String using NaCl SecretBox:
 /// https://github.com/ilap/pinenacl-dart#a-secret-key-encryption-example
-String _decryptString(List<dynamic> args) {
+String _decryptSymmetricString(List<dynamic> args) {
   assert(args.length == 2);
   final encryptedBase64 = args[0];
   assert(encryptedBase64 is String);
@@ -199,7 +251,98 @@ String _decryptString(List<dynamic> args) {
   assert(passphrase is String);
 
   final encryptedBuffer = base64.decode(encryptedBase64);
-  final strBytes = _decryptRaw([encryptedBuffer, passphrase]);
+  final strBytes = _decryptSymmetricRaw([encryptedBuffer, passphrase]);
 
   return utf8.decode(strBytes);
+}
+
+// Asymmetric
+
+Uint8List _encryptAsymmetricRaw(List<dynamic> args) {
+  assert(args.length == 2);
+  final Uint8List bytesPayload = args[0];
+  assert(bytesPayload is Uint8List);
+  final hexPublicKey = args[1];
+  assert(hexPublicKey is String);
+
+  final pubKey = PublicKey(hex.decode(hexPublicKey));
+  final sealedBox = SealedBox(pubKey);
+
+  return sealedBox.encrypt(bytesPayload);
+}
+
+String _encryptAsymmetricBytes(List<dynamic> args) {
+  assert(args.length == 2);
+  final Uint8List bytesPayload = args[0];
+  assert(bytesPayload is Uint8List);
+  final hexPublicKey = args[1];
+  assert(hexPublicKey is String);
+
+  final pubKey = PublicKey(hex.decode(hexPublicKey));
+  final sealedBox = SealedBox(pubKey);
+
+  final encrypted = sealedBox.encrypt(bytesPayload);
+  return base64.encode(encrypted);
+}
+
+String _encryptAsymmetricString(List<dynamic> args) {
+  assert(args.length == 2);
+  final strPayload = args[0];
+  assert(strPayload is String);
+  final hexPublicKey = args[1];
+  assert(hexPublicKey is String);
+
+  final pubKey = PublicKey(hex.decode(hexPublicKey));
+  final sealedBox = SealedBox(pubKey);
+
+  final encrypted = sealedBox.encrypt(utf8.encode(strPayload));
+  return base64.encode(encrypted);
+}
+
+Uint8List _decryptAsymmetricRaw(List<dynamic> args) {
+  assert(args.length == 2);
+  final encryptedBytes = args[0];
+  assert(encryptedBytes is Uint8List);
+  final hexPrivateKey = args[1];
+  assert(hexPrivateKey is String);
+
+  final privKeyBytes = hex.decode(hexPrivateKey);
+  final privKey = PrivateKey(privKeyBytes);
+
+  final unsealedBox = SealedBox(privKey);
+  return unsealedBox.decrypt(encryptedBytes);
+}
+
+Uint8List _decryptAsymmetricBytes(List<dynamic> args) {
+  assert(args.length == 2);
+  final encryptedBase64 = args[0];
+  assert(encryptedBase64 is String);
+  final hexPrivateKey = args[1];
+  assert(hexPrivateKey is String);
+
+  final encryptedBytes = base64.decode(encryptedBase64);
+
+  final privKeyBytes = hex.decode(hexPrivateKey);
+  final privKey = PrivateKey(privKeyBytes);
+
+  final unsealedBox = SealedBox(privKey);
+  return unsealedBox.decrypt(encryptedBytes);
+}
+
+String _decryptAsymmetricString(List<dynamic> args) {
+  assert(args.length == 2);
+  final encryptedBase64 = args[0];
+  assert(encryptedBase64 is String);
+  final hexPrivateKey = args[1];
+  assert(hexPrivateKey is String);
+
+  final encryptedBytes = base64.decode(encryptedBase64);
+
+  final privKeyBytes = hex.decode(hexPrivateKey);
+  final privKey = PrivateKey(privKeyBytes);
+
+  final unsealedBox = SealedBox(privKey);
+
+  final decrypted = unsealedBox.decrypt(encryptedBytes);
+  return utf8.decode(decrypted);
 }
