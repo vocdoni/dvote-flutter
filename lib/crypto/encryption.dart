@@ -14,7 +14,7 @@ class Symmetric {
   /// Encrypts the given data using NaCl SecretBox and returns a Uint8List containing `nonce[24] + cipherText[]`.
   /// The 24 first bytes represent the nonce, and the rest of the buffer contains the cipher text.
   static Uint8List encryptRaw(Uint8List buffer, String passphrase) {
-    return _encryptRaw([buffer, passphrase]);
+    return _encryptSymmetricRaw([buffer, passphrase]);
   }
 
   /// Encrypts the given data using NaCl SecretBox and returns a Uint8List Future containing `nonce[24] + cipherText[]`.
@@ -22,33 +22,33 @@ class Symmetric {
   static Future<Uint8List> encryptRawAsync(
       Uint8List buffer, String passphrase) {
     return wrap2ParamFunc<Uint8List, Uint8List, String>(
-        _encryptRaw, buffer, passphrase);
+        _encryptSymmetricRaw, buffer, passphrase);
   }
 
   /// Encrypts the given data using NaCl SecretBox and returns a Base64 string containing `nonce[24] + cipherText[]`.
   /// The 24 first bytes represent the nonce, and the rest of the buffer contains the cipher text.
   static String encryptBytes(Uint8List buffer, String passphrase) {
-    return _encryptBytes([buffer, passphrase]);
+    return _encryptSymmetricBytes([buffer, passphrase]);
   }
 
   /// Encrypts the given data using NaCl SecretBox and returns a Base64 string Future containing `nonce[24] + cipherText[]`.
   /// The 24 first bytes represent the nonce, and the rest of the buffer contains the cipher text.
   static Future<String> encryptBytesAsync(Uint8List buffer, String passphrase) {
     return wrap2ParamFunc<String, Uint8List, String>(
-        _encryptBytes, buffer, passphrase);
+        _encryptSymmetricBytes, buffer, passphrase);
   }
 
   /// Encrypts the given string using NaCl SecretBox and returns a Base64 string containing `nonce[24] + cipherText[]`.
   /// The 24 first bytes must contain the nonce, and the rest of the buffer needs to contain the cipher text.
   static String encryptString(String message, String passphrase) {
-    return _encryptString([message, passphrase]);
+    return _encryptSymmetricString([message, passphrase]);
   }
 
   /// Encrypts the given string using NaCl SecretBox and returns a Base64 string Future containing `nonce[24] + cipherText[]`.
   /// The 24 first bytes must contain the nonce, and the rest of the buffer needs to contain the cipher text.
   static Future<String> encryptStringAsync(String message, String passphrase) {
     return wrap2ParamFunc<String, String, String>(
-        _encryptString, message, passphrase);
+        _encryptSymmetricString, message, passphrase);
   }
 
   /// Decrypts a byte array containing `nonce[24] + cipherText[]` using NaCl SecretBox:
@@ -164,7 +164,7 @@ class Asymmetric {
 
 /// Encrypts the given data using NaCl SecretBox and returns a Uint8List containing `nonce[24] + cipherText[]`.
 /// The 24 first bytes represent the nonce, and the rest of the buffer contains the cipher text.
-Uint8List _encryptRaw(List<dynamic> args) {
+Uint8List _encryptSymmetricRaw(List<dynamic> args) {
   assert(args.length == 2);
   final buffer = args[0];
   assert(buffer is Uint8List);
@@ -182,20 +182,20 @@ Uint8List _encryptRaw(List<dynamic> args) {
 
 /// Encrypts the given data using NaCl SecretBox and returns a Base64 string containing `nonce[24] + cipherText[]`.
 /// The 24 first bytes represent the nonce, and the rest of the buffer contains the cipher text.
-String _encryptBytes(List<dynamic> args) {
+String _encryptSymmetricBytes(List<dynamic> args) {
   assert(args.length == 2);
   final buffer = args[0];
   assert(buffer is Uint8List);
   final passphrase = args[1];
   assert(passphrase is String);
 
-  final encryptedBuffer = _encryptRaw([buffer, passphrase]);
+  final encryptedBuffer = _encryptSymmetricRaw([buffer, passphrase]);
   return base64.encode(encryptedBuffer);
 }
 
 /// Encrypts the given string using NaCl SecretBox and returns a Base64 string containing `nonce[24] + cipherText[]`.
 /// The 24 first bytes must contain the nonce, and the rest of the buffer needs to contain the cipher text.
-String _encryptString(List<dynamic> args) {
+String _encryptSymmetricString(List<dynamic> args) {
   assert(args.length == 2);
   final message = args[0];
   assert(message is String);
@@ -203,7 +203,7 @@ String _encryptString(List<dynamic> args) {
   assert(passphrase is String);
 
   final messageBytes = Uint8List.fromList(utf8.encode(message));
-  final encryptedBuffer = _encryptRaw([messageBytes, passphrase]);
+  final encryptedBuffer = _encryptSymmetricRaw([messageBytes, passphrase]);
 
   return base64.encode(encryptedBuffer);
 }
