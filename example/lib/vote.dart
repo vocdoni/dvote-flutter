@@ -12,7 +12,6 @@ Future<void> vote() async {
   final wallet = EthereumWallet.fromMnemonic(MNEMONIC, hdPath: PATH);
 
   final String privateKey = wallet.privateKey;
-  final networkId = NETWORK_ID;
   final entityId = ENTITY_ID;
   final entityEntryPoint = ENTITY_ENTRY_POINT;
   final String address = wallet.address;
@@ -25,7 +24,7 @@ Future<void> vote() async {
   entityRef.entityId = entityId;
   entityRef.entryPoints.addAll([entityEntryPoint]);
 
-  GatewayInfo gwInfo = await getRandomDefaultGatewayDetails(networkId);
+  GatewayInfo gwInfo = await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);
   final dvoteGw = DVoteGateway(gwInfo.dvote, publicKey: gwInfo.publicKey);
   final web3Gw = Web3Gateway(gwInfo.web3);
 
