@@ -5,6 +5,7 @@ import 'package:convert/convert.dart';
 import 'package:dvote/crypto/asyncify.dart';
 import 'package:dvote/dvote.dart';
 import 'package:dvote/util/parsers.dart';
+import 'package:dvote/wrappers/process-keys.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web3dart/crypto.dart';
 import 'dart:typed_data';
@@ -114,6 +115,39 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
       return null;
     }
   })).then((result) => result.whereType<ProcessMetadata>().toList());
+}
+
+/// Returns number of existing blocks in the blockchain
+Future<ProcessKeys> getProcessKeys(
+    String processId, DVoteGateway dvoteGw) async {
+  if (dvoteGw == null) throw Exception("Invalid parameters");
+  try {
+    Map<String, dynamic> reqParams = {
+      "method": "getProcessKeys",
+      "processId": processId
+    };
+    Map<String, dynamic> response =
+        await dvoteGw.sendRequest(reqParams, timeout: 7);
+    if (!(response is Map)) {
+      throw Exception("Invalid response received from the gateway");
+    }
+
+    ProcessKeys keys = ProcessKeys();
+    if (response["encryptionPubKeys"] is List &&
+        response["encryptionPubKeys"].length > 0)
+      keys.encryptionPubKeys = response["encryptionPubKeys"];
+    if (response["encryptionPrivKeys"] is List &&
+        response["encryptionPrivKeys"].length > 0)
+      keys.encryptionPrivKeys = response["encryptionPrivKeys"];
+    if (response["commitmentKeys"] is List &&
+        response["commitmentKeys"].length > 0)
+      keys.commitmentKeys = response["commitmentKeys"];
+    if (response["revealKeys"] is List && response["revealKeys"].length > 0)
+      keys.revealKeys = response["revealKeys"];
+    return keys;
+  } catch (err) {
+    throw Exception("The process encryption keys could not be retrieved");
+  }
 }
 
 /// Returns number of existing blocks in the blockchain

@@ -1,3 +1,7 @@
+## 0.12.1
+
+* Adding getProcessKeys()
+
 ## 0.12.0
 
 * Breaking change: Poseidon hashes are now little-endian
