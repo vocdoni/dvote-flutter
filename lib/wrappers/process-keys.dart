@@ -1,6 +1,11 @@
+class ProcessKey {
+  int idx;
+  String key;
+}
+
 class ProcessKeys {
-  List<String> encryptionPubKeys = <String>[];
-  List<String> encryptionPrivKeys = <String>[];
-  List<String> commitmentKeys = <String>[];
-  List<String> revealKeys = <String>[];
+  List<ProcessKey> encryptionPubKeys = <ProcessKey>[];
+  List<ProcessKey> encryptionPrivKeys = <ProcessKey>[];
+  List<ProcessKey> commitmentKeys = <ProcessKey>[];
+  List<ProcessKey> revealKeys = <ProcessKey>[];
 }

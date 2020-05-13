@@ -6,7 +6,7 @@ import "./net/ens.dart";
 import "./net/bootnodes.dart";
 import "./net/gateway.dart";
 import "./integration/entity.dart";
-import "./integration/voting.dart";
+import "./unit/voting.dart";
 
 void main() {
   encryption();

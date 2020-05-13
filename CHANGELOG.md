@@ -1,5 +1,6 @@
 ## 0.12.1
 
+* Implementing Poll package Encryption
 * Adding getProcessKeys()
 
 ## 0.12.0

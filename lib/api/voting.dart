@@ -318,26 +318,41 @@ Future<String> packageSnarkEnvelope(
   */
 }
 
-Future<Map<String, String>> packagePollEnvelope(List<int> votes,
-    String merkleProof, String processId, String signingPrivateKey) async {
+Future<Map<String, dynamic>> packagePollEnvelope(List<int> votes,
+    String merkleProof, String processId, String signingPrivateKey,
+    {ProcessKeys processKeys}) async {
   if (!(votes is List) ||
       !(processId is String) ||
       !(merkleProof is String) ||
-      !(signingPrivateKey is String)) throw Exception("Invalid parameters");
-
+      !(signingPrivateKey is String))
+    throw Exception("Invalid parameters");
+  else if (processKeys is ProcessKeys) {
+    if (!(processKeys.encryptionPubKeys is List) ||
+        !processKeys.encryptionPubKeys.every((item) =>
+            item is ProcessKey &&
+            item.idx is int &&
+            item.key is String &&
+            RegExp(r"^(0x)?[0-9a-zA-Z]+$").hasMatch(item.key))) {
+      throw Exception("Some encryption public keys are not valid");
+    }
+  }
   try {
     final nonce = _generateRandomNonce(32);
 
-    String votePackage = packagePollVote(votes);
+    final packageValues = packagePollVote(votes, processKeys: processKeys);
 
-    Map<String, String> package = {
+    Map<String, dynamic> package = {
       "processId": processId,
       "proof": merkleProof,
       "nonce":
           nonce, // Unique number per vote attempt, so that replay attacks can't reuse this payload
-      "votePackage": votePackage
+      "votePackage": packageValues["votePackage"]
       //singature:  Must be unset because the body must be singed without the  signature
     };
+    if (packageValues["keyIndexes"] is List &&
+        packageValues["keyIndexes"].length > 0) {
+      package["encryptionKeyIndexes"] = packageValues["keyIndexes"];
+    }
 
     final signature = await signJsonPayloadAsync(package, signingPrivateKey);
     package["signature"] = signature;
@@ -394,16 +409,64 @@ String packageSnarkVote(List<int> votes, String publicKey) {
   return base64.encode(utf8.encode(jsonEncode(package)));
 }
 
-String packagePollVote(List<int> votes) {
+/// Packages the vote and returns `{ votePackage: "..." }` on non-encrypted polls and
+/// `{ votePackage: "...", keyIndexes: [0, 1, 2, 3, 4] }` on encrypted polls
+Map<String, dynamic> packagePollVote(List<int> votes,
+    {ProcessKeys processKeys}) {
+  if (!(votes is List))
+    throw Exception("Invalid parameters");
+  else if (processKeys is ProcessKeys) {
+    if (!(processKeys.encryptionPubKeys is List) ||
+        !processKeys.encryptionPubKeys.every((item) =>
+            item is ProcessKey &&
+            item.idx is int &&
+            item.key is String &&
+            RegExp(r"^(0x)?[0-9a-zA-Z]+$").hasMatch(item.key))) {
+      throw Exception("Some encryption public keys are not valid");
+    }
+  }
+
   final nonce = _generateRandomNonce(16);
+
   Map<String, dynamic> package = {
     "type": "poll-vote",
     "nonce":
         nonce, // (encrypted payload only) random number to prevent guessing the encrypted payload before the key is revealed
     "votes": votes // Directly mapped to the `questions` field of the metadata
   };
-  return base64.encode(utf8.encode(jsonEncode(package)));
+  final strPayload = jsonEncode(package);
+
+  if (processKeys is ProcessKeys &&
+      processKeys.encryptionPubKeys is List &&
+      processKeys.encryptionPubKeys.length > 0) {
+    // Sort key indexes
+    processKeys.encryptionPubKeys.sort((a, b) => a.idx - b.idx);
+
+    final List<String> publicKeys = [];
+    final List<int> publicKeysIdx = [];
+
+    // NOTE: Using all keys by now
+    processKeys.encryptionPubKeys.forEach((entry) {
+      publicKeys.add(entry.key.replaceFirst("0x", ""));
+      publicKeysIdx.add(entry.idx);
+    });
+
+    String result;
+    for (int i = 0; i < publicKeys.length; i++) {
+      if (i > 0)
+        result =
+            Asymmetric.encryptString(result, publicKeys[i]); // reencrypt result
+      else
+        result = Asymmetric.encryptString(
+            strPayload, publicKeys[i]); // encrypt the first round
+    }
+    return {"votePackage": result, "keyIndexes": publicKeysIdx};
+  } else {
+    return {"votePackage": base64.encode(utf8.encode(strPayload))};
+  }
 }
+
+// HELPERS
 
 String _generateRandomNonce(int length) {
   final digits = [

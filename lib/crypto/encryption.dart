@@ -95,60 +95,72 @@ class Symmetric {
 }
 
 class Asymmetric {
+  /// Encrypts the given buffer using hexPublicKey and returns the resulting buffer
   static Uint8List encryptRaw(Uint8List payload, String hexPublicKey) {
     return _encryptAsymmetricRaw([payload, hexPublicKey]);
   }
 
+  /// Encrypts the given buffer using hexPublicKey and returns the resulting buffer
   static Future<Uint8List> encryptRawAsync(
       Uint8List payload, String hexPublicKey) {
     return wrap2ParamFunc<Uint8List, Uint8List, String>(
         _encryptAsymmetricRaw, payload, hexPublicKey);
   }
 
+  /// Encrypts the given buffer using hexPublicKey and returns a base64 string with the result
   static String encryptBytes(Uint8List payload, String hexPublicKey) {
     return _encryptAsymmetricBytes([payload, hexPublicKey]);
   }
 
+  /// Encrypts the given buffer using hexPublicKey and returns a base64 string with the result
   static Future<String> encryptBytesAsync(
       Uint8List payload, String hexPublicKey) {
     return wrap2ParamFunc<String, Uint8List, String>(
         _encryptAsymmetricBytes, payload, hexPublicKey);
   }
 
+  /// Encrypts the given string using hexPublicKey and returns a base64 string with the result
   static String encryptString(String message, String hexPublicKey) {
     return _encryptAsymmetricString([message, hexPublicKey]);
   }
 
+  /// Encrypts the given string using hexPublicKey and returns a base64 string with the result
   static Future<String> encryptStringAsync(
       String message, String hexPublicKey) {
     return wrap2ParamFunc<String, String, String>(
         _encryptAsymmetricString, message, hexPublicKey);
   }
 
+  /// Decrypts the given buffer using hexPublicKey and returns the resulting buffer
   static Uint8List decryptRaw(Uint8List encryptedBuffer, String hexPrivateKey) {
     return _decryptAsymmetricRaw([encryptedBuffer, hexPrivateKey]);
   }
 
-  static Uint8List decryptBytes(String encryptedBase64, String hexPrivateKey) {
-    return _decryptAsymmetricBytes([encryptedBase64, hexPrivateKey]);
-  }
-
-  static String decryptString(String encryptedBase64, String hexPrivateKey) {
-    return _decryptAsymmetricString([encryptedBase64, hexPrivateKey]);
-  }
-
+  /// Decrypts the given buffer using hexPublicKey and returns the resulting buffer
   static Future<Uint8List> decryptRawAsync(
       Uint8List encryptedBuffer, String hexPrivateKey) {
     return wrap2ParamFunc<Uint8List, Uint8List, String>(
         _decryptAsymmetricRaw, encryptedBuffer, hexPrivateKey);
   }
 
+  /// Decrypts the given base64 string using hexPublicKey and returns the original buffer
+  static Uint8List decryptBytes(String encryptedBase64, String hexPrivateKey) {
+    return _decryptAsymmetricBytes([encryptedBase64, hexPrivateKey]);
+  }
+
+  /// Decrypts the given base64 string using hexPublicKey and returns the original buffer
   static Future<Uint8List> decryptBytesAsync(
       String encryptedBase64, String hexPrivateKey) {
     return wrap2ParamFunc<Uint8List, String, String>(
         _decryptAsymmetricBytes, encryptedBase64, hexPrivateKey);
   }
 
+  /// Decrypts the given base64 string using hexPublicKey and returns the original string
+  static String decryptString(String encryptedBase64, String hexPrivateKey) {
+    return _decryptAsymmetricString([encryptedBase64, hexPrivateKey]);
+  }
+
+  /// Decrypts the given base64 string using hexPublicKey and returns the original string
   static Future<String> decryptStringAsync(
       String encryptedBase64, String hexPrivateKey) {
     return wrap2ParamFunc<String, String, String>(
