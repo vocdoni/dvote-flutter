@@ -1,4 +1,4 @@
-package com.dvote.dvote_native_example
+package com.example.dvote_example
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
