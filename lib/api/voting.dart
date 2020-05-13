@@ -326,7 +326,7 @@ Future<Map<String, String>> packagePollEnvelope(List<int> votes,
       !(signingPrivateKey is String)) throw Exception("Invalid parameters");
 
   try {
-    final nonce = _generateRandomNumber(32);
+    final nonce = _generateRandomNonce(32);
 
     String votePackage = packagePollVote(votes);
 
@@ -381,7 +381,7 @@ String _generateZkProof(List<dynamic> args) {
 // ////////////////////////////////////////////////////////////////////////////
 
 String packageSnarkVote(List<int> votes, String publicKey) {
-  final nonce = _generateRandomNumber(32);
+  final nonce = _generateRandomNonce(16);
 
   // TODO: ENCRYPT IT WITH publicKey
 
@@ -395,20 +395,38 @@ String packageSnarkVote(List<int> votes, String publicKey) {
 }
 
 String packagePollVote(List<int> votes) {
-  final nonce = _generateRandomNumber(32);
+  final nonce = _generateRandomNonce(16);
   Map<String, dynamic> package = {
     "type": "poll-vote",
     "nonce":
-        nonce, // (optional) random number to prevent guessing the encrypted payload before the key is revealed
+        nonce, // (encrypted payload only) random number to prevent guessing the encrypted payload before the key is revealed
     "votes": votes // Directly mapped to the `questions` field of the metadata
   };
   return base64.encode(utf8.encode(jsonEncode(package)));
 }
 
-String _generateRandomNumber(int digits) {
+String _generateRandomNonce(int length) {
+  final digits = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f'
+  ];
   var result = "";
-  for (var i = 0; i < 6; i++) {
-    result = result + _random.nextInt(9).toString();
+  for (var i = 0; i < length; i++) {
+    result = result + digits[_random.nextInt(digits.length)];
   }
   return result;
 }
