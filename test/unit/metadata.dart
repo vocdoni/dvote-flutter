@@ -25,7 +25,7 @@ void dataModels() {
 
   test("Process metadata model", () async {
     String meta =
-        """{"version": "1.0","id":"0x12345678","type": "snark-vote","startBlock": 10000,"numberOfBlocks": 400,"census": {"merkleRoot": "0x1234","merkleTree": "https://merkle-tree/"},"details": {"entityId": "0x2345","encryptionPublicKey": "12345678","title": {"default": "Universal Basic Income"},"description": {"default": "## Markdown text goes here### Abstract"},"headerImage": "https://server/image.png","streamUrl":"https://youtube.com/stream1234","questions": [{"type": "single-choice","question": {"default": "Should universal basic income become a human right?"},"description": {"default": "## Markdown text goes here### Abstract"},"voteOptions": [{"title": {"en": "Yes","ca": "Sí"},"value": 0},{"title": {"en": "No","ca": "No"},"value": 1}]}]}}""";
+        """{"version": "1.0","id":"0x12345678","type": "snark-vote","startBlock": 10000,"numberOfBlocks": 400,"census": {"merkleRoot": "0x1234","merkleTree": "https://merkle-tree/"},"details": {"entityId": "0x2345","title": {"default": "Universal Basic Income"},"description": {"default": "## Markdown text goes here### Abstract"},"headerImage": "https://server/image.png","streamUrl":"https://youtube.com/stream1234","questions": [{"type": "single-choice","question": {"default": "Should universal basic income become a human right?"},"description": {"default": "## Markdown text goes here### Abstract"},"voteOptions": [{"title": {"en": "Yes","ca": "Sí"},"value": 0},{"title": {"en": "No","ca": "No"},"value": 1}]}]}}""";
     ProcessMetadata process = parseProcessMetadata(meta);
     expect(process.version, "1.0", reason: "The version should equal 1.0");
     expect(process.type, "snark-vote",
@@ -40,7 +40,6 @@ void dataModels() {
         reason: "The census ID should equal https://merkle-tree/");
 
     expect(process.details.entityId, "0x2345");
-    expect(process.details.encryptionPublicKey, "12345678");
 
     expect(process.details.title["default"], "Universal Basic Income");
     expect(process.details.description["default"],
