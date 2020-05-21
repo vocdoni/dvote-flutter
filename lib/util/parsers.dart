@@ -145,7 +145,6 @@ ProcessMetadata parseProcessMetadata(String json) {
       final Map<String, dynamic> detailsMap = mapProcess["details"];
 
       details.entityId = detailsMap["entityId"];
-      details.encryptionPublicKey = detailsMap["encryptionPublicKey"];
       details.title.addAll(detailsMap["title"]?.cast<String, String>() ?? {});
 
       if (detailsMap["description"] is Map) {

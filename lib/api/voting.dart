@@ -19,19 +19,82 @@ import '../util/json-signature.dart';
 import '../constants.dart';
 import 'package:dvote_native/dvote_native.dart' as dvoteNative;
 
-enum ProcessContractGetResultIdx {
-  PROCESS_TYPE,
-  ENTITY_ADDRESS,
-  START_BLOCK,
-  NUMBER_OF_BLOCKS,
-  METADATA_CONTENT_URI,
-  MERKLE_ROOT,
-  MERKLE_TREE_CONTENT_URI,
-  ENCRYPTION_PRIVATE_KEY,
-  CANCELED
+final _random = Random.secure();
+
+// ENUMS AND WRAPPERS
+
+class ProcessEnvelopeType {
+  final int type;
+  ProcessEnvelopeType(this.type);
+
+  static const REALTIME_POLL = 0;
+  static const PETITION_SIGNING = 1;
+  static const ENCRYPTED_POLL = 4;
+  static const ENCRYPTED_PRIVATE_POLL = 6;
+  static const REALTIME_ELECTION = 8;
+  static const PRIVATE_ELECTION = 10;
+  static const ELECTION = 12;
+  static const REALTIME_PRIVATE_ELECTION = 14;
+
+  bool isRealtimePoll() => type == ProcessEnvelopeType.REALTIME_POLL;
+  bool isPetitionSigning() => type == ProcessEnvelopeType.PETITION_SIGNING;
+  bool isEncryptedPoll() => type == ProcessEnvelopeType.ENCRYPTED_POLL;
+  bool isEncryptedPrivatePoll() =>
+      type == ProcessEnvelopeType.ENCRYPTED_PRIVATE_POLL;
+  bool isRealtimeElection() => type == ProcessEnvelopeType.REALTIME_ELECTION;
+  bool isPrivateElection() => type == ProcessEnvelopeType.PRIVATE_ELECTION;
+  bool isElection() => type == ProcessEnvelopeType.ELECTION;
+  bool isRealtimePrivateElection() =>
+      type == ProcessEnvelopeType.REALTIME_PRIVATE_ELECTION;
+
+  bool isRealtime() =>
+      type == ProcessEnvelopeType.REALTIME_POLL ||
+      type == ProcessEnvelopeType.REALTIME_ELECTION ||
+      type == ProcessEnvelopeType.REALTIME_PRIVATE_ELECTION;
 }
 
-var _random = Random.secure();
+class ProcessMode {
+  final int mode;
+  ProcessMode(this.mode);
+
+  static const SCHEDULED_SINGLE_ENVELOPE = 0;
+  static const ON_DEMAND_SINGLE_ENVELOPE = 1;
+
+  bool isScheduled() => mode == ProcessMode.SCHEDULED_SINGLE_ENVELOPE;
+  bool isOnDemand() => mode == ProcessMode.ON_DEMAND_SINGLE_ENVELOPE;
+  bool isSingleEnvelope() =>
+      mode == ProcessMode.SCHEDULED_SINGLE_ENVELOPE ||
+      mode == ProcessMode.ON_DEMAND_SINGLE_ENVELOPE;
+}
+
+class ProcessStatus {
+  final int status;
+  ProcessStatus(this.status);
+
+  static const OPEN = 0;
+  static const ENDED = 1;
+  static const CANCELED = 2;
+  static const PAUSED = 3;
+
+  bool isOpen() => status == ProcessStatus.OPEN;
+  bool isEnded() => status == ProcessStatus.ENDED;
+  bool isCanceled() => status == ProcessStatus.CANCELED;
+  bool isPaused() => status == ProcessStatus.PAUSED;
+}
+
+class ProcessContractGetResultIdx {
+  static const ENVELOPE_TYPE = 0; // See EnvelopeTypes above
+  static const PROCESS_MODE = 1; // See ProcessModes above
+  static const ENTITY_ADDRESS = 2;
+  static const START_BLOCK = 3;
+  static const NUMBER_OF_BLOCKS = 4;
+  static const METADATA_CONTENT_URI = 5;
+  static const MERKLE_ROOT = 6;
+  static const MERKLE_TREE_CONTENT_URI = 7;
+  static const PROCESS_STATUS = 8; // See ProcessStatus above
+}
+
+// HANDLERS
 
 /// Fetch both the active and ended voting processes of an Entity
 Future<List<ProcessMetadata>> fetchAllProcesses(
@@ -97,17 +160,16 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
           await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
 
       if (!(processData is List) ||
-          !(processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI.index]
+          !(processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI]
               is String))
         return null;
-      else if (processData[ProcessContractGetResultIdx.CANCELED.index]
-              is bool &&
-          processData[ProcessContractGetResultIdx.CANCELED.index] == true)
-        return null;
+      else if (processData[ProcessContractGetResultIdx.PROCESS_STATUS] is int &&
+          processData[ProcessContractGetResultIdx.PROCESS_STATUS] ==
+              ProcessStatus.CANCELED) return null;
 
       final String strMetadata = await fetchFileString(
-          ContentURI(processData[
-              ProcessContractGetResultIdx.METADATA_CONTENT_URI.index]),
+          ContentURI(
+              processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI]),
           dvoteGw);
       return parseProcessMetadata(strMetadata);
     } catch (err) {
@@ -115,6 +177,58 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
       return null;
     }
   })).then((result) => result.whereType<ProcessMetadata>().toList());
+}
+
+/// Fetch the envelope type defined for the given Process ID
+Future<ProcessEnvelopeType> getProcessEnvelopeType(
+    String processId, Web3Gateway web3Gw) async {
+  try {
+    final pid = hex.decode(processId.substring(2));
+    final processData =
+        await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+
+    if (processData[ProcessContractGetResultIdx.ENVELOPE_TYPE] is int)
+      return ProcessEnvelopeType(
+          processData[ProcessContractGetResultIdx.ENVELOPE_TYPE]);
+    return null;
+  } catch (err) {
+    if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
+    return null;
+  }
+}
+
+/// Fetch the mode defined for the given Process ID
+Future<ProcessMode> getProcessMode(String processId, Web3Gateway web3Gw) async {
+  try {
+    final pid = hex.decode(processId.substring(2));
+    final processData =
+        await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+
+    if (processData[ProcessContractGetResultIdx.PROCESS_MODE] is int)
+      return ProcessMode(processData[ProcessContractGetResultIdx.PROCESS_MODE]);
+    return null;
+  } catch (err) {
+    if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
+    return null;
+  }
+}
+
+/// Fetch the status for the given Process ID
+Future<ProcessStatus> getProcessStatus(
+    String processId, Web3Gateway web3Gw) async {
+  try {
+    final pid = hex.decode(processId.substring(2));
+    final processData =
+        await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+
+    if (processData[ProcessContractGetResultIdx.PROCESS_STATUS] is int)
+      return ProcessStatus(
+          processData[ProcessContractGetResultIdx.PROCESS_STATUS]);
+    return null;
+  } catch (err) {
+    if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
+    return null;
+  }
 }
 
 /// Returns number of existing blocks in the blockchain
@@ -244,6 +358,8 @@ Future<int> getTimeUntilEnd(
   if (!(startBlock is int) ||
       !(numberOfBlocks is int) ||
       !(dvoteGw is DVoteGateway)) throw Exception("Invalid parameters");
+
+  // TODO: Use the average block time when available
   try {
     int currentHeight = await getBlockHeight(dvoteGw);
     int remainingBlocks = (startBlock + numberOfBlocks) - currentHeight;
@@ -260,6 +376,8 @@ Future<int> getTimeUntilEnd(
 Future<int> getTimeUntilStart(int startBlock, DVoteGateway dvoteGw) async {
   if (!(startBlock is int) || !(dvoteGw is DVoteGateway))
     throw Exception("Invalid parameters");
+
+  // TODO: Use the average block time when available
   try {
     int currentHeight = await getBlockHeight(dvoteGw);
     int remainingBlocks = startBlock - currentHeight;
