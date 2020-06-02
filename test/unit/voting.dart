@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dvote/wrappers/process-keys.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -237,17 +238,18 @@ void pollVoting() {
       expect(envelope["votePackage"] is String, true);
       expect(base64.decode(envelope["votePackage"]).length > 0, true);
 
-      String decrypted;
+      Uint8List decrypted;
       // decrypt in reverse order
       for (int i = encryptionKeys.length - 1; i >= 0; i--) {
         if (i < encryptionKeys.length - 1)
-          decrypted = Asymmetric.decryptString(
-              decrypted, encryptionKeys[i]["privateKey"]);
+          decrypted =
+              Asymmetric.decryptRaw(decrypted, encryptionKeys[i]["privateKey"]);
         else
-          decrypted = Asymmetric.decryptString(
-              envelope["votePackage"], encryptionKeys[i]["privateKey"]);
+          decrypted = Asymmetric.decryptRaw(
+              base64.decode(envelope["votePackage"]),
+              encryptionKeys[i]["privateKey"]);
       }
-      final pkg = jsonDecode(decrypted);
+      final pkg = jsonDecode(utf8.decode(decrypted));
       expect(pkg["type"], "poll-vote");
       expect(item["votes"] is List, true);
       expect(pkg["votes"].length, (item["votes"] as List).length);

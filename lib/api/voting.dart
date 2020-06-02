@@ -567,16 +567,16 @@ Map<String, dynamic> packagePollVote(List<int> votes,
       publicKeysIdx.add(entry.idx);
     });
 
-    String result;
+    Uint8List result;
     for (int i = 0; i < publicKeys.length; i++) {
       if (i > 0)
-        result =
-            Asymmetric.encryptString(result, publicKeys[i]); // reencrypt result
+        result = Asymmetric.encryptRaw(
+            result, publicKeys[i]); // reencrypt the previous result
       else
-        result = Asymmetric.encryptString(
-            strPayload, publicKeys[i]); // encrypt the first round
+        result = Asymmetric.encryptRaw(
+            utf8.encode(strPayload), publicKeys[i]); // encrypt the first round
     }
-    return {"votePackage": result, "keyIndexes": publicKeysIdx};
+    return {"votePackage": base64.encode(result), "keyIndexes": publicKeysIdx};
   } else {
     return {"votePackage": base64.encode(utf8.encode(strPayload))};
   }
