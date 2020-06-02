@@ -193,64 +193,36 @@ class DVoteGateway {
     final signatureValidUntil =
         nowTimestampBase + SIGNATURE_TIMESTAMP_TOLERANCE_GW;
 
-    // ERROR RESPONSE CASE
-    if (decodedMessage["error"] != null) {
-      Map error;
-      final err = decodedMessage["error"];
-      if (err is String)
-        error = jsonDecode(err);
-      else
-        error = decodedMessage["error"];
-
-      if (!(error is Map)) {
-        return req.completer
-            .completeError(Exception("Received a non-object 'error' response"));
-      } else if (decodedMessage["id"] != error["request"]) {
-        return req.completer.completeError(
-            Exception("The signed request ID does not match the expected one"));
-      }
-
-      if (!(error["timestamp"] is int) ||
-          error["timestamp"] < signatureValidFrom ||
-          error["timestamp"] > signatureValidUntil) {
-        return req.completer
-            .completeError(Exception("The response timestamp is invalid"));
-      } else if (!await isValidJsonSignatureAsync(
-          decodedMessage["signature"], error, publicKey)) {
-        return req.completer
-            .completeError(Exception("The response signature is not valid"));
-      } else if (!(error["message"] is String)) {
-        return req.completer
-            .completeError(Exception("Received an empty error message"));
-      }
-      return req.completer.completeError(Exception(error["message"]));
-    }
+    final String givenId = decodedMessage["id"];
+    final String givenSignature = decodedMessage["signature"];
+    final Map<String, dynamic> jsonResponse = decodedMessage["response"];
 
     // Check the response field
-    if (decodedMessage["response"] == null) {
+    if (jsonResponse == null) {
       return req.completer
           .completeError(Exception("Received an empty response"));
-    }
-    final Map<String, dynamic> decodedResponse = decodedMessage["response"];
-
-    if (!(decodedResponse is Map)) {
+    } else if (!(jsonResponse is Map)) {
       return req.completer
           .completeError(Exception("Received an invalid response"));
     }
 
     // SUCCESS RESPONSE CASE
-    if (decodedMessage["id"] != decodedResponse["request"]) {
+    if (givenId != jsonResponse["request"]) {
       return req.completer.completeError(
           Exception("The signed request ID does not match the expected one"));
-    } else if (!(decodedResponse["timestamp"] is int) ||
-        decodedResponse["timestamp"] < signatureValidFrom ||
-        decodedResponse["timestamp"] > signatureValidUntil) {
+    } else if (!(jsonResponse["timestamp"] is int) ||
+        jsonResponse["timestamp"] < signatureValidFrom ||
+        jsonResponse["timestamp"] > signatureValidUntil) {
       return req.completer
           .completeError(Exception("The response timestamp is invalid"));
     } else if (!await isValidJsonSignatureAsync(
-        decodedMessage["signature"], decodedResponse, publicKey)) {
+        givenSignature, jsonResponse, publicKey)) {
       return req.completer
           .completeError(Exception("The response signature is not valid"));
+    } else if (!(jsonResponse["ok"] is bool) || jsonResponse["ok"] != true) {
+      return jsonResponse["message"] is String
+          ? req.completer.completeError(Exception(jsonResponse["message"]))
+          : req.completer.completeError(Exception("The request failed"));
     }
 
     // DONE
@@ -260,7 +232,7 @@ class DVoteGateway {
       return devPrint(
           "Received a response for an already completed (timed out) request");
     }
-    req.completer.complete(decodedResponse);
+    req.completer.complete(jsonResponse);
   }
 
   void _onSocketDone() {

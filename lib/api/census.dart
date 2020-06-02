@@ -28,7 +28,7 @@ Future<String> generateProof(String censusMerkleRootHash, String base64Claim,
       "claimData": base64Claim,
     };
     final response = await dvoteGw.sendRequest(reqParams, timeout: 20);
-    if (!(response is Map) || response["ok"] != true) {
+    if (!(response is Map)) {
       throw Exception("Invalid response received from the gateway");
     }
     return (response["siblings"] is String) ? response["siblings"] : null;
@@ -54,9 +54,7 @@ Future<bool> checkProof(String censusMerkleRootHash, String base64Claim,
       "proofData": proofData
     };
     final response = await dvoteGw.sendRequest(reqParams, timeout: 12);
-    if (!(response is Map) ||
-        response["ok"] != true ||
-        !(response["validProof"] is bool)) {
+    if (!(response is Map) || !(response["validProof"] is bool)) {
       throw Exception("Invalid response received from the gateway");
     }
     return response["validProof"] == true;

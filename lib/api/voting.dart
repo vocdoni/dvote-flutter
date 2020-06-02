@@ -411,8 +411,6 @@ Future<void> submitEnvelope(
     Map<String, dynamic> response = await dvoteGw.sendRequest(reqParams);
     if (!(response is Map)) {
       throw Exception("Invalid response received from the gateway");
-    } else if (response["ok"] != true) {
-      throw Exception("The vote envelope could not be submitted");
     }
   } catch (err) {
     throw err;
