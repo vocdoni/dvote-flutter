@@ -1,3 +1,9 @@
+## 0.12.2
+
+* Adapt the gateway response handler to the current protocol
+* Fix a mismatch the could alter encrypted votes when using more than one key
+* Increase the timestamp mismatch tolerance
+
 ## 0.12.1
 
 * Implementing Poll package Encryption
