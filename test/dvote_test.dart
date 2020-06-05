@@ -16,7 +16,7 @@ void main() {
 
   ens();
   bootnodes();
-  vocGateway();
+  dvoteGateway();
   web3Gateway();
 
   entity();
