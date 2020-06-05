@@ -13,4 +13,4 @@ const String CENSUS_PUB_KEY_CLAIM =
 const String PROCESS_ID =
     "0x239333d368917b24f73940ad17fa5c530a95889895be4a201c46bfc44c787f87";
 const String BOOTNODES_URL_RW =
-    "https://bootnodes.github.io/gateways.dev.json";
+    "https://bootnodes.vocdoni.net/gateways.dev.json";
