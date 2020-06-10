@@ -277,7 +277,7 @@ BootNodeGateways parseBootnodeGateways(String json) {
     (networkIdMap as Map).forEach((k, value) {
       if (!(k is String) || !(value is Map))
         return;
-      else if (k == "homestead") {
+      else if (k == "mainnet") {
         result.homestead = _parseBootnodeGateway(value);
       } else if (k == "goerli") {
         result.goerli = _parseBootnodeGateway(value);

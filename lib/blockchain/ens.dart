@@ -16,6 +16,8 @@ class NetworkInfo {
 }
 
 final _networkList = <NetworkInfo>[
+  NetworkInfo(
+      "mainnet", 1, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"), // alias
   NetworkInfo("homestead", 1, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
   NetworkInfo("modern", 2, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
   NetworkInfo("ropsten", 3, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),

@@ -18,12 +18,12 @@ import '../util/parsers.dart';
 var random = Random.secure();
 
 /// Retrieve the Content URI of the boot nodes Content URI provided by Vocdoni.
-/// `networkId` should be either "homestead" or "goerli"
+/// `networkId` should be either "mainnet" or "goerli"
 Future<ContentURI> getDefaultBootnodeContentUri(String networkId) async {
   List<String> providerUris;
 
   switch (networkId) {
-    case "homestead":
+    case "mainnet":
       providerUris = ["https://api.etherscan.io", "https://cloudflare-eth.com"];
       break;
     case "goerli":
@@ -39,9 +39,8 @@ Future<ContentURI> getDefaultBootnodeContentUri(String networkId) async {
   }
   providerUris.shuffle(Random.secure());
 
-  final entityId = networkId == "homestead"
-      ? vocdoniHomesteadEntityId
-      : vocdoniGoerliEntityId;
+  final entityId =
+      networkId == "mainnet" ? vocdoniMainnetEntityId : vocdoniGoerliEntityId;
   final hexEntityId = hex.decode(entityId.substring(2));
 
   for (var uri in providerUris) {
@@ -96,7 +95,7 @@ Future<GatewayInfo> getRandomGatewayDetails(
   final gws = await getGatewaysDetailsFromBootNode(bootnodesUri);
 
   BootNodeGateways_NetworkNodes nodes =
-      networkId == "homestead" ? gws.homestead : gws.goerli;
+      networkId == "mainnet" ? gws.homestead : gws.goerli;
 
   if (nodes.dvote.length == 0 && nodes.web3.length == 0) return null;
 
