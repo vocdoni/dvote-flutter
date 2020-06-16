@@ -1,3 +1,7 @@
+## 0.12.3
+
+- Internal format rollback to support the current contract version
+
 ## 0.12.2
 
 * Adapt the gateway response handler to the current protocol

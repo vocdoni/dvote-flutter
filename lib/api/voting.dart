@@ -23,75 +23,86 @@ final _random = Random.secure();
 
 // ENUMS AND WRAPPERS
 
-class ProcessEnvelopeType {
-  final int type;
-  ProcessEnvelopeType(this.type);
+// class ProcessEnvelopeType {
+//   final int type;
+//   ProcessEnvelopeType(this.type);
 
-  static const REALTIME_POLL = 0;
-  static const PETITION_SIGNING = 1;
-  static const ENCRYPTED_POLL = 4;
-  static const ENCRYPTED_PRIVATE_POLL = 6;
-  static const REALTIME_ELECTION = 8;
-  static const PRIVATE_ELECTION = 10;
-  static const ELECTION = 12;
-  static const REALTIME_PRIVATE_ELECTION = 14;
+//   static const REALTIME_POLL = 0;
+//   static const PETITION_SIGNING = 1;
+//   static const ENCRYPTED_POLL = 4;
+//   static const ENCRYPTED_PRIVATE_POLL = 6;
+//   static const REALTIME_ELECTION = 8;
+//   static const PRIVATE_ELECTION = 10;
+//   static const ELECTION = 12;
+//   static const REALTIME_PRIVATE_ELECTION = 14;
 
-  bool isRealtimePoll() => type == ProcessEnvelopeType.REALTIME_POLL;
-  bool isPetitionSigning() => type == ProcessEnvelopeType.PETITION_SIGNING;
-  bool isEncryptedPoll() => type == ProcessEnvelopeType.ENCRYPTED_POLL;
-  bool isEncryptedPrivatePoll() =>
-      type == ProcessEnvelopeType.ENCRYPTED_PRIVATE_POLL;
-  bool isRealtimeElection() => type == ProcessEnvelopeType.REALTIME_ELECTION;
-  bool isPrivateElection() => type == ProcessEnvelopeType.PRIVATE_ELECTION;
-  bool isElection() => type == ProcessEnvelopeType.ELECTION;
-  bool isRealtimePrivateElection() =>
-      type == ProcessEnvelopeType.REALTIME_PRIVATE_ELECTION;
+//   bool isRealtimePoll() => type == ProcessEnvelopeType.REALTIME_POLL;
+//   bool isPetitionSigning() => type == ProcessEnvelopeType.PETITION_SIGNING;
+//   bool isEncryptedPoll() => type == ProcessEnvelopeType.ENCRYPTED_POLL;
+//   bool isEncryptedPrivatePoll() =>
+//       type == ProcessEnvelopeType.ENCRYPTED_PRIVATE_POLL;
+//   bool isRealtimeElection() => type == ProcessEnvelopeType.REALTIME_ELECTION;
+//   bool isPrivateElection() => type == ProcessEnvelopeType.PRIVATE_ELECTION;
+//   bool isElection() => type == ProcessEnvelopeType.ELECTION;
+//   bool isRealtimePrivateElection() =>
+//       type == ProcessEnvelopeType.REALTIME_PRIVATE_ELECTION;
 
-  bool isRealtime() =>
-      type == ProcessEnvelopeType.REALTIME_POLL ||
-      type == ProcessEnvelopeType.REALTIME_ELECTION ||
-      type == ProcessEnvelopeType.REALTIME_PRIVATE_ELECTION;
-}
+//   bool isRealtime() =>
+//       type == ProcessEnvelopeType.REALTIME_POLL ||
+//       type == ProcessEnvelopeType.REALTIME_ELECTION ||
+//       type == ProcessEnvelopeType.REALTIME_PRIVATE_ELECTION;
+// }
 
-class ProcessMode {
-  final int mode;
-  ProcessMode(this.mode);
+// class ProcessMode {
+//   final int mode;
+//   ProcessMode(this.mode);
 
-  static const SCHEDULED_SINGLE_ENVELOPE = 0;
-  static const ON_DEMAND_SINGLE_ENVELOPE = 1;
+//   static const SCHEDULED_SINGLE_ENVELOPE = 0;
+//   static const ON_DEMAND_SINGLE_ENVELOPE = 1;
 
-  bool isScheduled() => mode == ProcessMode.SCHEDULED_SINGLE_ENVELOPE;
-  bool isOnDemand() => mode == ProcessMode.ON_DEMAND_SINGLE_ENVELOPE;
-  bool isSingleEnvelope() =>
-      mode == ProcessMode.SCHEDULED_SINGLE_ENVELOPE ||
-      mode == ProcessMode.ON_DEMAND_SINGLE_ENVELOPE;
-}
+//   bool isScheduled() => mode == ProcessMode.SCHEDULED_SINGLE_ENVELOPE;
+//   bool isOnDemand() => mode == ProcessMode.ON_DEMAND_SINGLE_ENVELOPE;
+//   bool isSingleEnvelope() =>
+//       mode == ProcessMode.SCHEDULED_SINGLE_ENVELOPE ||
+//       mode == ProcessMode.ON_DEMAND_SINGLE_ENVELOPE;
+// }
 
-class ProcessStatus {
-  final int status;
-  ProcessStatus(this.status);
+// class ProcessStatus {
+//   final int status;
+//   ProcessStatus(this.status);
 
-  static const OPEN = 0;
-  static const ENDED = 1;
-  static const CANCELED = 2;
-  static const PAUSED = 3;
+//   static const OPEN = 0;
+//   static const ENDED = 1;
+//   static const CANCELED = 2;
+//   static const PAUSED = 3;
 
-  bool isOpen() => status == ProcessStatus.OPEN;
-  bool isEnded() => status == ProcessStatus.ENDED;
-  bool isCanceled() => status == ProcessStatus.CANCELED;
-  bool isPaused() => status == ProcessStatus.PAUSED;
-}
+//   bool isOpen() => status == ProcessStatus.OPEN;
+//   bool isEnded() => status == ProcessStatus.ENDED;
+//   bool isCanceled() => status == ProcessStatus.CANCELED;
+//   bool isPaused() => status == ProcessStatus.PAUSED;
+// }
 
 class ProcessContractGetResultIdx {
-  static const ENVELOPE_TYPE = 0; // See EnvelopeTypes above
-  static const PROCESS_MODE = 1; // See ProcessModes above
-  static const ENTITY_ADDRESS = 2;
-  static const START_BLOCK = 3;
-  static const NUMBER_OF_BLOCKS = 4;
-  static const METADATA_CONTENT_URI = 5;
-  static const MERKLE_ROOT = 6;
-  static const MERKLE_TREE_CONTENT_URI = 7;
-  static const PROCESS_STATUS = 8; // See ProcessStatus above
+  // static const ENVELOPE_TYPE = 0; // See EnvelopeTypes above
+  // static const PROCESS_MODE = 1; // See ProcessModes above
+  // static const ENTITY_ADDRESS = 2;
+  // static const START_BLOCK = 3;
+  // static const NUMBER_OF_BLOCKS = 4;
+  // static const METADATA_CONTENT_URI = 5;
+  // static const MERKLE_ROOT = 6;
+  // static const MERKLE_TREE_CONTENT_URI = 7;
+  // static const PROCESS_STATUS = 8; // See ProcessStatus above
+
+  // TODO: Use the fields above
+  static const PROCESS_TYPE = 0;
+  static const ENTITY_ADDRESS = 1;
+  static const START_BLOCK = 2;
+  static const NUMBER_OF_BLOCKS = 3;
+  static const METADATA_CONTENT_URI = 4;
+  static const MERKLE_ROOT = 5;
+  static const MERKLE_TREE_CONTENT_URI = 6;
+  static const ENCRYPTION_PRIVATE_KEY = 7;
+  static const CANCELED = 8;
 }
 
 // HANDLERS
@@ -163,9 +174,13 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
           !(processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI]
               is String))
         return null;
-      else if (processData[ProcessContractGetResultIdx.PROCESS_STATUS] is int &&
-          processData[ProcessContractGetResultIdx.PROCESS_STATUS] ==
-              ProcessStatus.CANCELED) return null;
+      // TODO: USE PROCESS_STATUS INSTEAD OF CANCELED
+      else if (processData[ProcessContractGetResultIdx.CANCELED] is bool &&
+          processData[ProcessContractGetResultIdx.CANCELED] == true)
+        return null;
+      // else if (processData[ProcessContractGetResultIdx.PROCESS_STATUS] is int &&
+      //     processData[ProcessContractGetResultIdx.PROCESS_STATUS] ==
+      //         ProcessStatus.CANCELED) return null;
 
       final String strMetadata = await fetchFileString(
           ContentURI(
@@ -179,57 +194,60 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
   })).then((result) => result.whereType<ProcessMetadata>().toList());
 }
 
-/// Fetch the envelope type defined for the given Process ID
-Future<ProcessEnvelopeType> getProcessEnvelopeType(
-    String processId, Web3Gateway web3Gw) async {
-  try {
-    final pid = hex.decode(processId.substring(2));
-    final processData =
-        await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+// TODO: UNCOMMENT
+// /// Fetch the envelope type defined for the given Process ID
+// Future<ProcessEnvelopeType> getProcessEnvelopeType(
+//     String processId, Web3Gateway web3Gw) async {
+//   try {
+//     final pid = hex.decode(processId.substring(2));
+//     final processData =
+//         await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
 
-    if (processData[ProcessContractGetResultIdx.ENVELOPE_TYPE] is int)
-      return ProcessEnvelopeType(
-          processData[ProcessContractGetResultIdx.ENVELOPE_TYPE]);
-    return null;
-  } catch (err) {
-    if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
-    return null;
-  }
-}
+//     if (processData[ProcessContractGetResultIdx.ENVELOPE_TYPE] is int)
+//       return ProcessEnvelopeType(
+//           processData[ProcessContractGetResultIdx.ENVELOPE_TYPE]);
+//     return null;
+//   } catch (err) {
+//     if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
+//     return null;
+//   }
+// }
 
-/// Fetch the mode defined for the given Process ID
-Future<ProcessMode> getProcessMode(String processId, Web3Gateway web3Gw) async {
-  try {
-    final pid = hex.decode(processId.substring(2));
-    final processData =
-        await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+// TODO: UNCOMMENT
+// /// Fetch the mode defined for the given Process ID
+// Future<ProcessMode> getProcessMode(String processId, Web3Gateway web3Gw) async {
+//   try {
+//     final pid = hex.decode(processId.substring(2));
+//     final processData =
+//         await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
 
-    if (processData[ProcessContractGetResultIdx.PROCESS_MODE] is int)
-      return ProcessMode(processData[ProcessContractGetResultIdx.PROCESS_MODE]);
-    return null;
-  } catch (err) {
-    if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
-    return null;
-  }
-}
+//     if (processData[ProcessContractGetResultIdx.PROCESS_MODE] is int)
+//       return ProcessMode(processData[ProcessContractGetResultIdx.PROCESS_MODE]);
+//     return null;
+//   } catch (err) {
+//     if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
+//     return null;
+//   }
+// }
 
-/// Fetch the status for the given Process ID
-Future<ProcessStatus> getProcessStatus(
-    String processId, Web3Gateway web3Gw) async {
-  try {
-    final pid = hex.decode(processId.substring(2));
-    final processData =
-        await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+// TODO: UNCOMMENT
+// /// Fetch the status for the given Process ID
+// Future<ProcessStatus> getProcessStatus(
+//     String processId, Web3Gateway web3Gw) async {
+//   try {
+//     final pid = hex.decode(processId.substring(2));
+//     final processData =
+//         await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
 
-    if (processData[ProcessContractGetResultIdx.PROCESS_STATUS] is int)
-      return ProcessStatus(
-          processData[ProcessContractGetResultIdx.PROCESS_STATUS]);
-    return null;
-  } catch (err) {
-    if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
-    return null;
-  }
-}
+//     if (processData[ProcessContractGetResultIdx.PROCESS_STATUS] is int)
+//       return ProcessStatus(
+//           processData[ProcessContractGetResultIdx.PROCESS_STATUS]);
+//     return null;
+//   } catch (err) {
+//     if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
+//     return null;
+//   }
+// }
 
 /// Returns number of existing blocks in the blockchain
 Future<ProcessKeys> getProcessKeys(
