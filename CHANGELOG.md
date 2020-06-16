@@ -1,3 +1,7 @@
+## 0.12.4
+
+- Improving support for encrypted vote submission
+
 ## 0.12.3
 
 - Internal format rollback to support the current contract version

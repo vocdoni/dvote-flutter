@@ -267,15 +267,17 @@ Future<ProcessKeys> getProcessKeys(
     ProcessKeys keys = ProcessKeys();
     if (response["encryptionPubKeys"] is List &&
         response["encryptionPubKeys"].length > 0)
-      keys.encryptionPubKeys = response["encryptionPubKeys"];
+      keys.encryptionPubKeys =
+          _parseProcessKeyList(response["encryptionPubKeys"]);
     if (response["encryptionPrivKeys"] is List &&
         response["encryptionPrivKeys"].length > 0)
-      keys.encryptionPrivKeys = response["encryptionPrivKeys"];
+      keys.encryptionPrivKeys =
+          _parseProcessKeyList(response["encryptionPrivKeys"]);
     if (response["commitmentKeys"] is List &&
         response["commitmentKeys"].length > 0)
-      keys.commitmentKeys = response["commitmentKeys"];
+      keys.commitmentKeys = _parseProcessKeyList(response["commitmentKeys"]);
     if (response["revealKeys"] is List && response["revealKeys"].length > 0)
-      keys.revealKeys = response["revealKeys"];
+      keys.revealKeys = _parseProcessKeyList(response["revealKeys"]);
     return keys;
   } catch (err) {
     throw Exception("The process encryption keys could not be retrieved");
@@ -473,7 +475,8 @@ Future<Map<String, dynamic>> packagePollEnvelope(List<int> votes,
   try {
     final nonce = _generateRandomNonce(32);
 
-    final packageValues = packagePollVote(votes, processKeys: processKeys);
+    final packageValues =
+        await packagePollVote(votes, processKeys: processKeys);
 
     Map<String, dynamic> package = {
       "processId": processId,
@@ -545,8 +548,8 @@ String packageSnarkVote(List<int> votes, String publicKey) {
 
 /// Packages the vote and returns `{ votePackage: "..." }` on non-encrypted polls and
 /// `{ votePackage: "...", keyIndexes: [0, 1, 2, 3, 4] }` on encrypted polls
-Map<String, dynamic> packagePollVote(List<int> votes,
-    {ProcessKeys processKeys}) {
+Future<Map<String, dynamic>> packagePollVote(List<int> votes,
+    {ProcessKeys processKeys}) async {
   if (!(votes is List))
     throw Exception("Invalid parameters");
   else if (processKeys is ProcessKeys) {
@@ -588,10 +591,10 @@ Map<String, dynamic> packagePollVote(List<int> votes,
     Uint8List result;
     for (int i = 0; i < publicKeys.length; i++) {
       if (i > 0)
-        result = Asymmetric.encryptRaw(
+        result = await Asymmetric.encryptRawAsync(
             result, publicKeys[i]); // reencrypt the previous result
       else
-        result = Asymmetric.encryptRaw(
+        result = await Asymmetric.encryptRawAsync(
             utf8.encode(strPayload), publicKeys[i]); // encrypt the first round
     }
     return {"votePackage": base64.encode(result), "keyIndexes": publicKeysIdx};
@@ -626,4 +629,21 @@ String _generateRandomNonce(int length) {
     result = result + digits[_random.nextInt(digits.length)];
   }
   return result;
+}
+
+/// Turns [{idx:1, key: "1234"}, ...] into [ProcessKey(...), ...]
+List<ProcessKey> _parseProcessKeyList(List<dynamic> items) {
+  if (!(items is List)) return <ProcessKey>[];
+  return items
+      .map((item) {
+        if (!(item is Map) || !(item["idx"] is int) || !(item["key"] is String))
+          return null;
+        final k = ProcessKey();
+        k.idx = item["idx"];
+        k.key = item["key"];
+        return k;
+      })
+      .whereType<ProcessKey>()
+      .cast<ProcessKey>()
+      .toList();
 }
