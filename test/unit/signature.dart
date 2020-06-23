@@ -7,6 +7,7 @@ void signature() {
   _syncSignature();
   _asyncSignature();
   _signingMatch();
+  _reproduceableSignatures();
 }
 
 void _syncSignature() {
@@ -224,7 +225,8 @@ void _asyncSignature() {
 
   // Received
 
-  test("Recover the public key of signatures received externally [async]", () async {
+  test("Recover the public key of signatures received externally [async]",
+      () async {
     final originalPublicKey =
         "0x04d811f8ade566618a667715c637a7f3019f46ae0ffc8b2ec3b16b1f72999e2e2f9e9b50c78ca34175d78942de88798cce5d53569f96579a95ec9bab17c0131d4f";
 
@@ -260,7 +262,8 @@ void _asyncSignature() {
     expect(valid, true, reason: "The signature should be valid");
   });
 
-  test("Verify a signature received externally with 'v' below 72 [async]", () async {
+  test("Verify a signature received externally with 'v' below 72 [async]",
+      () async {
     final publicKey =
         "0x04d811f8ade566618a667715c637a7f3019f46ae0ffc8b2ec3b16b1f72999e2e2f9e9b50c78ca34175d78942de88798cce5d53569f96579a95ec9bab17c0131d4f";
 
@@ -279,7 +282,8 @@ void _asyncSignature() {
 
   // Signed here
 
-  test("Recover the public key of signatures generated locally [async]", () async {
+  test("Recover the public key of signatures generated locally [async]",
+      () async {
     EthereumWallet wallet = EthereumWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
@@ -402,7 +406,7 @@ void _asyncSignature() {
   });
 }
 
-_signingMatch() {
+void _signingMatch() {
   test("Sync and async should match", () async {
     EthereumWallet wallet = EthereumWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
@@ -473,5 +477,109 @@ _signingMatch() {
     isValid2 =
         await isValidJsonSignatureAsync(signature2, payload, wallet.publicKey);
     expect(isValid1, isValid2);
+  });
+}
+
+void _reproduceableSignatures() {
+  test("JSON payloads should be signed in alphabetic order", () async {
+    final wallet = EthereumWallet.random();
+
+    // Simple types
+    String payload1 = serializeJsonBody("Hello");
+    String signature1 = signString(payload1, wallet.privateKey);
+    String payload2 = serializeJsonBody("Hello");
+    String signature2 = signString(payload2, wallet.privateKey);
+    expect(payload1, payload2);
+    expect(signature1, signature2);
+
+    bool isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    expect(isValid, true);
+
+    //
+    payload1 = serializeJsonBody(1234);
+    signature1 = signString(payload1, wallet.privateKey);
+    payload2 = serializeJsonBody(1234);
+    signature2 = signString(payload2, wallet.privateKey);
+    expect(payload1, payload2);
+    expect(signature1, signature2);
+
+    isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    expect(isValid, true);
+
+    // Maps
+    payload1 = serializeJsonBody({"a": 1234, "z": 2345});
+    signature1 = signString(payload1, wallet.privateKey);
+    payload2 = serializeJsonBody({"z": 2345, "a": 1234});
+    signature2 = signString(payload2, wallet.privateKey);
+    expect(payload1, payload2);
+    expect(signature1, signature2);
+
+    isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    expect(isValid, true);
+
+    // Recursive maps
+    payload1 = serializeJsonBody({
+      "a": 1,
+      "b": {"c": 3, "d": 4}
+    });
+    signature1 = signString(payload1, wallet.privateKey);
+    payload2 = serializeJsonBody({
+      "b": {"d": 4, "c": 3},
+      "a": 1
+    });
+    signature2 = signString(payload2, wallet.privateKey);
+    expect(payload1, payload2);
+    expect(signature1, signature2);
+
+    isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    expect(isValid, true);
+
+    // Lists
+    payload1 = serializeJsonBody([
+      {"a": 10, "m": 10, "z": 10},
+      {"b": 11, "n": 11, "y": 11},
+      4,
+      5
+    ]);
+    signature1 = signString(payload1, wallet.privateKey);
+    payload2 = serializeJsonBody([
+      {"z": 10, "m": 10, "a": 10},
+      {"y": 11, "n": 11, "b": 11},
+      4,
+      5
+    ]);
+    signature2 = signString(payload2, wallet.privateKey);
+    expect(payload1, payload2);
+    expect(signature1, signature2);
+
+    isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    expect(isValid, true);
+
+    // Recursive maps and lists
+    payload1 = serializeJsonBody({
+      "a": 1,
+      "b": [
+        {"a": 10, "m": 10, "z": 10},
+        {"b": 11, "n": 11, "y": 11},
+        4,
+        5
+      ]
+    });
+    signature1 = signString(payload1, wallet.privateKey);
+    payload2 = serializeJsonBody({
+      "b": [
+        {"z": 10, "m": 10, "a": 10},
+        {"y": 11, "n": 11, "b": 11},
+        4,
+        5
+      ],
+      "a": 1
+    });
+    signature2 = signString(payload2, wallet.privateKey);
+    expect(payload1, payload2);
+    expect(signature1, signature2);
+
+    isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    expect(isValid, true);
   });
 }

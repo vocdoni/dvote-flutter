@@ -77,7 +77,11 @@ String serializeJsonBody(dynamic body) {
 /// Since the ordering is not guaranteed, this function returns a recursively
 /// ordered map
 dynamic sortJsonFields(dynamic data) {
-  if (!(data is Map)) return data;
+  if (!(data is Map) && !(data is List))
+    return data;
+  else if (data is List) {
+    return data.map((item) => sortJsonFields(item)).cast().toList();
+  }
 
   final keys = <String>[];
   final result = Map<String, dynamic>();

@@ -194,6 +194,12 @@ Raw JSON data can't be directly serialized into a Protobuf object. For this reas
 
 - See `example/lib/main.dart` for a usage example.
 
+## Development
+
+- Clone the git repo
+- Run `flutter pub get`
+- Run `submodule update --init --recursive` to fetch the protobuf subrepo
+
 ## TO DO
 
 - [ ] Document examples of Poseidon hash, generate Merkle Proofs and ZK proofs
