@@ -105,6 +105,13 @@ class ProcessContractGetResultIdx {
   static const CANCELED = 8;
 }
 
+class BlockStatus {
+  int blockNumber;
+  int blockTimestamp;
+  List<int> averageBlockTimes;
+  BlockStatus(this.blockNumber, this.blockTimestamp, this.averageBlockTimes);
+}
+
 // HANDLERS
 
 /// Fetch both the active and ended voting processes of an Entity
@@ -372,42 +379,228 @@ String _getPollNullifier(List<dynamic> args) {
   return "0x" + hex.encode(hashBytes);
 }
 
-/// Returns estimated process remaining time in seconds
-Future<int> getTimeUntilEnd(
-    int startBlock, int numberOfBlocks, DVoteGateway dvoteGw) async {
-  if (!(startBlock is int) ||
-      !(numberOfBlocks is int) ||
-      !(dvoteGw is DVoteGateway)) throw Exception("Invalid parameters");
+/// Retrieves the current block number, the timestamp at which the block was mined and the average block time in miliseconds for 1m, 10m, 1h, 6h and 24h.
+/// @see estimateBlockAtDateTime (date, gateway)
+/// @see estimateDateAtBlock (blockNumber, gateway)
+Future<BlockStatus> getBlockStatus(DVoteGateway dvoteGw) {
+  if (!(dvoteGw is DVoteGateway))
+    return Future.error(Exception("Invalid Gateway object"));
 
-  // TODO: Use the average block time when available
-  try {
-    int currentHeight = await getBlockHeight(dvoteGw);
-    int remainingBlocks = (startBlock + numberOfBlocks) - currentHeight;
-    if (remainingBlocks <= 0)
-      return 0;
-    else
-      return remainingBlocks * VOCHAIN_BLOCK_TIME;
-  } catch (err) {
-    throw Exception("The process deadline could not be determined");
-  }
+  final body = {"method": "getBlockStatus"};
+  return dvoteGw.sendRequest(body, timeout: 5).then((response) {
+    if (!(response is Map))
+      throw Exception("Invalid response received from the gateway");
+
+    if (!(response["height"] is int) || response["height"] < 0)
+      throw Exception("The block height is not valid");
+    else if (!(response["blockTimestamp"] is int) ||
+        response["blockTimestamp"] < 0)
+      throw Exception("The block timestamp is not valid");
+    else if (!(response["blockTime"] is List) ||
+        response["blockTime"].length < 5 ||
+        response["blockTime"].some((item) => !(item is int) || item < 0))
+      throw Exception("The block times are not valid");
+
+    return BlockStatus(response["height"], response["blockTimestamp"] * 1000,
+        response["blockTime"] ?? []);
+  }).catchError((error) {
+    final message = error.message
+        ? "Could not retrieve the block status: " + error.message
+        : "Could not retrieve the block status";
+    throw Exception(message);
+  });
 }
 
-/// Returns estimated remaining time for the process start in seconds
-Future<int> getTimeUntilStart(int startBlock, DVoteGateway dvoteGw) async {
-  if (!(startBlock is int) || !(dvoteGw is DVoteGateway))
-    throw Exception("Invalid parameters");
+/// Returns the block number that is expected to be current at the given date and time
+/// @param dateTime
+/// @param gateway
+Future<int> estimateBlockAtDateTime(
+    DateTime targetDate, DVoteGateway gateway) async {
+  if (!(targetDate is DateTime)) return null;
+  final targetTimestamp = targetDate.millisecondsSinceEpoch;
 
-  // TODO: Use the average block time when available
-  try {
-    int currentHeight = await getBlockHeight(dvoteGw);
-    int remainingBlocks = startBlock - currentHeight;
-    if (remainingBlocks <= 0)
-      return 0;
-    else
-      return remainingBlocks * VOCHAIN_BLOCK_TIME;
-  } catch (err) {
-    throw Exception("The process starting time could not be determined");
-  }
+  return getBlockStatus(gateway).then((status) {
+    final blockTimestamp = status.blockTimestamp;
+    final blockTimes = status.averageBlockTimes;
+    double averageBlockTime = VOCHAIN_BLOCK_TIME * 1000.0;
+    double weightA, weightB;
+
+    // Diff between the last mined block and the given date
+    final dateDiff = (targetTimestamp - blockTimestamp).abs();
+
+    // status.blockTime => [1m, 10m, 1h, 6h, 24h]
+
+    if (dateDiff >= 1000 * 60 * 60 * 24) {
+      if (blockTimes[4] > 0) averageBlockTime = blockTimes[4].toDouble();
+    } else if (dateDiff >= 1000 * 60 * 60 * 6) {
+      // 1000 * 60 * 60 * 6 <= dateDiff < 1000 * 60 * 60 * 24
+      final pivot = (dateDiff - 1000 * 60 * 60 * 6) / (1000 * 60 * 60);
+      weightB = pivot / (24 - 6); // 0..1
+      weightA = 1 - weightB;
+
+      if (blockTimes[4] > 0 && blockTimes[3] > 0) {
+        averageBlockTime = weightA * blockTimes[3] + weightB * blockTimes[4];
+      } else if (blockTimes[4] > 0) {
+        averageBlockTime =
+            weightA * VOCHAIN_BLOCK_TIME * 1000 + weightB * blockTimes[4];
+      } else if (blockTimes[3] > 0) {
+        averageBlockTime =
+            weightA * blockTimes[3] + weightB * VOCHAIN_BLOCK_TIME * 1000;
+      }
+    } else if (dateDiff >= 1000 * 60 * 60) {
+      // 1000 * 60 * 60 <= dateDiff < 1000 * 60 * 60 * 6
+      final pivot = (dateDiff - 1000 * 60 * 60) / (1000 * 60 * 60);
+      weightB = pivot / (6 - 1); // 0..1
+      weightA = 1 - weightB;
+
+      if (blockTimes[3] > 0 && blockTimes[2] > 0) {
+        averageBlockTime = weightA * blockTimes[2] + weightB * blockTimes[3];
+      } else if (blockTimes[3] > 0) {
+        averageBlockTime =
+            weightA * VOCHAIN_BLOCK_TIME * 1000 + weightB * blockTimes[3];
+      } else if (blockTimes[2] > 0) {
+        averageBlockTime =
+            weightA * blockTimes[2] + weightB * VOCHAIN_BLOCK_TIME * 1000;
+      }
+    } else if (dateDiff >= 1000 * 60 * 10) {
+      // 1000 * 60 * 10 <= dateDiff < 1000 * 60 * 60
+      final pivot = (dateDiff - 1000 * 60 * 10) / (1000 * 60);
+      weightB = pivot / (60 - 10); // 0..1
+      weightA = 1 - weightB;
+
+      if (blockTimes[2] > 0 && blockTimes[1] > 0) {
+        averageBlockTime = weightA * blockTimes[1] + weightB * blockTimes[2];
+      } else if (blockTimes[2] > 0) {
+        averageBlockTime =
+            weightA * VOCHAIN_BLOCK_TIME * 1000 + weightB * blockTimes[2];
+      } else if (blockTimes[1] > 0) {
+        averageBlockTime =
+            weightA * blockTimes[1] + weightB * VOCHAIN_BLOCK_TIME * 1000;
+      }
+    } else if (dateDiff >= 1000 * 60) {
+      // 1000 * 60 <= dateDiff < 1000 * 60 * 6
+      final pivot = (dateDiff - 1000 * 60) / (1000 * 60);
+      weightB = pivot / (10 - 1); // 0..1
+      weightA = 1 - weightB;
+
+      if (blockTimes[1] > 0 && blockTimes[0] > 0) {
+        averageBlockTime = weightA * blockTimes[0] + weightB * blockTimes[1];
+      } else if (blockTimes[1] > 0) {
+        averageBlockTime =
+            weightA * VOCHAIN_BLOCK_TIME * 1000 + weightB * blockTimes[1];
+      } else if (blockTimes[0] > 0) {
+        averageBlockTime =
+            weightA * blockTimes[0] + weightB * VOCHAIN_BLOCK_TIME * 1000;
+      }
+    } else {
+      if (blockTimes[0] > 0) averageBlockTime = blockTimes[0].toDouble();
+    }
+
+    final estimatedBlockDiff = dateDiff / averageBlockTime;
+    final estimatedBlock = targetTimestamp < blockTimestamp
+        ? status.blockNumber - estimatedBlockDiff
+        : status.blockNumber + estimatedBlockDiff;
+
+    if (estimatedBlock < 0) return 0;
+    return estimatedBlock.floor();
+  });
+}
+
+const blocksPerM = 6; // x 10s
+const blocksPer10m = 10 * blocksPerM;
+const blocksPerH = blocksPerM * 60;
+const blocksPer6h = 6 * blocksPerH;
+const blocksPerDay = 24 * blocksPerH;
+
+/// Returns the DateTime at which the given block number is expected to be mined
+/// @param blockNumber
+/// @param gateway
+Future<DateTime> estimateDateAtBlock(int blockNumber, DVoteGateway gateway) {
+  if (!(blockNumber is int)) return null;
+
+  return getBlockStatus(gateway).then((status) {
+    // Diff between the last mined block and the given one
+    final blockDiff = (blockNumber - status.blockNumber).abs();
+    double averageBlockTime = VOCHAIN_BLOCK_TIME * 1000.0;
+    double weightA, weightB;
+
+    // status.blockTime => [1m, 10m, 1h, 6h, 24h]
+    if (blockDiff > blocksPerDay) {
+      if (status.averageBlockTimes[4] > 0)
+        averageBlockTime = status.averageBlockTimes[4].toDouble();
+    } else if (blockDiff > blocksPer6h) {
+      // blocksPer6h <= blockDiff < blocksPerDay
+      final pivot = (blockDiff - blocksPer6h) / (blocksPerH);
+      weightB = pivot / (24 - 6); // 0..1
+      weightA = 1 - weightB;
+
+      if (status.averageBlockTimes[4] > 0 && status.averageBlockTimes[3] > 0) {
+        averageBlockTime = weightA * status.averageBlockTimes[3] +
+            weightB * status.averageBlockTimes[4];
+      } else if (status.averageBlockTimes[4] > 0) {
+        averageBlockTime = weightA * VOCHAIN_BLOCK_TIME * 1000 +
+            weightB * status.averageBlockTimes[4];
+      } else if (status.averageBlockTimes[3] > 0) {
+        averageBlockTime = weightA * status.averageBlockTimes[3] +
+            weightB * VOCHAIN_BLOCK_TIME * 1000;
+      }
+    } else if (blockDiff > blocksPerH) {
+      // blocksPerH <= blockDiff < blocksPer6h
+      final pivot = (blockDiff - blocksPerH) / (blocksPerH);
+      weightB = pivot / (6 - 1); // 0..1
+      weightA = 1 - weightB;
+
+      if (status.averageBlockTimes[3] > 0 && status.averageBlockTimes[2] > 0) {
+        averageBlockTime = weightA * status.averageBlockTimes[2] +
+            weightB * status.averageBlockTimes[3];
+      } else if (status.averageBlockTimes[3] > 0) {
+        averageBlockTime = weightA * VOCHAIN_BLOCK_TIME * 1000 +
+            weightB * status.averageBlockTimes[3];
+      } else if (status.averageBlockTimes[2] > 0) {
+        averageBlockTime = weightA * status.averageBlockTimes[2] +
+            weightB * VOCHAIN_BLOCK_TIME * 1000;
+      }
+    } else if (blockDiff > blocksPer10m) {
+      // blocksPer10m <= blockDiff < blocksPerH
+      final pivot = (blockDiff - blocksPer10m) / (blocksPerM);
+      weightB = pivot / (60 - 10); // 0..1
+      weightA = 1 - weightB;
+
+      if (status.averageBlockTimes[2] > 0 && status.averageBlockTimes[1] > 0) {
+        averageBlockTime = weightA * status.averageBlockTimes[1] +
+            weightB * status.averageBlockTimes[2];
+      } else if (status.averageBlockTimes[2] > 0) {
+        averageBlockTime = weightA * VOCHAIN_BLOCK_TIME * 1000 +
+            weightB * status.averageBlockTimes[2];
+      } else if (status.averageBlockTimes[1] > 0) {
+        averageBlockTime = weightA * status.averageBlockTimes[1] +
+            weightB * VOCHAIN_BLOCK_TIME * 1000;
+      }
+    } else if (blockDiff > blocksPerM) {
+      // blocksPerM <= blockDiff < blocksPer10m
+      final pivot = (blockDiff - blocksPerM) / (blocksPerM);
+      weightB = pivot / (10 - 1); // 0..1
+      weightA = 1 - weightB;
+
+      if (status.averageBlockTimes[1] > 0 && status.averageBlockTimes[0] > 0) {
+        averageBlockTime = weightA * status.averageBlockTimes[0] +
+            weightB * status.averageBlockTimes[1];
+      } else if (status.averageBlockTimes[1] > 0) {
+        averageBlockTime = weightA * VOCHAIN_BLOCK_TIME * 1000 +
+            weightB * status.averageBlockTimes[1];
+      } else if (status.averageBlockTimes[0] > 0) {
+        averageBlockTime = weightA * status.averageBlockTimes[0] +
+            weightB * VOCHAIN_BLOCK_TIME * 1000;
+      }
+    } else {
+      if (status.averageBlockTimes[0] > 0)
+        averageBlockTime = status.averageBlockTimes[0].toDouble();
+    }
+
+    final targetTimestamp = status.blockTimestamp +
+        (blockNumber - status.blockNumber) * averageBlockTime;
+    return DateTime.fromMicrosecondsSinceEpoch(targetTimestamp.floor());
+  });
 }
 
 /// Submit vote Envelope to the gateway
