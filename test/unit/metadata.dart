@@ -25,14 +25,14 @@ void dataModels() {
 
   test("Process metadata model", () async {
     String meta =
-        """{"version": "1.0","id":"0x12345678","type": "snark-vote","startBlock": 10000,"numberOfBlocks": 400,"census": {"merkleRoot": "0x1234","merkleTree": "https://merkle-tree/"},"details": {"entityId": "0x2345","title": {"default": "Universal Basic Income"},"description": {"default": "## Markdown text goes here### Abstract"},"headerImage": "https://server/image.png","streamUrl":"https://youtube.com/stream1234","questions": [{"type": "single-choice","question": {"default": "Should universal basic income become a human right?"},"description": {"default": "## Markdown text goes here### Abstract"},"voteOptions": [{"title": {"en": "Yes","ca": "Sí"},"value": 0},{"title": {"en": "No","ca": "No"},"value": 1}]}]}}""";
+        """{"version": "1.0","id":"0x12345678","type": "snark-vote","startBlock": 10000,"blockCount": 400,"census": {"merkleRoot": "0x1234","merkleTree": "https://merkle-tree/"},"details": {"entityId": "0x2345","title": {"default": "Universal Basic Income"},"description": {"default": "## Markdown text goes here### Abstract"},"headerImage": "https://server/image.png","streamUrl":"https://youtube.com/stream1234","questions": [{"type": "single-choice","question": {"default": "Should universal basic income become a human right?"},"description": {"default": "## Markdown text goes here### Abstract"},"voteOptions": [{"title": {"en": "Yes","ca": "Sí"},"value": 0},{"title": {"en": "No","ca": "No"},"value": 1}]}]}}""";
     ProcessMetadata process = parseProcessMetadata(meta);
     expect(process.version, "1.0", reason: "The version should equal 1.0");
     expect(process.type, "snark-vote",
         reason: "The type should equal snark-vote");
     expect(process.startBlock, 10000, reason: "startBlock should equal 10000");
-    expect(process.numberOfBlocks, 400,
-        reason: "numberOfBlocks should equal 400");
+    expect(process.blockCount, 400,
+        reason: "blockCount should equal 400");
 
     expect(process.census.merkleRoot, "0x1234",
         reason: "The census merkleRoot should equal 0x1234");

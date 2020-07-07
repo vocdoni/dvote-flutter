@@ -12,6 +12,10 @@ import '../util/json-signature.dart';
 import "../constants.dart";
 
 import 'package:web3dart/web3dart.dart';
+import '../blockchain/ens.dart';
+import '../blockchain/entity-contract.dart';
+// import '../blockchain/namespace-contract.dart';
+import '../blockchain/process-contract.dart';
 
 final _random = Random.secure();
 
@@ -20,6 +24,18 @@ final _random = Random.secure();
 const TIMEOUT_COUNT_THRESHOLD = 2;
 const TIMEOUT_TIME_FRAME = Duration(seconds: 15);
 const TIMEOUT_CHECK_INTERVAL = Duration(seconds: 2);
+
+// TODO: Use the non-dev domain
+final entityResolverDomain = "entities.dev.vocdoni.eth";
+final processDomain = "process.dev.vocdoni.eth";
+
+final entityResolverDomainDev = "entities.dev.vocdoni.eth";
+final processDomainDev = "process.dev.vocdoni.eth";
+
+String entityResolverAddress; // Lazy load
+String processAddress; // Lazy load
+
+enum Web3ContractType { EntityResolver, Process }
 
 // ----------------------------------------------------------------------------
 // Exported classes
@@ -353,52 +369,83 @@ class DVoteGateway {
 
 /// Client class to wrap calls to Ethereum Smart Contracts using a (Vocdoni) Gateway
 class Web3Gateway {
-  String rpcUri;
-  String wsUri;
-  Web3Client client;
+  final String _gatewayUri;
+  ContractAbi _contractAbi;
+  DeployedContract _contract;
+  String _contractAddress;
+  Web3Client _client;
 
-  Web3Gateway(String gatewayUri) {
-    connect(gatewayUri);
+  String get rpcUri => _gatewayUri.replaceFirst(RegExp("^ws"), "http");
+  String get wsUri => _gatewayUri.replaceFirst(RegExp("^http"), "ws");
+
+  Web3Gateway(this._gatewayUri) {
+    if (_gatewayUri == null || _gatewayUri == "")
+      throw Exception("Invalid Gateway URI");
+  }
+
+  Future<Web3Gateway> getEntityResolverClient() async {
+    Web3Gateway client = Web3Gateway(this._gatewayUri);
+
+    client._contractAbi =
+        ContractAbi.fromJson(jsonEncode(entityResolverAbi), 'EntityResolver');
+
+    if (entityResolverAddress == null)
+      await Web3Gateway._resolveEntityResolverDomain(this._gatewayUri);
+
+    client._contractAddress = entityResolverAddress;
+
+    client.connect();
+    return client;
+  }
+
+  Future<Web3Gateway> getProcessClient() async {
+    Web3Gateway client = Web3Gateway(this._gatewayUri);
+
+    client._contractAbi =
+        ContractAbi.fromJson(jsonEncode(processAbi), 'Process');
+
+    if (processAddress == null)
+      await Web3Gateway._resolveProcessDomain(this._gatewayUri);
+
+    client._contractAddress = processAddress;
+
+    client.connect();
+    return client;
   }
 
   /// Initialization the WebSockets connection with the Gateway
-  connect(String gatewayUri) {
-    if (gatewayUri == null || gatewayUri == "")
-      throw Exception("Invalid Gateway URI");
-    else if (gatewayUri.startsWith("http")) {
-      this.rpcUri = gatewayUri;
-      this.wsUri = gatewayUri.replaceFirst(RegExp("^http"), "ws");
-    } else if (gatewayUri.startsWith("ws")) {
-      this.rpcUri = gatewayUri.replaceFirst(RegExp("^ws"), "http");
-      this.wsUri = gatewayUri;
-    }
-
+  connect() {
     disconnect();
-    client = Web3Client(rpcUri, Client());
+
+    _contract = DeployedContract(
+        _contractAbi, EthereumAddress.fromHex(this._contractAddress));
+
+    _client = Web3Client(rpcUri, Client());
   }
 
   /// Disconnects the WebSocket communication
   disconnect() {
-    if (client != null) {
-      client.dispose();
-      client = null;
-    }
+    if (_client == null) return;
+
+    _client.dispose();
+    _client = null;
+    _contract = null;
+    _contractAddress = null;
   }
 
   /// Perform a call request to Ethereum
-  Future<List<dynamic>> callMethod(String contractAbi, String contractAddress,
-      String method, List<dynamic> params) async {
-    if (client == null) throw Exception("You are not connected to Ethereum");
+  Future<List<dynamic>> callMethod(String method, List<dynamic> params) async {
+    if (_client == null || _contract == null)
+      throw Exception("You are not attached to a contract");
 
-    final ethAddress = EthereumAddress.fromHex(contractAddress);
-    final contract = DeployedContract(
-        ContractAbi.fromJson(contractAbi, 'Vocdoni'), ethAddress);
+    final methodFunc = this._contract.function(method);
+    if (methodFunc == null)
+      throw Exception(
+          "Method not found. Did you attach to the appropriate contract?");
 
-    final methodFunc = contract.function(method);
     try {
-      final result = await client.call(
-          contract: contract, function: methodFunc, params: params ?? []);
-      return result;
+      return _client.call(
+          contract: this._contract, function: methodFunc, params: params ?? []);
     } on FormatException catch (err) {
       devPrint("WEB3 CALL METHOD ERROR: $err");
       throw Exception("Invalid response from the Web3 Gateway: $rpcUri");
@@ -407,26 +454,50 @@ class Web3Gateway {
     }
   }
 
-  /// Send a transaction to the blockchain
-  Future<String> sendTransaction(String contractAbi, String contractAddress,
+  /// Send a transaction to a contract
+  Future<String> sendTransaction(
       String method, List<dynamic> params, Credentials credentials) {
-    if (client == null)
-      throw Exception("You are not connected to Ethereum");
+    if (_client == null || _contract == null)
+      throw Exception("You are not attached to a contract");
     else if (credentials == null)
       throw Exception("Credentials are required to send a transaction");
 
-    final ethAddress = EthereumAddress.fromHex(contractAddress);
-    final contract = DeployedContract(
-        ContractAbi.fromJson(contractAbi, 'Vocdoni'), ethAddress);
+    final methodFunc = this._contract.function(method);
+    if (methodFunc == null)
+      throw Exception(
+          "Method not found. Did you attach to the appropriate contract?");
 
-    final methodFunc = contract.function(method);
-
-    return client.sendTransaction(
+    return _client.sendTransaction(
         credentials,
         Transaction.callContract(
-            contract: contract,
+            contract: this._contract,
             function: methodFunc,
             parameters: params ?? []));
+  }
+
+  // HELPERS
+
+  static Future<void> _resolveEntityResolverDomain(String gatewayUri) async {
+    if (kReleaseMode) {
+      entityResolverAddress =
+          await resolveName(entityResolverDomain, gatewayUri);
+    } else {
+      entityResolverAddress =
+          await resolveName(entityResolverDomainDev, gatewayUri);
+    }
+
+    if (!(entityResolverAddress is String))
+      throw Exception("The domain name does not exist");
+  }
+
+  static Future<void> _resolveProcessDomain(String gatewayUri) async {
+    if (kReleaseMode) {
+      processAddress = await resolveName(processDomain, gatewayUri);
+    } else {
+      processAddress = await resolveName(processDomainDev, gatewayUri);
+    }
+    if (!(processAddress is String))
+      throw Exception("The domain name does not exist");
   }
 }
 

@@ -24,7 +24,8 @@ Future<void> vote() async {
   entityRef.entityId = entityId;
   entityRef.entryPoints.addAll([entityEntryPoint]);
 
-  GatewayInfo gwInfo = await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);
+  GatewayInfo gwInfo =
+      await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);
   final dvoteGw = DVoteGateway(gwInfo.dvote, publicKey: gwInfo.publicKey);
   final web3Gw = Web3Gateway(gwInfo.web3);
 
