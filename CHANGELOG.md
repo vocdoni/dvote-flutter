@@ -1,3 +1,8 @@
+## 0.13.0
+
+- Providing fine-grained date and block estimation using the recent averages
+- Dropping `getTimeUntilEnd` and `getTimeUntilStart`
+
 ## 0.12.4
 
 - Improving support for encrypted vote submission
