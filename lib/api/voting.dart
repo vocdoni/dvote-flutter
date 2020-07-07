@@ -5,14 +5,13 @@ import 'package:convert/convert.dart';
 import 'package:dvote/crypto/asyncify.dart';
 import 'package:dvote/dvote.dart';
 import 'package:dvote/util/parsers.dart';
-import 'package:dvote/wrappers/process-keys.dart';
+import 'package:dvote/wrappers/process.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web3dart/crypto.dart';
 import 'dart:typed_data';
 
 import '../net/gateway.dart';
 import "./entity.dart";
-import "../blockchain/index.dart";
 import '../models/dart/entity.pb.dart';
 import '../models/dart/process.pb.dart';
 import '../util/json-signature.dart';
@@ -20,97 +19,6 @@ import '../constants.dart';
 import 'package:dvote_native/dvote_native.dart' as dvoteNative;
 
 final _random = Random.secure();
-
-// ENUMS AND WRAPPERS
-
-// class ProcessEnvelopeType {
-//   final int type;
-//   ProcessEnvelopeType(this.type);
-
-//   static const REALTIME_POLL = 0;
-//   static const PETITION_SIGNING = 1;
-//   static const ENCRYPTED_POLL = 4;
-//   static const ENCRYPTED_PRIVATE_POLL = 6;
-//   static const REALTIME_ELECTION = 8;
-//   static const PRIVATE_ELECTION = 10;
-//   static const ELECTION = 12;
-//   static const REALTIME_PRIVATE_ELECTION = 14;
-
-//   bool isRealtimePoll() => type == ProcessEnvelopeType.REALTIME_POLL;
-//   bool isPetitionSigning() => type == ProcessEnvelopeType.PETITION_SIGNING;
-//   bool isEncryptedPoll() => type == ProcessEnvelopeType.ENCRYPTED_POLL;
-//   bool isEncryptedPrivatePoll() =>
-//       type == ProcessEnvelopeType.ENCRYPTED_PRIVATE_POLL;
-//   bool isRealtimeElection() => type == ProcessEnvelopeType.REALTIME_ELECTION;
-//   bool isPrivateElection() => type == ProcessEnvelopeType.PRIVATE_ELECTION;
-//   bool isElection() => type == ProcessEnvelopeType.ELECTION;
-//   bool isRealtimePrivateElection() =>
-//       type == ProcessEnvelopeType.REALTIME_PRIVATE_ELECTION;
-
-//   bool isRealtime() =>
-//       type == ProcessEnvelopeType.REALTIME_POLL ||
-//       type == ProcessEnvelopeType.REALTIME_ELECTION ||
-//       type == ProcessEnvelopeType.REALTIME_PRIVATE_ELECTION;
-// }
-
-// class ProcessMode {
-//   final int mode;
-//   ProcessMode(this.mode);
-
-//   static const SCHEDULED_SINGLE_ENVELOPE = 0;
-//   static const ON_DEMAND_SINGLE_ENVELOPE = 1;
-
-//   bool isScheduled() => mode == ProcessMode.SCHEDULED_SINGLE_ENVELOPE;
-//   bool isOnDemand() => mode == ProcessMode.ON_DEMAND_SINGLE_ENVELOPE;
-//   bool isSingleEnvelope() =>
-//       mode == ProcessMode.SCHEDULED_SINGLE_ENVELOPE ||
-//       mode == ProcessMode.ON_DEMAND_SINGLE_ENVELOPE;
-// }
-
-// class ProcessStatus {
-//   final int status;
-//   ProcessStatus(this.status);
-
-//   static const OPEN = 0;
-//   static const ENDED = 1;
-//   static const CANCELED = 2;
-//   static const PAUSED = 3;
-
-//   bool isOpen() => status == ProcessStatus.OPEN;
-//   bool isEnded() => status == ProcessStatus.ENDED;
-//   bool isCanceled() => status == ProcessStatus.CANCELED;
-//   bool isPaused() => status == ProcessStatus.PAUSED;
-// }
-
-class ProcessContractGetResultIdx {
-  // static const ENVELOPE_TYPE = 0; // See EnvelopeTypes above
-  // static const PROCESS_MODE = 1; // See ProcessModes above
-  // static const ENTITY_ADDRESS = 2;
-  // static const START_BLOCK = 3;
-  // static const NUMBER_OF_BLOCKS = 4;
-  // static const METADATA_CONTENT_URI = 5;
-  // static const MERKLE_ROOT = 6;
-  // static const MERKLE_TREE_CONTENT_URI = 7;
-  // static const PROCESS_STATUS = 8; // See ProcessStatus above
-
-  // TODO: Use the fields above
-  static const PROCESS_TYPE = 0;
-  static const ENTITY_ADDRESS = 1;
-  static const START_BLOCK = 2;
-  static const NUMBER_OF_BLOCKS = 3;
-  static const METADATA_CONTENT_URI = 4;
-  static const MERKLE_ROOT = 5;
-  static const MERKLE_TREE_CONTENT_URI = 6;
-  static const ENCRYPTION_PRIVATE_KEY = 7;
-  static const CANCELED = 8;
-}
-
-class BlockStatus {
-  int blockNumber;
-  int blockTimestamp;
-  List<int> averageBlockTimes;
-  BlockStatus(this.blockNumber, this.blockTimestamp, this.averageBlockTimes);
-}
 
 // HANDLERS
 
@@ -174,25 +82,16 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
   return Future.wait(processIds.map((processId) async {
     try {
       final pid = hex.decode(processId.substring(2));
-      final processData =
-          await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+      final w3Client = await web3Gw.getEntityResolverClient();
+      final response = await w3Client.callMethod("text", [pid]);
+      final processParams = ProcessParams.fromContract(response);
 
-      if (!(processData is List) ||
-          !(processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI]
-              is String))
+      if (!(processParams.metadata is String))
         return null;
-      // TODO: USE PROCESS_STATUS INSTEAD OF CANCELED
-      else if (processData[ProcessContractGetResultIdx.CANCELED] is bool &&
-          processData[ProcessContractGetResultIdx.CANCELED] == true)
-        return null;
-      // else if (processData[ProcessContractGetResultIdx.PROCESS_STATUS] is int &&
-      //     processData[ProcessContractGetResultIdx.PROCESS_STATUS] ==
-      //         ProcessStatus.CANCELED) return null;
+      else if (processParams.status.isCanceled) return null;
 
-      final String strMetadata = await fetchFileString(
-          ContentURI(
-              processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI]),
-          dvoteGw);
+      final strMetadata =
+          await fetchFileString(ContentURI(processParams.metadata), dvoteGw);
       return parseProcessMetadata(strMetadata);
     } catch (err) {
       if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
@@ -201,60 +100,52 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
   })).then((result) => result.whereType<ProcessMetadata>().toList());
 }
 
-// TODO: UNCOMMENT
-// /// Fetch the envelope type defined for the given Process ID
-// Future<ProcessEnvelopeType> getProcessEnvelopeType(
-//     String processId, Web3Gateway web3Gw) async {
-//   try {
-//     final pid = hex.decode(processId.substring(2));
-//     final processData =
-//         await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+/// Fetch the mode defined for the given Process ID (skipping metadata)
+Future<ProcessMode> getProcessMode(String processId, Web3Gateway web3Gw) async {
+  try {
+    final pid = hex.decode(processId.substring(2));
+    final w3Client = await web3Gw.getEntityResolverClient();
+    final response = await w3Client.callMethod("text", [pid]);
+    final processParams = ProcessParams.fromContract(response);
 
-//     if (processData[ProcessContractGetResultIdx.ENVELOPE_TYPE] is int)
-//       return ProcessEnvelopeType(
-//           processData[ProcessContractGetResultIdx.ENVELOPE_TYPE]);
-//     return null;
-//   } catch (err) {
-//     if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
-//     return null;
-//   }
-// }
+    return processParams.mode;
+  } catch (err) {
+    if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
+    return null;
+  }
+}
 
-// TODO: UNCOMMENT
-// /// Fetch the mode defined for the given Process ID
-// Future<ProcessMode> getProcessMode(String processId, Web3Gateway web3Gw) async {
-//   try {
-//     final pid = hex.decode(processId.substring(2));
-//     final processData =
-//         await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+/// Fetch the envelope type defined for the given Process ID (skipping metadata)
+Future<ProcessEnvelopeType> getProcessEnvelopeType(
+    String processId, Web3Gateway web3Gw) async {
+  try {
+    final pid = hex.decode(processId.substring(2));
+    final w3Client = await web3Gw.getEntityResolverClient();
+    final response = await w3Client.callMethod("text", [pid]);
+    final processParams = ProcessParams.fromContract(response);
 
-//     if (processData[ProcessContractGetResultIdx.PROCESS_MODE] is int)
-//       return ProcessMode(processData[ProcessContractGetResultIdx.PROCESS_MODE]);
-//     return null;
-//   } catch (err) {
-//     if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
-//     return null;
-//   }
-// }
+    return processParams.envelopeType;
+  } catch (err) {
+    if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
+    return null;
+  }
+}
 
-// TODO: UNCOMMENT
-// /// Fetch the status for the given Process ID
-// Future<ProcessStatus> getProcessStatus(
-//     String processId, Web3Gateway web3Gw) async {
-//   try {
-//     final pid = hex.decode(processId.substring(2));
-//     final processData =
-//         await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+/// Fetch the status for the given Process ID (skipping metadata)
+Future<ProcessStatus> getProcessStatus(
+    String processId, Web3Gateway web3Gw) async {
+  try {
+    final pid = hex.decode(processId.substring(2));
+    final w3Client = await web3Gw.getEntityResolverClient();
+    final response = await w3Client.callMethod("text", [pid]);
+    final processParams = ProcessParams.fromContract(response);
 
-//     if (processData[ProcessContractGetResultIdx.PROCESS_STATUS] is int)
-//       return ProcessStatus(
-//           processData[ProcessContractGetResultIdx.PROCESS_STATUS]);
-//     return null;
-//   } catch (err) {
-//     if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
-//     return null;
-//   }
-// }
+    return processParams.status;
+  } catch (err) {
+    if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
+    return null;
+  }
+}
 
 /// Returns number of existing blocks in the blockchain
 Future<ProcessKeys> getProcessKeys(
@@ -274,17 +165,15 @@ Future<ProcessKeys> getProcessKeys(
     ProcessKeys keys = ProcessKeys();
     if (response["encryptionPubKeys"] is List &&
         response["encryptionPubKeys"].length > 0)
-      keys.encryptionPubKeys =
-          _parseProcessKeyList(response["encryptionPubKeys"]);
+      keys.encryptionPubKeys = response["encryptionPubKeys"];
     if (response["encryptionPrivKeys"] is List &&
         response["encryptionPrivKeys"].length > 0)
-      keys.encryptionPrivKeys =
-          _parseProcessKeyList(response["encryptionPrivKeys"]);
+      keys.encryptionPrivKeys = response["encryptionPrivKeys"];
     if (response["commitmentKeys"] is List &&
         response["commitmentKeys"].length > 0)
-      keys.commitmentKeys = _parseProcessKeyList(response["commitmentKeys"]);
+      keys.commitmentKeys = response["commitmentKeys"];
     if (response["revealKeys"] is List && response["revealKeys"].length > 0)
-      keys.revealKeys = _parseProcessKeyList(response["revealKeys"]);
+      keys.revealKeys = response["revealKeys"];
     return keys;
   } catch (err) {
     throw Exception("The process encryption keys could not be retrieved");
@@ -380,7 +269,7 @@ String _getPollNullifier(List<dynamic> args) {
 }
 
 /// Retrieves the current block number, the timestamp at which the block was mined and the average block time in miliseconds for 1m, 10m, 1h, 6h and 24h.
-/// @see estimateBlockAtDateTime (date, gateway)
+/// @see estimateBlockAtDate (date, gateway)
 /// @see estimateDateAtBlock (blockNumber, gateway)
 Future<BlockStatus> getBlockStatus(DVoteGateway dvoteGw) {
   if (!(dvoteGw is DVoteGateway))
@@ -414,7 +303,7 @@ Future<BlockStatus> getBlockStatus(DVoteGateway dvoteGw) {
 /// Returns the block number that is expected to be current at the given date and time
 /// @param dateTime
 /// @param gateway
-Future<int> estimateBlockAtDateTime(
+Future<int> estimateBlockAtDate(
     DateTime targetDate, DVoteGateway gateway) async {
   if (!(targetDate is DateTime)) return null;
   final targetTimestamp = targetDate.millisecondsSinceEpoch;
@@ -668,8 +557,7 @@ Future<Map<String, dynamic>> packagePollEnvelope(List<int> votes,
   try {
     final nonce = _generateRandomNonce(32);
 
-    final packageValues =
-        await packagePollVote(votes, processKeys: processKeys);
+    final packageValues = packagePollVote(votes, processKeys: processKeys);
 
     Map<String, dynamic> package = {
       "processId": processId,
@@ -741,8 +629,8 @@ String packageSnarkVote(List<int> votes, String publicKey) {
 
 /// Packages the vote and returns `{ votePackage: "..." }` on non-encrypted polls and
 /// `{ votePackage: "...", keyIndexes: [0, 1, 2, 3, 4] }` on encrypted polls
-Future<Map<String, dynamic>> packagePollVote(List<int> votes,
-    {ProcessKeys processKeys}) async {
+Map<String, dynamic> packagePollVote(List<int> votes,
+    {ProcessKeys processKeys}) {
   if (!(votes is List))
     throw Exception("Invalid parameters");
   else if (processKeys is ProcessKeys) {
@@ -784,10 +672,10 @@ Future<Map<String, dynamic>> packagePollVote(List<int> votes,
     Uint8List result;
     for (int i = 0; i < publicKeys.length; i++) {
       if (i > 0)
-        result = await Asymmetric.encryptRawAsync(
+        result = Asymmetric.encryptRaw(
             result, publicKeys[i]); // reencrypt the previous result
       else
-        result = await Asymmetric.encryptRawAsync(
+        result = Asymmetric.encryptRaw(
             utf8.encode(strPayload), publicKeys[i]); // encrypt the first round
     }
     return {"votePackage": base64.encode(result), "keyIndexes": publicKeysIdx};
@@ -822,21 +710,4 @@ String _generateRandomNonce(int length) {
     result = result + digits[_random.nextInt(digits.length)];
   }
   return result;
-}
-
-/// Turns [{idx:1, key: "1234"}, ...] into [ProcessKey(...), ...]
-List<ProcessKey> _parseProcessKeyList(List<dynamic> items) {
-  if (!(items is List)) return <ProcessKey>[];
-  return items
-      .map((item) {
-        if (!(item is Map) || !(item["idx"] is int) || !(item["key"] is String))
-          return null;
-        final k = ProcessKey();
-        k.idx = item["idx"];
-        k.key = item["key"];
-        return k;
-      })
-      .whereType<ProcessKey>()
-      .cast<ProcessKey>()
-      .toList();
 }

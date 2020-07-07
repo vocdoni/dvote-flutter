@@ -3,8 +3,8 @@ import 'dart:math';
 
 import 'package:dvote/util/dev.dart';
 import 'package:dvote/wrappers/content-uri.dart';
-import 'package:dvote/blockchain/index.dart';
-import 'package:dvote/api/entity.dart';
+import 'package:dvote/net/gateway.dart';
+import 'package:dvote/wrappers/entities.dart';
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
 
@@ -45,10 +45,11 @@ Future<ContentURI> getDefaultBootnodeContentUri(String networkId) async {
 
   for (var uri in providerUris) {
     try {
-      var result = await callEntityResolverMethod(uri, "text", [
-        Uint8List.fromList(hexEntityId),
-        TEXT_RECORD_KEYS["VOCDONI_BOOT_NODES"]
-      ]);
+      final gw = Web3Gateway(uri);
+      final w3Client = await gw.getEntityResolverClient();
+      final result = await w3Client.callMethod("text",
+          [Uint8List.fromList(hexEntityId), TextRecordKeys.VOCDONI_BOOT_NODES]);
+
       if (result is List && result[0] is String) return ContentURI(result[0]);
     } catch (err) {
       continue;

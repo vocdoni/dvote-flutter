@@ -97,7 +97,8 @@ $_processMetaStr''';
             padding: EdgeInsets.all(16),
             child: Column(
               children: <Widget>[
-                Text(entityMeta),Text(processMeta), 
+                Text(entityMeta),
+                Text(processMeta),
               ],
             ),
           ),
