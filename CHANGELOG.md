@@ -1,7 +1,9 @@
 ## 0.13.0
 
+- Using the version 0.7.0 of the Smart Contracts from DVote Solidity
 - Providing fine-grained date and block estimation using the recent averages
 - Dropping `getTimeUntilEnd` and `getTimeUntilStart`
+- Supporting reproduceable signatures on JSON arrays
 
 ## 0.12.4
 

@@ -6,7 +6,7 @@ Future<void> vote() async {
   ProcessMetadata processMeta;
   Map<String, dynamic> pollVoteEnvelope;
   String merkleProof;
-  int blockHeight, censusSize, envelopeHeight, remainingSeconds;
+  int blockHeight, censusSize, envelopeHeight;
   // bool envelopeSent;
 
   final wallet = EthereumWallet.fromMnemonic(MNEMONIC, hdPath: PATH);
@@ -79,11 +79,8 @@ Future<void> vote() async {
 
     // Remaining seconds
     print("\nRequesting the remaining time amount");
-    // await getTimeUntilStart(processMeta.meta["id"], 1000, dvoteGw);
-    remainingSeconds = await getTimeUntilEnd(1000, 2000, dvoteGw);
-    if (!(remainingSeconds is int))
-      throw Exception("The remaining seconds amount is not valid");
-    print("Remaining seconds: $remainingSeconds");
+    final targetDate = await estimateDateAtBlock(blockHeight + 1000, dvoteGw);
+    print("Date in 1000 blocks: $targetDate");
 
     // Merkle Proof
     print("\nRequesting Merkle Proof");

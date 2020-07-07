@@ -329,6 +329,14 @@ class ProcessParams {
   }
 }
 
+class BlockStatus {
+  int blockNumber;
+  int blockTimestamp;
+  List<int> averageBlockTimes;
+
+  BlockStatus(this.blockNumber, this.blockTimestamp, this.averageBlockTimes);
+}
+
 class ProcessKey {
   int idx;
   String key;
