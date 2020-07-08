@@ -84,7 +84,7 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
       final pid = hex.decode(processId.substring(2));
       final w3Client = await web3Gw.getEntityResolverClient();
       final response = await w3Client.callMethod("text", [pid]);
-      final processParams = ProcessParams.fromContract(response);
+      final processParams = ProcessContractParameters.fromContract(response);
 
       if (!(processParams.metadata is String))
         return null;
@@ -106,7 +106,7 @@ Future<ProcessMode> getProcessMode(String processId, Web3Gateway web3Gw) async {
     final pid = hex.decode(processId.substring(2));
     final w3Client = await web3Gw.getEntityResolverClient();
     final response = await w3Client.callMethod("text", [pid]);
-    final processParams = ProcessParams.fromContract(response);
+    final processParams = ProcessContractParameters.fromContract(response);
 
     return processParams.mode;
   } catch (err) {
@@ -122,7 +122,7 @@ Future<ProcessEnvelopeType> getProcessEnvelopeType(
     final pid = hex.decode(processId.substring(2));
     final w3Client = await web3Gw.getEntityResolverClient();
     final response = await w3Client.callMethod("text", [pid]);
-    final processParams = ProcessParams.fromContract(response);
+    final processParams = ProcessContractParameters.fromContract(response);
 
     return processParams.envelopeType;
   } catch (err) {
@@ -138,7 +138,7 @@ Future<ProcessStatus> getProcessStatus(
     final pid = hex.decode(processId.substring(2));
     final w3Client = await web3Gw.getEntityResolverClient();
     final response = await w3Client.callMethod("text", [pid]);
-    final processParams = ProcessParams.fromContract(response);
+    final processParams = ProcessContractParameters.fromContract(response);
 
     return processParams.status;
   } catch (err) {

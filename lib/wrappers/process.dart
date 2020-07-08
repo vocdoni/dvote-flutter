@@ -169,7 +169,7 @@ final processStatusValues = [
 ];
 
 /// Wraps and unwraps the parameters sent to `Process.newProcess()` and obtained from `Process.get()`
-class ProcessParams {
+class ProcessContractParameters {
   ProcessMode mode;
   ProcessEnvelopeType envelopeType;
   String entityAddress;
@@ -191,10 +191,10 @@ class ProcessParams {
   String paramsSignature;
   String results;
 
-  ProcessParams.fromParams(
+  ProcessContractParameters.fromParams(
       {@required int mode,
       @required int envelopeType,
-      @required this.entityAddress,
+      this.entityAddress,
       @required this.metadata,
       @required this.censusMerkleRoot,
       @required this.censusMerkleTree,
@@ -211,7 +211,7 @@ class ProcessParams {
       @required this.costExponent,
       @required this.namespace,
       @required this.paramsSignature,
-      @required this.results}) {
+      this.results}) {
     // Integrity checks
     if (!RegExp(r"^0x[0-9a-fA-F]{40}$").hasMatch(entityAddress))
       throw Exception("Invalid address");
@@ -247,7 +247,7 @@ class ProcessParams {
     if (status is int) this.status = ProcessStatus(status);
   }
 
-  ProcessParams.fromContract(List<dynamic> params) {
+  ProcessContractParameters.fromContract(List<dynamic> params) {
     if (!(params is List) || params.length != 9)
       throw Exception("Invalid parameters list");
     else if (!(params[0] is List) ||
