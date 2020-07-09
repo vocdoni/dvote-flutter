@@ -4,6 +4,12 @@
 - Providing fine-grained date and block estimation using the recent averages
 - Dropping `getTimeUntilEnd` and `getTimeUntilStart`
 - Supporting reproduceable signatures on JSON arrays
+- Adding `getProcessParameters` to retrieve the raw parameters of a process on the blockchain
+- Adding `ProcessContractParameters` to wrap/unwrap process contract parameters
+- Renamed `packageSnarkEnvelope` into `packageAnonymousEnvelope`
+- Renamed `packagePollEnvelope` into `packageSignedEnvelope`
+- Merged `packageSnarkVote` and `packagePollVote` into `packageVoteContent`
+- Renamed `getPollNullifier` into `getSignedVoteNullifier`
 
 ## 0.12.4
 

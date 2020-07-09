@@ -94,7 +94,7 @@ Future<void> vote() async {
     // Generate Envelope
     print("\nGenerating the Vote Envelope");
     final voteValues = [1, 2, 1];
-    pollVoteEnvelope = await packagePollEnvelope(
+    pollVoteEnvelope = await packageSignedEnvelope(
         voteValues, merkleProof, processMeta.meta["id"], privateKey);
     print("Poll vote envelope:  $pollVoteEnvelope");
 
@@ -103,7 +103,7 @@ Future<void> vote() async {
     await submitEnvelope(pollVoteEnvelope, dvoteGw);
 
     // Get envelope status
-    final nullifier = await getPollNullifier(address, processMeta.meta["id"]);
+    final nullifier = await getSignedVoteNullifier(address, processMeta.meta["id"]);
     print("Nullifier: $nullifier");
     final registered =
         await getEnvelopeStatus(processMeta.meta["id"], nullifier, dvoteGw);

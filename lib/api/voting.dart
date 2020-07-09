@@ -100,47 +100,14 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
   })).then((result) => result.whereType<ProcessMetadata>().toList());
 }
 
-/// Fetch the mode defined for the given Process ID (skipping metadata)
-Future<ProcessMode> getProcessMode(String processId, Web3Gateway web3Gw) async {
-  try {
-    final pid = hex.decode(processId.substring(2));
-    final w3Client = await web3Gw.getEntityResolverClient();
-    final response = await w3Client.callMethod("text", [pid]);
-    final processParams = ProcessContractParameters.fromContract(response);
-
-    return processParams.mode;
-  } catch (err) {
-    if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
-    return null;
-  }
-}
-
-/// Fetch the envelope type defined for the given Process ID (skipping metadata)
-Future<ProcessEnvelopeType> getProcessEnvelopeType(
+/// Fetch the raw parameters for the given processId using the given gateway (skipping metadata)
+Future<ProcessContractParameters> getProcessParameters(
     String processId, Web3Gateway web3Gw) async {
   try {
     final pid = hex.decode(processId.substring(2));
     final w3Client = await web3Gw.getEntityResolverClient();
     final response = await w3Client.callMethod("text", [pid]);
-    final processParams = ProcessContractParameters.fromContract(response);
-
-    return processParams.envelopeType;
-  } catch (err) {
-    if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
-    return null;
-  }
-}
-
-/// Fetch the status for the given Process ID (skipping metadata)
-Future<ProcessStatus> getProcessStatus(
-    String processId, Web3Gateway web3Gw) async {
-  try {
-    final pid = hex.decode(processId.substring(2));
-    final w3Client = await web3Gw.getEntityResolverClient();
-    final response = await w3Client.callMethod("text", [pid]);
-    final processParams = ProcessContractParameters.fromContract(response);
-
-    return processParams.status;
+    return ProcessContractParameters.fromContract(response);
   } catch (err) {
     if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
     return null;
@@ -240,7 +207,7 @@ Future<bool> getEnvelopeStatus(
 
 /// Computes the nullifier of the user's vote within a voting process.
 /// Returns a hex string with kecak256(bytes(address) + bytes(processId))
-Future<String> getPollNullifier(String address, String processId) {
+Future<String> getSignedVoteNullifier(String address, String processId) {
   address = address.replaceFirst(new RegExp(r'^0x'), '');
   processId = processId.replaceFirst(new RegExp(r'^0x'), '');
 
@@ -519,12 +486,12 @@ Future<void> submitEnvelope(
   }
 }
 
-Future<String> packageSnarkEnvelope(
+Future<String> packageAnonymousEnvelope(
     List<int> votes, String proof, String privateKey) async {
   throw Exception("unimplemented");
   // TODO: Generate hash of private key for nullifier as in Snarks
   /*
-  String votePackage = packageSnarkVote(votes);
+  String votePackage = packageVoteContent(votes);
   Map<String, String>  package = {
     "processId": processId,
     "proof": proof, // ZK Proof
@@ -536,7 +503,7 @@ Future<String> packageSnarkEnvelope(
   */
 }
 
-Future<Map<String, dynamic>> packagePollEnvelope(List<int> votes,
+Future<Map<String, dynamic>> packageSignedEnvelope(List<int> votes,
     String merkleProof, String processId, String signingPrivateKey,
     {ProcessKeys processKeys}) async {
   if (!(votes is List) ||
@@ -557,7 +524,7 @@ Future<Map<String, dynamic>> packagePollEnvelope(List<int> votes,
   try {
     final nonce = _generateRandomNonce(32);
 
-    final packageValues = packagePollVote(votes, processKeys: processKeys);
+    final packageValues = packageVoteContent(votes, processKeys: processKeys);
 
     Map<String, dynamic> package = {
       "processId": processId,
@@ -613,23 +580,9 @@ String _generateZkProof(List<dynamic> args) {
 // / Internal helpers
 // ////////////////////////////////////////////////////////////////////////////
 
-String packageSnarkVote(List<int> votes, String publicKey) {
-  final nonce = _generateRandomNonce(16);
-
-  // TODO: ENCRYPT IT WITH publicKey
-
-  Map<String, dynamic> package = {
-    "type": "snark-vote",
-    "nonce":
-        nonce, // random number to prevent guessing the encrypted payload before the key is revealed
-    "votes": votes // Directly mapped to the `questions` field of the metadata
-  };
-  return base64.encode(utf8.encode(jsonEncode(package)));
-}
-
 /// Packages the vote and returns `{ votePackage: "..." }` on non-encrypted polls and
 /// `{ votePackage: "...", keyIndexes: [0, 1, 2, 3, 4] }` on encrypted polls
-Map<String, dynamic> packagePollVote(List<int> votes,
+Map<String, dynamic> packageVoteContent(List<int> votes,
     {ProcessKeys processKeys}) {
   if (!(votes is List))
     throw Exception("Invalid parameters");
