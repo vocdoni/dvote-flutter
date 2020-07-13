@@ -1,3 +1,9 @@
+## 0.12.5
+
+- Providing accurate block time estimation using average times
+  - Introducing `estimateBlockAtDateTime` and `estimateDateAtBlock`
+  - Removing `getTimeUntilStart` and `getTimeUntilEnd`
+
 ## 0.12.4
 
 - Improving support for encrypted vote submission

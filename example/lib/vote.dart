@@ -6,7 +6,8 @@ Future<void> vote() async {
   ProcessMetadata processMeta;
   Map<String, dynamic> pollVoteEnvelope;
   String merkleProof;
-  int blockHeight, censusSize, envelopeHeight, remainingSeconds;
+  int blockHeight, censusSize, envelopeHeight;
+  DateTime dateAtBlock;
   // bool envelopeSent;
 
   final wallet = EthereumWallet.fromMnemonic(MNEMONIC, hdPath: PATH);
@@ -24,7 +25,8 @@ Future<void> vote() async {
   entityRef.entityId = entityId;
   entityRef.entryPoints.addAll([entityEntryPoint]);
 
-  GatewayInfo gwInfo = await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);
+  GatewayInfo gwInfo =
+      await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);
   final dvoteGw = DVoteGateway(gwInfo.dvote, publicKey: gwInfo.publicKey);
   final web3Gw = Web3Gateway(gwInfo.web3);
 
@@ -77,12 +79,12 @@ Future<void> vote() async {
     print("Envelope height: $envelopeHeight");
 
     // Remaining seconds
-    print("\nRequesting the remaining time amount");
-    // await getTimeUntilStart(processMeta.meta["id"], 1000, dvoteGw);
-    remainingSeconds = await getTimeUntilEnd(1000, 2000, dvoteGw);
-    if (!(remainingSeconds is int))
-      throw Exception("The remaining seconds amount is not valid");
-    print("Remaining seconds: $remainingSeconds");
+    print("\nEstimating");
+    dateAtBlock = await estimateDateAtBlock(processMeta.startBlock, dvoteGw);
+    print("Process start block: $dateAtBlock");
+    dateAtBlock = await estimateDateAtBlock(
+        processMeta.startBlock + processMeta.numberOfBlocks, dvoteGw);
+    print("Process end block: $dateAtBlock");
 
     // Merkle Proof
     print("\nRequesting Merkle Proof");
