@@ -69,8 +69,8 @@ Future<bool> isValidJsonSignatureAsync(
 /// Returns a serialized, reproduceable string from the JSON body, used to compute signatures
 String serializeJsonBody(dynamic body) {
   // Ensure alphabetically ordered key names
-  final sortedBody = sortJsonFields(body);
-  return jsonEncode(sortedBody);
+  final sortedData = sortJsonFields(body);
+  return jsonEncode(sortedData);
 }
 
 /// Signatures need to be computed over objects that can be 100% reproduceable.

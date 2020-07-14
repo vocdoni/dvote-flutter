@@ -132,7 +132,7 @@ class DVoteGateway {
       final signature = await signJsonPayloadAsync(requestBody, privateKey);
       requestPayload = {
         "id": id,
-        "request": requestBody,
+        "request": sortJsonFields(requestBody), // Send the same data that has been signed
         "signature": signature
       };
     }
