@@ -1,3 +1,7 @@
+## 0.12.6
+
+- Sending the same JSON payload as the one signed (Gateway)
+
 ## 0.12.5
 
 - Providing accurate block time estimation using average times
