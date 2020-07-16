@@ -29,6 +29,7 @@ const TIMEOUT_CHECK_INTERVAL = Duration(seconds: 2);
 class DVoteGateway {
   final String _gatewayUri;
   final String _publicKey;
+  bool _skipHealthCheck;
 
   /// The WebSocket "open" channel
   bool _socketConnecting = false;
@@ -44,9 +45,13 @@ class DVoteGateway {
   // /// List of callbacks to invoke when an unrelated message is received.
   // ObserverList<Function> _listeners = new ObserverList<Function>();
 
-  DVoteGateway(this._gatewayUri, {String publicKey, void Function() onTimeout})
+  DVoteGateway(this._gatewayUri,
+      {String publicKey,
+      void Function() onTimeout,
+      bool skipHealthCheck = false})
       : this._publicKey = publicKey {
     this._onTimeout = onTimeout ?? () {};
+    this._skipHealthCheck = skipHealthCheck;
   }
 
   bool get isConnected => _socket != null && _socketSubscription != null;
@@ -78,7 +83,10 @@ class DVoteGateway {
           onDone: _onSocketDone, onError: _onSocketError);
 
       // Send a test flight request
-      return this.getInfo();
+      if (this._skipHealthCheck != true) {
+        return this.getInfo();
+      }
+      return null;
     }).then((_) {
       // DONE
       _socketConnecting = false;

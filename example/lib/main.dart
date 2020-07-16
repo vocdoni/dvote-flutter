@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import "./metadata.dart";
-import "./gateway.dart";
+// import "./metadata.dart";
+// import "./gateway.dart";
+import "./register.dart";
 // import "./wallets.dart";
 // import "./signatures.dart";
 // import "./vote.dart";
@@ -21,24 +22,34 @@ class ExampleApp extends StatelessWidget {
       ),
       body: ListView(
         children: <Widget>[
+          // Card(
+          //   child: ListTile(
+          //     leading: FlutterLogo(size: 72.0),
+          //     title: Text('Gateway'),
+          //     subtitle: Text('Showing Gateways Info'),
+          //     isThreeLine: true,
+          //     onTap: () => Navigator.push(context,
+          //         MaterialPageRoute(builder: (context) => GatewayScreen())),
+          //   ),
+          // ),
+          // Card(
+          //   child: ListTile(
+          //     leading: FlutterLogo(size: 72.0),
+          //     title: Text('Metadata'),
+          //     subtitle: Text('Get Entity Metadata'),
+          //     isThreeLine: true,
+          //     onTap: () => Navigator.push(context,
+          //         MaterialPageRoute(builder: (context) => MetadataScreen())),
+          //   ),
+          // ),
           Card(
             child: ListTile(
               leading: FlutterLogo(size: 72.0),
-              title: Text('Gateway'),
-              subtitle: Text('Showing Gateways Info'),
+              title: Text('Register'),
+              subtitle: Text('Register User to Backend'),
               isThreeLine: true,
               onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => GatewayScreen())),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: FlutterLogo(size: 72.0),
-              title: Text('Metadata'),
-              subtitle: Text('Get Entity Metadata'),
-              isThreeLine: true,
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => MetadataScreen())),
+                  MaterialPageRoute(builder: (context) => RegisterScreen())),
             ),
           ),
         ],
