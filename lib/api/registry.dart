@@ -14,7 +14,7 @@ Future<Map<String, dynamic>> register(
   try {
     Map<String, dynamic> reqParams = {
       "method": "register",
-      "member": {
+      "memberInfo": {
         "firstName": firstName,
         "lastName": lastName,
         "email": email,

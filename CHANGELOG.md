@@ -1,3 +1,7 @@
+## 0.12.8
+
+- Minor change on the wrapper field names
+
 ## 0.12.7
 
 - Splitting the registration function into `register` and `validateRegistrationToken`
