@@ -1,3 +1,7 @@
+## 0.12.7
+
+- Splitting the registration function into `register` and `validateRegistrationToken`
+
 ## 0.12.6
 
 - Sending the same JSON payload as the one signed (Gateway)

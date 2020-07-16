@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:faker/faker.dart';
+// import 'package:faker/faker.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:dvote/dvote.dart';
@@ -36,25 +36,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       var uuid = Uuid();
-      // faker = new Faker();
       dvoteGw = DVoteGateway(RESISTRY_URL, skipHealthCheck: true);
       final wallet = EthereumWallet.random(hdPath: "m/44'/60'/0'/0/5");
 
-      Map<String, dynamic> reqParams = {
-        "firstName": faker.person.firstName(),
-        "lastName": faker.person.lastName(),
-        "email": faker.internet.email(),
-        "phone": "+442356788",
-        "dateOfBirth": faker.date
-            .dateTime(minYear: 1900, maxYear: 2000)
-            .toUtc()
-            .toIso8601String(),
-      };
-      // var test = DateTime.now();
-      // test.toIso8601String();
       var token = uuid.v4();
       reply = await validateRegistrationToken(
-          entity, token, reqParams, dvoteGw, wallet.privateKey);
+          ENTITY_ID, token, dvoteGw, wallet.privateKey);
       dvoteGw.disconnect();
     } on PlatformException catch (err) {
       error = err.message;
