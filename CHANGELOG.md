@@ -1,6 +1,7 @@
 ## 0.12.6
 
 - Sending the same JSON payload as the one signed (Gateway)
+- Adding a wrapper to validate registration tokens to a certain backend
 
 ## 0.12.5
 
