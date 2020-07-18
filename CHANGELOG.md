@@ -1,3 +1,7 @@
+## 0.12.9
+
+- Adding the `registrationStatus` method
+
 ## 0.12.8
 
 - Minor change on the wrapper field names

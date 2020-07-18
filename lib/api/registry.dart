@@ -61,3 +61,30 @@ Future<Map<String, dynamic>> validateRegistrationToken(String entityId,
         "The registration token could not be validated: " + err.toString());
   }
 }
+
+/// Checks whether the given public key is already registered on the entity.
+/// Returns `{ "registered": bool, "needsUpdate": bool }`
+Future<Map<String, dynamic>> registrationStatus(
+    String entityId, DVoteGateway dvoteGw, String privateKey) async {
+  if (!(entityId is String) ||
+      !(dvoteGw is DVoteGateway) ||
+      !(privateKey is String)) {
+    throw Exception("Invalid parameters");
+  }
+
+  try {
+    Map<String, dynamic> reqParams = {
+      "method": "registrationStatus",
+      "entityId": entityId
+    };
+    Map<String, dynamic> response = await dvoteGw.sendRequest(reqParams,
+        timeout: 7, privateKey: privateKey);
+    if (!(response is Map) || !(response["status"] is Map)) {
+      throw Exception("Invalid response received from the gateway");
+    }
+    return response["status"];
+  } catch (err) {
+    throw Exception(
+        "The registration token could not be validated: " + err.toString());
+  }
+}
