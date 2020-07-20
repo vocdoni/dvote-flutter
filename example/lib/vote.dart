@@ -14,7 +14,6 @@ Future<void> vote() async {
 
   final String privateKey = wallet.privateKey;
   final entityId = ENTITY_ID;
-  final entityEntryPoint = ENTITY_ENTRY_POINT;
   final String address = wallet.address;
   final String pubKey = wallet.publicKey;
   final String pubKeyClaim = await digestHexClaim(pubKey);
@@ -23,7 +22,6 @@ Future<void> vote() async {
 
   EntityReference entityRef = EntityReference();
   entityRef.entityId = entityId;
-  entityRef.entryPoints.addAll([entityEntryPoint]);
 
   GatewayInfo gwInfo =
       await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);

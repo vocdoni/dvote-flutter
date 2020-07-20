@@ -281,6 +281,8 @@ BootNodeGateways parseBootnodeGateways(String json) {
         result.homestead = _parseBootnodeGateway(value);
       } else if (k == "goerli") {
         result.goerli = _parseBootnodeGateway(value);
+      } else if (k == "xdai") {
+        result.xdai = _parseBootnodeGateway(value);
       }
     });
     return result;

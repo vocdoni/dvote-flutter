@@ -1,13 +1,13 @@
 import 'dart:convert';
-import './entity-contract.dart';
+import './ens-public-resolver-contract.dart';
 import './vote-contract.dart';
 import '../net/gateway.dart';
 import '../blockchain/ens.dart';
 
-final entityResolverDomain = "entity-resolver.vocdoni.eth";
+final ensPublicResolverDomain = "entity-resolver.vocdoni.eth";
 final votingProcessDomain = "voting-process.vocdoni.eth";
 
-String entityResolverAddress;
+String ensPublicResolverAddress;
 String votingProcessAddress;
 
 /// Call a method on the given contract instance using the given Gateway URI
@@ -15,15 +15,16 @@ String votingProcessAddress;
 Future<List<dynamic>> callEntityResolverMethod(
     String gatewayUri, String method, List<dynamic> params) async {
   final gw = Web3Gateway(gatewayUri);
-  if (entityResolverAddress == null) {
-    entityResolverAddress = await resolveName(entityResolverDomain, gatewayUri);
+  if (ensPublicResolverAddress == null) {
+    ensPublicResolverAddress =
+        await resolveName(ensPublicResolverDomain, gatewayUri);
 
-    if (!(entityResolverAddress is String))
+    if (!(ensPublicResolverAddress is String))
       throw Exception("The domain name does not exist");
   }
 
-  return gw.callMethod(
-      jsonEncode(entityResolverAbi), entityResolverAddress, method, params);
+  return gw.callMethod(jsonEncode(ensPublicResolverResolverAbi),
+      ensPublicResolverAddress, method, params);
 }
 
 /// Call a method on the given contract instance using the given Gateway URI

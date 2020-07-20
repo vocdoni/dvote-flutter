@@ -13,12 +13,12 @@ void ens() {
 
     final RegExp addressRegExp = new RegExp(r"^0x[0-9A-Fa-f]{40}$");
     String data = await resolveName(
-        "entity-resolver.vocdoni.eth", "https://rpc.slock.it/goerli");
+        "entity-resolver.vocdoni.eth", "https://dai.poa.network");
     expect(addressRegExp.hasMatch(data), true,
         reason: "The result should be a valid address");
 
     data = await resolveName(
-        "voting-process.vocdoni.eth", "https://rpc.slock.it/goerli");
+        "voting-process.vocdoni.eth", "https://dai.poa.network");
     expect(addressRegExp.hasMatch(data), true,
         reason: "The result should be a valid address");
   });

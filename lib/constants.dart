@@ -1,6 +1,8 @@
-final String vocdoniMainnetEntityId = "0x0";
-final String vocdoniGoerliEntityId =
+const VOCDONI_MAINNET_ENTITY_ID = "0x0";
+const VOCDONI_GOERLI_ENTITY_ID =
     "0x180dd5765d9f7ecef810b565a2e5bd14a3ccd536c442b3de74867df552855e85";
+const VOCDONI_XDAI_ENTITY_ID =
+    "0x8469d886788116e18b82d6566d951c77bc0b19ef7b6b837b725b667addeef6b5";
 
 const SIGNATURE_TIMESTAMP_TOLERANCE_GW = 60 * 60 * 2; // 2h
 const VOCHAIN_BLOCK_TIME = 10;

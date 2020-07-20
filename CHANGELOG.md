@@ -1,3 +1,9 @@
+## 0.12.10-xdai
+
+- Adapting the Web3 Gateway client to support the xDAI blockchain
+- Providing an xDAI example
+- Updated smart contract definitions
+
 ## 0.12.9
 
 - Adding the `registrationStatus` method

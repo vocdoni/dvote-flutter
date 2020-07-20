@@ -10,7 +10,8 @@ class ContentURI {
 
   /// The hash of all IPFS items
   String get ipfsHash {
-    String val = _contentUri.firstWhere((item) => item.startsWith("ipfs://"));
+    final val = _contentUri.firstWhere((item) => item.startsWith("ipfs://"),
+        orElse: () => null);
 
     if (val != null)
       return val.replaceAll(RegExp("^ipfs://"), "");

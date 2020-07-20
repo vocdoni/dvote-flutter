@@ -1,3 +1,5 @@
+import 'package:dvote_example/gateway.dart';
+import 'package:dvote_example/metadata.dart';
 import 'package:flutter/material.dart';
 // import "./metadata.dart";
 // import "./gateway.dart";
@@ -22,26 +24,26 @@ class ExampleApp extends StatelessWidget {
       ),
       body: ListView(
         children: <Widget>[
-          // Card(
-          //   child: ListTile(
-          //     leading: FlutterLogo(size: 72.0),
-          //     title: Text('Gateway'),
-          //     subtitle: Text('Showing Gateways Info'),
-          //     isThreeLine: true,
-          //     onTap: () => Navigator.push(context,
-          //         MaterialPageRoute(builder: (context) => GatewayScreen())),
-          //   ),
-          // ),
-          // Card(
-          //   child: ListTile(
-          //     leading: FlutterLogo(size: 72.0),
-          //     title: Text('Metadata'),
-          //     subtitle: Text('Get Entity Metadata'),
-          //     isThreeLine: true,
-          //     onTap: () => Navigator.push(context,
-          //         MaterialPageRoute(builder: (context) => MetadataScreen())),
-          //   ),
-          // ),
+          Card(
+            child: ListTile(
+              leading: FlutterLogo(size: 72.0),
+              title: Text('Gateway'),
+              subtitle: Text('Showing Gateways Info'),
+              isThreeLine: true,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => GatewayScreen())),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: FlutterLogo(size: 72.0),
+              title: Text('Metadata'),
+              subtitle: Text('Get Entity Metadata'),
+              isThreeLine: true,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => MetadataScreen())),
+            ),
+          ),
           Card(
             child: ListTile(
               leading: FlutterLogo(size: 72.0),

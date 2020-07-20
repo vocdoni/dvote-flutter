@@ -34,13 +34,29 @@ Future<ContentURI> getDefaultBootnodeContentUri(String networkId) async {
         // "http://goerli.blockscout.com",
       ];
       break;
+    case "xdai":
+      providerUris = ["https://dai.poa.network"];
+      break;
     default:
       throw Exception("Invalid Network ID");
   }
   providerUris.shuffle(Random.secure());
 
-  final entityId =
-      networkId == "mainnet" ? vocdoniMainnetEntityId : vocdoniGoerliEntityId;
+  String entityId;
+  switch (networkId) {
+    case "mainnet":
+      entityId = VOCDONI_MAINNET_ENTITY_ID;
+      break;
+    case "goerli":
+      entityId = VOCDONI_GOERLI_ENTITY_ID;
+      break;
+    case "xdai":
+      entityId = VOCDONI_XDAI_ENTITY_ID;
+      break;
+    default:
+      throw Exception("Invalid network ID");
+  }
+
   final hexEntityId = hex.decode(entityId.substring(2));
 
   for (var uri in providerUris) {
@@ -94,9 +110,20 @@ Future<GatewayInfo> getRandomGatewayDetails(
     String bootnodesUri, String networkId) async {
   final gws = await getGatewaysDetailsFromBootNode(bootnodesUri);
 
-  BootNodeGateways_NetworkNodes nodes =
-      networkId == "mainnet" ? gws.homestead : gws.goerli;
-
+  BootNodeGateways_NetworkNodes nodes;
+  switch (networkId) {
+    case "mainnet":
+      nodes = gws.homestead;
+      break;
+    case "goerli":
+      nodes = gws.goerli;
+      break;
+    case "xdai":
+      nodes = gws.xdai;
+      break;
+    default:
+      throw Exception("Invalid network ID");
+  }
   if (nodes.dvote.length == 0 && nodes.web3.length == 0) return null;
 
   GatewayInfo result = GatewayInfo();

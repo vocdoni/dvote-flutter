@@ -23,6 +23,7 @@ final _networkList = <NetworkInfo>[
   NetworkInfo("ropsten", 3, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
   NetworkInfo("rinkeby", 4, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
   NetworkInfo("goerli", 5, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
+  NetworkInfo("xdai", 100, "0x00cEBf9E1E81D3CC17fbA0a49306EBA77a8F26cD"),
 ];
 
 final RegExp domainRegExp = new RegExp(r"^[a-zA-Z0-9-\.]+$");

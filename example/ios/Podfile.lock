@@ -1,0 +1,22 @@
+PODS:
+  - dvote_native (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+
+DEPENDENCIES:
+  - dvote_native (from `.symlinks/plugins/dvote_native/ios`)
+  - Flutter (from `Flutter`)
+
+EXTERNAL SOURCES:
+  dvote_native:
+    :path: ".symlinks/plugins/dvote_native/ios"
+  Flutter:
+    :path: Flutter
+
+SPEC CHECKSUMS:
+  dvote_native: 794d62db96e0655cbec911fda31c4db37aba9017
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+
+PODFILE CHECKSUM: 1b66dae606f75376c5f2135a8290850eeb09ae83
+
+COCOAPODS: 1.8.4

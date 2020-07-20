@@ -32,17 +32,15 @@ class _GatewayScreenState extends State<GatewayScreen> {
     String web3GwStr;
     EntityReference entity = EntityReference();
     entity.entityId = ENTITY_ID;
-    entity.entryPoints.addAll(["https://rpc.slock.it/goerli"]);
+    entity.entryPoints.addAll([WEB3_ENTRY_POINT]);
 
     try {
-      gwInfo =
-          await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);
+      gwInfo = await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);
       dvoteGw = DVoteGateway(gwInfo.dvote, publicKey: gwInfo.publicKey);
       web3Gw = Web3Gateway(gwInfo.web3);
       // web3Gw
       dvoteGwStr = dvoteGw.uri;
       web3GwStr = web3Gw.wsUri;
-
     } on PlatformException catch (err) {
       error = err.message;
     } catch (err) {
@@ -83,23 +81,21 @@ class _GatewayScreenState extends State<GatewayScreen> {
 
     final gwInfo = '''GatawayInfo:\n
 $_gwInfoStr''';
-    final dvoteGw  = '''DvoteGateway:\n
+    final dvoteGw = '''DvoteGateway:\n
 $_dvoteGwStr''';
-final web3Gw  = '''Web3Gateway:\n
+    final web3Gw = '''Web3Gateway:\n
 $_web3GwStr''';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Metadata'),
+        title: const Text('Gateway info'),
       ),
       body: ListView(
         children: <Widget>[
           Padding(
             padding: EdgeInsets.all(16),
             child: Column(
-              children: <Widget>[
-                Text(gwInfo),Text(dvoteGw), Text(web3Gw)
-              ],
+              children: <Widget>[Text(gwInfo), Text(dvoteGw), Text(web3Gw)],
             ),
           ),
         ],
@@ -107,25 +103,3 @@ $_web3GwStr''';
     );
   }
 }
-
-// Future<void> metadata() async {
-//   EntityReference entity = EntityReference();
-//   entity.entityId = ENTITY_ID;
-//   entity.entryPoints.addAll(["https://rpc.slock.it/goerli"]);
-
-//   try {
-//     final gwInfo = await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);
-//     final dvoteGw = DVoteGateway(gwInfo.dvote, publicKey: gwInfo.publicKey);
-//     final web3Gw = Web3Gateway(gwInfo.web3);
-
-//     final entityMeta = await fetchEntity(entity, dvoteGw, web3Gw);
-
-//     final String pid = entityMeta.votingProcesses?.active?.first;
-//     if (pid is String) {
-//       final processMeta = await getProcessMetadata(pid, dvoteGw, web3Gw);
-//       print(jsonEncode(processMeta));
-//     }
-//   } catch (err) {
-//     print(err);
-//   }
-// }
