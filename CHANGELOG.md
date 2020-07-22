@@ -1,3 +1,8 @@
+## 0.12.11-xdai
+
+- Skipping "pid" as a variable name.
+- Also, accept canceled process as still valid.
+
 ## 0.12.10-xdai
 
 - Adapting the Web3 Gateway client to support the xDAI blockchain

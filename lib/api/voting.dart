@@ -164,27 +164,26 @@ Future<ProcessMetadata> getProcessMetadata(
     if (result is List && result.length > 0)
       return result[0];
     else
-      throw Exception("The process metadata could not be fetched");
+      return null;
   });
 }
 
 /// Fetch the metadata for the given Process ID's
 Future<List<ProcessMetadata>> getProcessesMetadata(
     List<String> processIds, DVoteGateway dvoteGw, Web3Gateway web3Gw) {
-  return Future.wait(processIds.map((processId) async {
+  return Future.wait(processIds.map((strProcessId) async {
     try {
-      final pid = hex.decode(processId.substring(2));
+      final processId = hex.decode(strProcessId.substring(2));
       final processData =
-          await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+          await callVotingProcessMethod(web3Gw.rpcUri, "get", [processId]);
 
       if (!(processData is List) ||
           !(processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI]
-              is String))
-        return null;
-      // TODO: USE PROCESS_STATUS INSTEAD OF CANCELED
-      else if (processData[ProcessContractGetResultIdx.CANCELED] is bool &&
-          processData[ProcessContractGetResultIdx.CANCELED] == true)
-        return null;
+              is String)) return null;
+      // // TODO: USE PROCESS_STATUS INSTEAD OF CANCELED
+      // else if (processData[ProcessContractGetResultIdx.CANCELED] is bool &&
+      //     processData[ProcessContractGetResultIdx.CANCELED] == true)
+      //   return null;
       // else if (processData[ProcessContractGetResultIdx.PROCESS_STATUS] is int &&
       //     processData[ProcessContractGetResultIdx.PROCESS_STATUS] ==
       //         ProcessStatus.CANCELED) return null;
