@@ -1,3 +1,11 @@
+## 0.12.13-xdai
+
+- Using dvote-flutter-native@0.5.0
+
+## 0.12.12-xdai
+
+- Uses an updated dvote-flutter-native version
+
 ## 0.12.11-xdai
 
 - Skipping "pid" as a variable name.
