@@ -39,7 +39,6 @@ class DVoteGateway {
 
   /// Callback to invoke when N attempts expire for a period of T seconds
   void Function() _onTimeout;
-  List<DateTime> _timeoutTimestamps = [];
   Timer _timeoutDetectorTimer;
 
   // /// List of callbacks to invoke when an unrelated message is received.
@@ -70,12 +69,6 @@ class DVoteGateway {
     assert(_socket == null, "Socket should be previously closed");
     assert(_socketSubscription == null,
         "Socket subscription should be previously canceled");
-
-    // Ensure that we check for timeout's
-    assert(_timeoutDetectorTimer == null,
-        "Timeout checker should already be null");
-    _timeoutDetectorTimer =
-        Timer.periodic(TIMEOUT_CHECK_INTERVAL, (_) => _checkTimeouts());
 
     return WebSocket.connect(this._gatewayUri).then((socket) {
       _socket = socket;
@@ -152,7 +145,7 @@ class DVoteGateway {
     Future.delayed(Duration(seconds: timeout)).then((_) {
       if (comp.isCompleted) return;
       comp.completeError(Exception("The request timed out"));
-      _reportTimeout(req.created);
+      _onTimeout();
     });
 
     return comp.future;
@@ -190,7 +183,7 @@ class DVoteGateway {
 
     // Already handled?
     if (req.completer.isCompleted) {
-      _reportTimeout(req.created);
+      _onTimeout();
 
       return devPrint(
           "Got a response for an already completed (timed out) request: ${req.originalRequest}");
@@ -236,7 +229,7 @@ class DVoteGateway {
 
     // DONE
     if (req.completer.isCompleted) {
-      _reportTimeout(req.created);
+      _onTimeout();
 
       return devPrint(
           "Received a response for an already completed (timed out) request");
@@ -273,28 +266,6 @@ class DVoteGateway {
     // _listeners.forEach((Function callback) {
     //   callback(message);
     // });
-  }
-
-  _reportTimeout(DateTime createdTime) {
-    _timeoutTimestamps.add(createdTime);
-  }
-
-  _checkTimeouts() {
-    // Already above the limit?
-    if (_timeoutTimestamps.length >= TIMEOUT_COUNT_THRESHOLD) {
-      _timeoutTimestamps.removeWhere((_) => true);
-      _onTimeout();
-    }
-
-    // Keep only recent timeouts
-    final now = DateTime.now();
-    _timeoutTimestamps = _timeoutTimestamps
-        .where((item) {
-          final diff = item.difference(now).abs();
-          return diff.inMilliseconds < TIMEOUT_TIME_FRAME.inMilliseconds;
-        })
-        .cast<DateTime>()
-        .toList();
   }
 
   /// Checks the health of the given GW by calling https://<host>/ping or http://<host>/ping.

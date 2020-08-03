@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dvote/dvote.dart';
+import 'package:hex/hex.dart';
 
 void hdWallet() {
   _hdWalletSync();
@@ -98,11 +99,76 @@ void _hdWalletSync() {
         '0x04887f399e99ce751f82f73a9a88ab015db74b40f707534f54a807fa6e10982cbfaffe93414466b347b83cd43bc0d1a147443576446b49d0e3d6db24f37fe02567');
     expect(wallet.address, '0x0887fb27273A36b2A641841Bf9b47470d5C0E420');
   });
+
+  test("Should derive different private keys for different entities", () {
+    final mnemonic =
+        "civil very heart sock decade library moment permit retreat unhappy clown infant";
+
+    // No entity
+    final entityAddress1 = null;
+    final wallet1 =
+        EthereumWallet.fromMnemonic(mnemonic, entityAddress: entityAddress1);
+
+    // Entity with a zero address (should give exactly the same private key)
+    final entityAddress2 = "0x0000000000000000000000000000000000000000";
+    final wallet2 =
+        EthereumWallet.fromMnemonic(mnemonic, entityAddress: entityAddress2);
+
+    expect(wallet2.privateKey,
+        '0x1b3711c03353ecbbf7b686127e30d6a37a296ed797793498ef24c04504ca5048');
+
+    expect(wallet1.privateKey, wallet2.privateKey);
+
+    // Entity 3
+    final entityAddress3 = "0x1111111111111111111111111111111111111111";
+    final wallet3 =
+        EthereumWallet.fromMnemonic(mnemonic, entityAddress: entityAddress3);
+
+    expect(wallet3.privateKey,
+        '0x1b3711c03353ecbbf7b686126f21c7b26b387fc686682589fe35d15415db4159');
+
+    expect(wallet1.privateKey == wallet3.privateKey, false);
+
+    // Entity 4
+    final entityAddress4 = "0x0123456789012345678901234567890123456789";
+    final wallet4 =
+        EthereumWallet.fromMnemonic(mnemonic, entityAddress: entityAddress4);
+
+    expect(wallet4.privateKey,
+        '0x1b3711c03353ecbbf7b686127f1393c4f3284d92f0f035bbaa434944278f37c1');
+
+    expect(wallet1.privateKey == wallet4.privateKey, false);
+    expect(wallet3.privateKey == wallet4.privateKey, false);
+
+    // Entity 5
+    final entityAddress5 = "0xffffffffffffffffffffffffffffffffffffffff";
+    final wallet5 =
+        EthereumWallet.fromMnemonic(mnemonic, entityAddress: entityAddress5);
+
+    expect(wallet5.privateKey,
+        '0x1b3711c03353ecbbf7b6861281cf295c85d691286886cb6710db3fbafb35afb7');
+
+    expect(wallet1.privateKey == wallet5.privateKey, false);
+    expect(wallet3.privateKey == wallet5.privateKey, false);
+    expect(wallet4.privateKey == wallet5.privateKey, false);
+
+    // private keys from entities 2 (0x000...) and 5 (0xfff...) should be opposite on bytes 12-32
+    final a = wallet2.privateKey.substring(2 + 24);
+    final b = wallet5.privateKey.substring(2 + 24);
+    final aBytes = HEX.decode(a);
+    final bBytes = HEX.decode(b);
+
+    for (int i = 0; i < aBytes.length; i++) {
+      expect(aBytes[i] != bBytes[i], true);
+      expect(aBytes[i] & bBytes[i], 0);
+      expect(aBytes[i] + bBytes[i], 255);
+    }
+  });
 }
 
 void _hdWalletAsync() {
   test('Generate random mnemonics [async]', () async {
-    final mnemonicRegExp = RegExp(r"^[a-z]+( [a-z]+)+$");
+    final mnemonicRegExp = RegExp(r"^[a-z]+(:? [a-z]+)+$");
 
     final wallet1 = await EthereumWallet.randomAsync();
     expect(mnemonicRegExp.hasMatch(wallet1.mnemonic), true);
@@ -165,7 +231,8 @@ void _hdWalletAsync() {
         '0x34E3b8a0299dc7Dc53de09ce8361b41A7D888EC4');
   });
 
-  test("Compute the private key for a given mnemonic and derivation path [async]",
+  test(
+      "Compute the private key for a given mnemonic and derivation path [async]",
       () async {
     // index 0
     EthereumWallet wallet = EthereumWallet.fromMnemonic(
@@ -199,5 +266,80 @@ void _hdWalletAsync() {
         '0x04887f399e99ce751f82f73a9a88ab015db74b40f707534f54a807fa6e10982cbfaffe93414466b347b83cd43bc0d1a147443576446b49d0e3d6db24f37fe02567');
     expect(await wallet.addressAsync,
         '0x0887fb27273A36b2A641841Bf9b47470d5C0E420');
+  });
+
+  test("Should derive different private keys for different entities [async]",
+      () async {
+    final mnemonic =
+        "civil very heart sock decade library moment permit retreat unhappy clown infant";
+
+    // No entity
+    final entityAddress1 = null;
+    final wallet1 =
+        EthereumWallet.fromMnemonic(mnemonic, entityAddress: entityAddress1);
+
+    // Entity with a zero address (should give exactly the same private key)
+    final entityAddress2 = "0x0000000000000000000000000000000000000000";
+    final wallet2 =
+        EthereumWallet.fromMnemonic(mnemonic, entityAddress: entityAddress2);
+
+    expect(await wallet2.privateKeyAsync,
+        '0x1b3711c03353ecbbf7b686127e30d6a37a296ed797793498ef24c04504ca5048');
+
+    expect(await wallet1.privateKeyAsync, await wallet2.privateKeyAsync);
+
+    // Entity 3
+    final entityAddress3 = "0x1111111111111111111111111111111111111111";
+    final wallet3 =
+        EthereumWallet.fromMnemonic(mnemonic, entityAddress: entityAddress3);
+
+    expect(await wallet3.privateKeyAsync,
+        '0x1b3711c03353ecbbf7b686126f21c7b26b387fc686682589fe35d15415db4159');
+
+    expect(
+        await wallet1.privateKeyAsync == await wallet3.privateKeyAsync, false);
+
+    // Entity 4
+    final entityAddress4 = "0x0123456789012345678901234567890123456789";
+    final wallet4 =
+        EthereumWallet.fromMnemonic(mnemonic, entityAddress: entityAddress4);
+
+    expect(await wallet4.privateKeyAsync,
+        '0x1b3711c03353ecbbf7b686127f1393c4f3284d92f0f035bbaa434944278f37c1');
+
+    expect(
+        await wallet1.privateKeyAsync == await wallet4.privateKeyAsync, false);
+
+    expect(
+        await wallet3.privateKeyAsync == await wallet4.privateKeyAsync, false);
+
+    // Entity 5
+    final entityAddress5 = "0xffffffffffffffffffffffffffffffffffffffff";
+    final wallet5 =
+        EthereumWallet.fromMnemonic(mnemonic, entityAddress: entityAddress5);
+
+    expect(await wallet5.privateKeyAsync,
+        '0x1b3711c03353ecbbf7b6861281cf295c85d691286886cb6710db3fbafb35afb7');
+
+    expect(
+        await wallet1.privateKeyAsync == await wallet5.privateKeyAsync, false);
+
+    expect(
+        await wallet3.privateKeyAsync == await wallet5.privateKeyAsync, false);
+
+    expect(
+        await wallet4.privateKeyAsync == await wallet5.privateKeyAsync, false);
+
+    // private keys from entities 2 (0x000...) and 5 (0xfff...) should be opposite on bytes 12-32
+    final a = (await wallet2.privateKeyAsync).substring(2 + 24);
+    final b = (await wallet5.privateKeyAsync).substring(2 + 24);
+    final aBytes = HEX.decode(a);
+    final bBytes = HEX.decode(b);
+
+    for (int i = 0; i < aBytes.length; i++) {
+      expect(aBytes[i] != bBytes[i], true);
+      expect(aBytes[i] & bBytes[i], 0);
+      expect(aBytes[i] + bBytes[i], 255);
+    }
   });
 }

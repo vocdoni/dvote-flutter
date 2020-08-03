@@ -1,3 +1,9 @@
+## 0.12.14
+
+- Allowing to derive different Ethereum accounts for different entities
+- Reporting gateway request timeout's right away, instead of waiting a bit
+- Supporting xDai by default
+
 ## 0.12.13-xdai
 
 - Using dvote-flutter-native@0.5.0

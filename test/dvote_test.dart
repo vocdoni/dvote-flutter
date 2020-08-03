@@ -1,5 +1,5 @@
 import "./unit/encryption.dart";
-import "./unit/hd-wallet.dart";
+import "./unit/wallet.dart";
 import "./unit/signature.dart";
 import "./unit/metadata.dart";
 import "./net/ens.dart";
