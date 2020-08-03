@@ -1,3 +1,7 @@
+## 0.12.15
+
+- Using the entity's address hash instead of the address itself. This allows for future proof behavior.
+
 ## 0.12.14
 
 - Allowing to derive different Ethereum accounts for different entities

@@ -14,43 +14,45 @@ const MAX_PRIV_KEY_VALUE =
 class EthereumWallet {
   final String mnemonic;
   final String hdPath;
-  final Uint8List entityAddressBytes; // HEX without 0x (may be null)
+  final Uint8List entityAddressHashBytes; // HEX without 0x (may be null)
 
   EthereumWallet.fromMnemonic(this.mnemonic,
-      {String hdPath = DEFAULT_HD_PATH, String entityAddress})
+      {String hdPath = DEFAULT_HD_PATH, String entityAddressHash})
       : this.hdPath = hdPath,
-        this.entityAddressBytes = entityAddress is String
-            ? HEX.decode(
-                entityAddress.replaceAll(RegExp(r"^0x"), "").toLowerCase())
+        this.entityAddressHashBytes = entityAddressHash is String
+            ? HEX.decode(entityAddressHash.replaceAll(RegExp(r"^0x"), ""))
             : null {
     if (!bip39.validateMnemonic(mnemonic))
       throw Exception("The provided mnemonic is not valid");
-    else if (entityAddressBytes is Uint8List && entityAddressBytes.length != 20)
-      throw Exception("Invalid address length");
+    else if (entityAddressHashBytes is Uint8List &&
+        entityAddressHashBytes.length != 32)
+      throw Exception("Invalid address hash length");
   }
 
   /// Returns a new Ethereum wallet with a random seed phrase
   EthereumWallet.random(
-      {int size = 192, String hdPath = DEFAULT_HD_PATH, String entityAddress})
+      {int size = 192,
+      String hdPath = DEFAULT_HD_PATH,
+      String entityAddressHash})
       : this.mnemonic = _randomMnemonic(size),
         this.hdPath = hdPath,
-        this.entityAddressBytes = entityAddress is String
-            ? HEX.decode(
-                entityAddress.replaceAll(RegExp(r"^0x"), "").toLowerCase())
+        this.entityAddressHashBytes = entityAddressHash is String
+            ? HEX.decode(entityAddressHash.replaceAll(RegExp(r"^0x"), ""))
             : null {
-    if (entityAddressBytes is Uint8List && entityAddressBytes.length != 20)
-      throw Exception("Invalid address length");
+    if (entityAddressHashBytes is Uint8List &&
+        entityAddressHashBytes.length != 32)
+      throw Exception("Invalid address hash length");
   }
 
   /// Returns a new Ethereum wallet with a random seed phrase
   static Future<EthereumWallet> randomAsync(
       {int size = 192,
       String hdPath = DEFAULT_HD_PATH,
-      String entityAddress}) async {
+      String entityAddressHash}) async {
     final mnemonic = await wrap1ParamFunc<String, int>(_randomMnemonic, size);
 
     return EthereumWallet.fromMnemonic(mnemonic,
-        hdPath: hdPath, entityAddress: entityAddress);
+        hdPath: hdPath, entityAddressHash: entityAddressHash);
   }
 
   /// Returns a byte array representation of the private key derived from the current mnemonic.
@@ -58,16 +60,18 @@ class EthereumWallet {
   Uint8List get privateKeyBytes {
     final privKeyBytes = _privateKeyBytes([mnemonic, hdPath]);
     assert(privKeyBytes.length == 32, "Invalid private key length");
-    assert(entityAddressBytes is! Uint8List || entityAddressBytes.length == 20,
-        "Invalid entity address length");
+    assert(
+        entityAddressHashBytes is! Uint8List ||
+            entityAddressHashBytes.length == 32,
+        "Invalid entity address hash length");
 
-    // XOR the last 20 bytes of the generated private key using the entity address
-    if (entityAddressBytes is Uint8List) {
-      for (int i = entityAddressBytes.length - 1; i >= 0; i--) {
-        privKeyBytes[12 + i] = privKeyBytes[12 + i] ^ entityAddressBytes[i];
+    // XOR the 32 bytes of the generated private key using the entity address hash
+    if (entityAddressHashBytes is Uint8List) {
+      for (int i = entityAddressHashBytes.length - 1; i >= 0; i--) {
+        privKeyBytes[i] = privKeyBytes[i] ^ entityAddressHashBytes[i];
       }
       if (!_isValidPrivateKey(privKeyBytes))
-        throw Exception("The derived private key for the entity is not valid");
+        throw Exception("The private key derived for the entity is not valid");
     }
     return privKeyBytes;
   }
@@ -80,17 +84,18 @@ class EthereumWallet {
         .then((privKeyBytes) {
       assert(privKeyBytes.length == 32, "Invalid private key length");
       assert(
-          entityAddressBytes is! Uint8List || entityAddressBytes.length == 20,
-          "Invalid entity address length");
+          entityAddressHashBytes is! Uint8List ||
+              entityAddressHashBytes.length == 32,
+          "Invalid entity address hash length");
 
-      // XOR the last 20 bytes of the generated private key using the entity address
-      if (entityAddressBytes is Uint8List) {
-        for (int i = entityAddressBytes.length - 1; i >= 0; i--) {
-          privKeyBytes[12 + i] = privKeyBytes[12 + i] ^ entityAddressBytes[i];
+      // XOR the 32 bytes of the generated private key using the entity address hash
+      if (entityAddressHashBytes is Uint8List) {
+        for (int i = entityAddressHashBytes.length - 1; i >= 0; i--) {
+          privKeyBytes[i] = privKeyBytes[i] ^ entityAddressHashBytes[i];
         }
         if (!_isValidPrivateKey(privKeyBytes))
           throw Exception(
-              "The derived private key for the entity is not valid");
+              "The private key derived for the entity is not valid");
       }
       return privKeyBytes;
     });
