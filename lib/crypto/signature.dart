@@ -81,14 +81,14 @@ String _signString(List<dynamic> args) {
     //     await signerPrivKey.signPersonalMessage(payloadBytes, chainId: chainId);
     // return "0x" + HEX.encode(signature);
 
-    final hashedPayload = _hashPayloadForSignature(payload);
+    final packedPayload = _packPayloadForSignature(payload);
 
     final privKeyBytes = hexPrivateKey.startsWith("0x")
         ? Uint8List.fromList(HEX.decode(hexPrivateKey.substring(2)))
         : Uint8List.fromList(HEX.decode(hexPrivateKey));
 
     final signature =
-        crypto.sign(crypto.keccak256(hashedPayload), privKeyBytes);
+        crypto.sign(crypto.keccak256(packedPayload), privKeyBytes);
 
     // https://github.com/ethereumjs/ethereumjs-util/blob/8ffe697fafb33cefc7b7ec01c11e3a7da787fe0e/src/signature.ts#L26
     // be aware that signature.v already is recovery + 27
@@ -125,8 +125,8 @@ String _recoverSignerPubKey(List<dynamic> args) {
   // TODO: CHAIN ID IS NOT USED
 
   try {
-    final hashedPayload = _hashPayloadForSignature(strPayload);
-    final messageHashBytes = crypto.keccak256(hashedPayload);
+    final packedPayload = _packPayloadForSignature(strPayload);
+    final messageHashBytes = crypto.keccak256(packedPayload);
 
     String rStr, sStr, vStr;
     if (hexSignature.startsWith("0x")) {
@@ -188,8 +188,8 @@ bool _isValidSignature(List<dynamic> args) {
     final pubKeyBytes =
         Uint8List.fromList(HEX.decode(hexPublicKey.substring(2))); // Strip 04
 
-    final hashedPayload = _hashPayloadForSignature(strPayload);
-    final messageHashBytes = crypto.keccak256(hashedPayload);
+    final packedPayload = _packPayloadForSignature(strPayload);
+    final messageHashBytes = crypto.keccak256(packedPayload);
 
     final rStr = hexSignature.substring(0, 64);
     final sStr = hexSignature.substring(64, 128);
@@ -216,7 +216,7 @@ bool _isValidSignature(List<dynamic> args) {
 // / INTERNAL
 // ////////////////////////////////////////////////////////////////////////////
 
-Uint8List _hashPayloadForSignature(String payload) {
+Uint8List _packPayloadForSignature(String payload) {
   final payloadBytes = Uint8List.fromList(utf8.encode(payload));
   final prefix = SIGNATURE_MESSAGE_PREFIX + payloadBytes.length.toString();
   final prefixBytes = ascii.encode(prefix);
