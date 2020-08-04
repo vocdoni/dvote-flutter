@@ -81,7 +81,7 @@ Future<void> vote() async {
     dateAtBlock = await estimateDateAtBlock(processMeta.startBlock, dvoteGw);
     print("Process start block: $dateAtBlock");
     dateAtBlock = await estimateDateAtBlock(
-        processMeta.startBlock + processMeta.numberOfBlocks, dvoteGw);
+        processMeta.startBlock + processMeta.blockCount, dvoteGw);
     print("Process end block: $dateAtBlock");
 
     // Merkle Proof

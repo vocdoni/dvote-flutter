@@ -3,7 +3,7 @@ import 'package:dvote/util/parsers.dart';
 import 'package:dvote/dvote.dart';
 
 void dataModels() {
-  test("Entity metadata model", () async {
+  test("Entity metadata model", () {
     String meta =
         """{"version":"1.0","languages":["default"],"name":{"default":"My official entity","fr":"Mon organisation officielle"},"description":{"default":"The description of my entity goes here","fr":"La description officielle de mon organisation est ici"},"votingProcesses":{"active":[],"ended":[]},"newsFeed":{"default":"https://hipsterpixel.co/feed.json","fr":"https://feed2json.org/convert?url=http://www.intertwingly.net/blog/index.atom"},"media":{"avatar":"https://hipsterpixel.co/assets/favicons/apple-touch-icon.png","header":"https://images.unsplash.com/photo-1557518016-299b3b3c2e7f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=80"},"actions":[{"type":"register","actionKey":"register","name":{"default":"Sign up to The Entity","fr":"S'inscrire à l'organisation"},"url":"https://cloudflare-ipfs.com/ipfs/QmZ56Z2kpG5QjJcWfhxFD4ac3DhfX21hrQ2gCTrWxzTAse","visible":"always"}],"bootEntities":[],"fallbackBootNodeEntities":[],"trustedEntities":[],"censusServiceManagedEntities":[]}""";
     EntityMetadata entity = parseEntityMetadata(meta);
@@ -23,7 +23,7 @@ void dataModels() {
         reason: "The actionKey should be register2");
   });
 
-  test("Process metadata model", () async {
+  test("Process metadata model", () {
     String meta =
         """{"version": "1.0","id":"0x12345678","type": "snark-vote","startBlock": 10000,"numberOfBlocks": 400,"census": {"merkleRoot": "0x1234","merkleTree": "https://merkle-tree/"},"details": {"entityId": "0x2345","title": {"default": "Universal Basic Income"},"description": {"default": "## Markdown text goes here### Abstract"},"headerImage": "https://server/image.png","streamUrl":"https://youtube.com/stream1234","questions": [{"type": "single-choice","question": {"default": "Should universal basic income become a human right?"},"description": {"default": "## Markdown text goes here### Abstract"},"voteOptions": [{"title": {"en": "Yes","ca": "Sí"},"value": 0},{"title": {"en": "No","ca": "No"},"value": 1}]}]}}""";
     ProcessMetadata process = parseProcessMetadata(meta);
@@ -31,8 +31,7 @@ void dataModels() {
     expect(process.type, "snark-vote",
         reason: "The type should equal snark-vote");
     expect(process.startBlock, 10000, reason: "startBlock should equal 10000");
-    expect(process.numberOfBlocks, 400,
-        reason: "numberOfBlocks should equal 400");
+    expect(process.blockCount, 400, reason: "blockCount should equal 400");
 
     expect(process.census.merkleRoot, "0x1234",
         reason: "The census merkleRoot should equal 0x1234");
@@ -62,7 +61,7 @@ void dataModels() {
     expect(process.details.questions[0].voteOptions[1].value, 1);
   });
 
-  test("Feed model", () async {
+  test("Feed model", () {
     final meta = '''{
   "version": "https://jsonfeed.org/version/1",
   "title": "My Entity Feed",

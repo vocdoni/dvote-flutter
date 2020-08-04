@@ -131,7 +131,7 @@ ProcessMetadata parseProcessMetadata(String json) {
     result.version = mapProcess["version"] ?? "";
     result.type = mapProcess["type"] ?? "";
     result.startBlock = mapProcess["startBlock"] ?? 0;
-    result.numberOfBlocks = mapProcess["numberOfBlocks"] ?? 0;
+    result.blockCount = mapProcess["numberOfBlocks"] ?? 0;
 
     ProcessMetadata_Census census = ProcessMetadata_Census();
     if (mapProcess["census"] is Map) {

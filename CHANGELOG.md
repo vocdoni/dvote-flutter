@@ -1,3 +1,7 @@
+## 0.12.16
+
+- Renaming a few deprecated fields and enum's
+
 ## 0.12.15
 
 - Using the entity's address hash instead of the address itself. This allows for future proof behavior.
