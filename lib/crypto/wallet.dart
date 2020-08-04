@@ -16,6 +16,9 @@ class EthereumWallet {
   final String hdPath;
   final Uint8List entityAddressHashBytes; // HEX without 0x (may be null)
 
+  /// Creates an Ethereum wallet for the given mnemonic, using the (optional) HD path.
+  /// If an entityAddress is defined, the results private key, public key and address will
+  /// be a unique derivation for the given entity that no one else will be able to correlate.
   EthereumWallet.fromMnemonic(this.mnemonic,
       {String hdPath = DEFAULT_HD_PATH, String entityAddressHash})
       : this.hdPath = hdPath,
@@ -29,7 +32,9 @@ class EthereumWallet {
       throw Exception("Invalid address hash length");
   }
 
-  /// Returns a new Ethereum wallet with a random seed phrase
+  /// Creates a new Ethereum wallet using a random mnemonic and the (optional) HD path.
+  /// If an entityAddress is defined, the results private key, public key and address will
+  /// be a unique derivation for the given entity that no one else will be able to correlate.
   EthereumWallet.random(
       {int size = 192,
       String hdPath = DEFAULT_HD_PATH,
@@ -44,7 +49,9 @@ class EthereumWallet {
       throw Exception("Invalid address hash length");
   }
 
-  /// Returns a new Ethereum wallet with a random seed phrase
+  /// Creates a new Ethereum wallet using a random mnemonic and the (optional) HD path.
+  /// If an entityAddress is defined, the results private key, public key and address will
+  /// be a unique derivation for the given entity that no one else will be able to correlate.
   static Future<EthereumWallet> randomAsync(
       {int size = 192,
       String hdPath = DEFAULT_HD_PATH,
