@@ -1,3 +1,7 @@
+## 0.12.18
+
+- Improving the error handling of `getBlockStatus()`
+
 ## 0.12.17
 
 - Minor fix to `getBlockStatus()`

@@ -395,16 +395,19 @@ Future<BlockStatus> getBlockStatus(DVoteGateway dvoteGw) {
     else if (!(response["blockTimestamp"] is int) ||
         response["blockTimestamp"] < 0)
       throw Exception("The block timestamp is not valid");
-    else if (!(response["blockTime"] is List) ||
-        response["blockTime"].length < 5 ||
-        response["blockTime"].some((item) => !(item is int) || item < 0))
+    else if (response["blockTime"] is! List)
       throw Exception("The block times are not valid");
 
-    return BlockStatus(response["height"], response["blockTimestamp"] * 1000,
-        response["blockTime"] ?? []);
+    final blockTimes = response["blockTime"].cast<int>().toList();
+    if (blockTimes.length < 5 ||
+        blockTimes.any((item) => !(item is int) || item < 0))
+      throw Exception("The block times are not valid");
+
+    return BlockStatus(
+        response["height"], response["blockTimestamp"] * 1000, blockTimes);
   }).catchError((error) {
     final message = error != null
-        ? "Could not retrieve the block status: " + error
+        ? "Could not retrieve the block status: " + error.toString()
         : "Could not retrieve the block status";
     throw Exception(message);
   });
@@ -596,8 +599,9 @@ Future<DateTime> estimateDateAtBlock(int blockNumber, DVoteGateway gateway) {
         averageBlockTime = status.averageBlockTimes[0].toDouble();
     }
 
-    final targetTimestamp = status.blockTimestamp +
-        (blockNumber - status.blockNumber) * averageBlockTime;
+    final targetTimestamp = 1000 *
+        (status.blockTimestamp +
+            (blockNumber - status.blockNumber) * averageBlockTime);
     return DateTime.fromMicrosecondsSinceEpoch(targetTimestamp.floor());
   });
 }
