@@ -403,8 +403,8 @@ Future<BlockStatus> getBlockStatus(DVoteGateway dvoteGw) {
     return BlockStatus(response["height"], response["blockTimestamp"] * 1000,
         response["blockTime"] ?? []);
   }).catchError((error) {
-    final message = error.message
-        ? "Could not retrieve the block status: " + error.message
+    final message = error != null
+        ? "Could not retrieve the block status: " + error
         : "Could not retrieve the block status";
     throw Exception(message);
   });

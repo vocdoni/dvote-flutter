@@ -1,3 +1,7 @@
+## 0.12.17
+
+- Minor fix to `getBlockStatus()`
+
 ## 0.12.16
 
 - Renaming a few deprecated fields and enum's
