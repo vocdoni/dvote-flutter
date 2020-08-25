@@ -10,7 +10,8 @@ Future<void> vote() async {
   DateTime dateAtBlock;
   // bool envelopeSent;
 
-  final wallet = EthereumWallet.fromMnemonic(MNEMONIC, hdPath: PATH);
+  final wallet = EthereumDartWallet.fromMnemonic(MNEMONIC, hdPath: PATH);
+  // final wallet = EthereumNativeWallet.fromMnemonic(MNEMONIC, hdPath: PATH);
 
   final String privateKey = wallet.privateKey;
   final entityId = ENTITY_ID;

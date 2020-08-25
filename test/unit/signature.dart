@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dvote/dvote.dart';
 
+// import '../../lib/util/json-signature-native.dart';
 import '../../lib/util/json-signature.dart';
+import '../../lib/util/json-content.dart';
 
 void signature() {
   _syncSignature();
@@ -14,16 +16,16 @@ void _syncSignature() {
   // String
 
   test("Sign a plain string", () {
-    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
     String message = "hello";
-    String signature = signString(message, wallet.privateKey);
+    String signature = SignatureDart.signString(message, wallet.privateKey);
     expect(signature,
         "0x9d06b4f31641aba791bb79dfb211c1141c4b3e346f230c05256c657c5c10916229a8f4cee40bfdbe0d90061d60e712ec5ec0c59cb90321814848ec2f6f7763181b");
 
     message = "àèìòù";
-    signature = signString(message, wallet.privateKey);
+    signature = SignatureDart.signString(message, wallet.privateKey);
     expect(signature,
         "0x2cbf9ae0de3df7e975b68b4cf67e14a0b49a1f8ed5d54c6c13d2ff936585036232fb53846fd49331bf8832fcd7e4517c3f07c951b95d5e0e102e572bbbadda811c");
   });
@@ -37,14 +39,15 @@ void _syncSignature() {
     String message = "hello";
     String signature =
         "0x9d06b4f31641aba791bb79dfb211c1141c4b3e346f230c05256c657c5c10916229a8f4cee40bfdbe0d90061d60e712ec5ec0c59cb90321814848ec2f6f7763181b";
-    String recoveredPubKey = recoverSignerPubKey(signature, message);
+    String recoveredPubKey =
+        SignatureDart.recoverSignerPubKey(signature, message);
     expect(recoveredPubKey, originalPublicKey,
         reason: "The public key should match");
 
     message = "àèìòù";
     signature =
         "0x2cbf9ae0de3df7e975b68b4cf67e14a0b49a1f8ed5d54c6c13d2ff936585036232fb53846fd49331bf8832fcd7e4517c3f07c951b95d5e0e102e572bbbadda811c";
-    recoveredPubKey = recoverSignerPubKey(signature, message);
+    recoveredPubKey = SignatureDart.recoverSignerPubKey(signature, message);
     expect(recoveredPubKey, originalPublicKey,
         reason: "The public key should match");
   });
@@ -56,13 +59,13 @@ void _syncSignature() {
     String message = "hello";
     String signature =
         "0x9d06b4f31641aba791bb79dfb211c1141c4b3e346f230c05256c657c5c10916229a8f4cee40bfdbe0d90061d60e712ec5ec0c59cb90321814848ec2f6f7763181b";
-    bool valid = isValidSignature(signature, message, publicKey);
+    bool valid = SignatureDart.isValidSignature(signature, message, publicKey);
     expect(valid, true, reason: "The signature should be valid");
 
     message = "àèìòù";
     signature =
         "0x2cbf9ae0de3df7e975b68b4cf67e14a0b49a1f8ed5d54c6c13d2ff936585036232fb53846fd49331bf8832fcd7e4517c3f07c951b95d5e0e102e572bbbadda811c";
-    valid = isValidSignature(signature, message, publicKey);
+    valid = SignatureDart.isValidSignature(signature, message, publicKey);
     expect(valid, true, reason: "The signature should be valid");
   });
 
@@ -73,58 +76,61 @@ void _syncSignature() {
     String message = "hello";
     String signature =
         "0x9d06b4f31641aba791bb79dfb211c1141c4b3e346f230c05256c657c5c10916229a8f4cee40bfdbe0d90061d60e712ec5ec0c59cb90321814848ec2f6f77631800";
-    bool valid = isValidSignature(signature, message, publicKey);
+    bool valid = SignatureDart.isValidSignature(signature, message, publicKey);
     expect(valid, true, reason: "The signature should be valid");
 
     message = "àèìòù";
     signature =
         "0x2cbf9ae0de3df7e975b68b4cf67e14a0b49a1f8ed5d54c6c13d2ff936585036232fb53846fd49331bf8832fcd7e4517c3f07c951b95d5e0e102e572bbbadda8101";
-    valid = isValidSignature(signature, message, publicKey);
+    valid = SignatureDart.isValidSignature(signature, message, publicKey);
     expect(valid, true, reason: "The signature should be valid");
   });
 
   // Signed here
 
   test("Recover the public key of signatures generated locally", () {
-    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
     final originalPublicKey = wallet.publicKey;
 
     String message = "hello";
-    String signature = signString(message, wallet.privateKey);
-    String recoveredPubKey = recoverSignerPubKey(signature, message);
+    String signature = SignatureDart.signString(message, wallet.privateKey);
+    String recoveredPubKey =
+        SignatureDart.recoverSignerPubKey(signature, message);
     expect(recoveredPubKey, originalPublicKey,
         reason: "The public key should match");
 
     message = "àèìòù";
-    signature = signString(message, wallet.privateKey);
-    recoveredPubKey = recoverSignerPubKey(signature, message);
+    signature = SignatureDart.signString(message, wallet.privateKey);
+    recoveredPubKey = SignatureDart.recoverSignerPubKey(signature, message);
     expect(recoveredPubKey, originalPublicKey,
         reason: "The public key should match");
   });
 
   test("Verify a signature generated locally", () {
-    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
     final expectedPublicKey = wallet.publicKey;
 
     String message = "hello";
-    String signature = signString(message, wallet.privateKey);
-    bool valid = isValidSignature(signature, message, expectedPublicKey);
+    String signature = SignatureDart.signString(message, wallet.privateKey);
+    bool valid =
+        SignatureDart.isValidSignature(signature, message, expectedPublicKey);
     expect(valid, true, reason: "The signature should be valid");
 
     message = "àèìòù";
-    signature = signString(message, wallet.privateKey);
-    valid = isValidSignature(signature, message, expectedPublicKey);
+    signature = SignatureDart.signString(message, wallet.privateKey);
+    valid =
+        SignatureDart.isValidSignature(signature, message, expectedPublicKey);
     expect(valid, true, reason: "The signature should be valid");
   });
 
   // The same with JSON payloads
 
   test("Sign a JSON body", () {
-    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
     Map<String, dynamic> body = {
@@ -139,7 +145,8 @@ void _syncSignature() {
       "phone": "5555555",
       "timestamp": 1582821257721
     };
-    String signature = signJsonPayload(body, wallet.privateKey);
+    String signature =
+        JSONSignatureDart.signJsonPayload(body, wallet.privateKey);
     expect(signature,
         "0x3086bf3de0d22d2d51f274d4618ea963b60b1e590f5ef0b1a2df17447746d4503f595e87330fb9cc9387c321acc9e476baedfd0681d864f68f4f1bc84548725c1b");
 
@@ -155,7 +162,7 @@ void _syncSignature() {
       "phone": "5555555555",
       "timestamp": 1582820811597
     };
-    signature = signJsonPayload(body, wallet.privateKey);
+    signature = JSONSignatureDart.signJsonPayload(body, wallet.privateKey);
     expect(signature,
         "0x12d77e67c734022f7ab66231377621b75b454d724303bb158019549cf9f02d384d9af1d33266ca017248d8914b111cbb68b7cc9f045e95ccbde5ce389254450f1b");
   });
@@ -181,7 +188,10 @@ void _syncSignature() {
     };
     String signature =
         "0x3086bf3de0d22d2d51f274d4618ea963b60b1e590f5ef0b1a2df17447746d4503f595e87330fb9cc9387c321acc9e476baedfd0681d864f68f4f1bc84548725c1b";
-    expect(isValidJsonSignature(signature, body, expectedPublicKey), true,
+    expect(
+        JSONSignatureDart.isValidJsonSignature(
+            signature, body, expectedPublicKey),
+        true,
         reason: "The signature should be valid");
 
     // With UTF8 characters
@@ -200,7 +210,10 @@ void _syncSignature() {
 
     signature =
         "0x12d77e67c734022f7ab66231377621b75b454d724303bb158019549cf9f02d384d9af1d33266ca017248d8914b111cbb68b7cc9f045e95ccbde5ce389254450f1b";
-    expect(isValidJsonSignature(signature, body, expectedPublicKey), true,
+    expect(
+        JSONSignatureDart.isValidJsonSignature(
+            signature, body, expectedPublicKey),
+        true,
         reason: "The signature should be valid");
   });
 }
@@ -209,16 +222,17 @@ void _asyncSignature() {
   // String
 
   test("Sign a plain string [async]", () async {
-    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
     String message = "hello";
-    String signature = await signStringAsync(message, wallet.privateKey);
+    String signature =
+        await SignatureDart.signStringAsync(message, wallet.privateKey);
     expect(signature,
         "0x9d06b4f31641aba791bb79dfb211c1141c4b3e346f230c05256c657c5c10916229a8f4cee40bfdbe0d90061d60e712ec5ec0c59cb90321814848ec2f6f7763181b");
 
     message = "àèìòù";
-    signature = await signStringAsync(message, wallet.privateKey);
+    signature = await SignatureDart.signStringAsync(message, wallet.privateKey);
     expect(signature,
         "0x2cbf9ae0de3df7e975b68b4cf67e14a0b49a1f8ed5d54c6c13d2ff936585036232fb53846fd49331bf8832fcd7e4517c3f07c951b95d5e0e102e572bbbadda811c");
   });
@@ -233,14 +247,16 @@ void _asyncSignature() {
     String message = "hello";
     String signature =
         "0x9d06b4f31641aba791bb79dfb211c1141c4b3e346f230c05256c657c5c10916229a8f4cee40bfdbe0d90061d60e712ec5ec0c59cb90321814848ec2f6f7763181b";
-    String recoveredPubKey = await recoverSignerPubKeyAsync(signature, message);
+    String recoveredPubKey =
+        await SignatureDart.recoverSignerPubKeyAsync(signature, message);
     expect(recoveredPubKey, originalPublicKey,
         reason: "The public key should match");
 
     message = "àèìòù";
     signature =
         "0x2cbf9ae0de3df7e975b68b4cf67e14a0b49a1f8ed5d54c6c13d2ff936585036232fb53846fd49331bf8832fcd7e4517c3f07c951b95d5e0e102e572bbbadda811c";
-    recoveredPubKey = await recoverSignerPubKeyAsync(signature, message);
+    recoveredPubKey =
+        await SignatureDart.recoverSignerPubKeyAsync(signature, message);
     expect(recoveredPubKey, originalPublicKey,
         reason: "The public key should match");
   });
@@ -252,13 +268,15 @@ void _asyncSignature() {
     String message = "hello";
     String signature =
         "0x9d06b4f31641aba791bb79dfb211c1141c4b3e346f230c05256c657c5c10916229a8f4cee40bfdbe0d90061d60e712ec5ec0c59cb90321814848ec2f6f7763181b";
-    bool valid = await isValidSignatureAsync(signature, message, publicKey);
+    bool valid = await SignatureDart.isValidSignatureAsync(
+        signature, message, publicKey);
     expect(valid, true, reason: "The signature should be valid");
 
     message = "àèìòù";
     signature =
         "0x2cbf9ae0de3df7e975b68b4cf67e14a0b49a1f8ed5d54c6c13d2ff936585036232fb53846fd49331bf8832fcd7e4517c3f07c951b95d5e0e102e572bbbadda811c";
-    valid = await isValidSignatureAsync(signature, message, publicKey);
+    valid = await SignatureDart.isValidSignatureAsync(
+        signature, message, publicKey);
     expect(valid, true, reason: "The signature should be valid");
   });
 
@@ -270,13 +288,15 @@ void _asyncSignature() {
     String message = "hello";
     String signature =
         "0x9d06b4f31641aba791bb79dfb211c1141c4b3e346f230c05256c657c5c10916229a8f4cee40bfdbe0d90061d60e712ec5ec0c59cb90321814848ec2f6f77631800";
-    bool valid = await isValidSignatureAsync(signature, message, publicKey);
+    bool valid = await SignatureDart.isValidSignatureAsync(
+        signature, message, publicKey);
     expect(valid, true, reason: "The signature should be valid");
 
     message = "àèìòù";
     signature =
         "0x2cbf9ae0de3df7e975b68b4cf67e14a0b49a1f8ed5d54c6c13d2ff936585036232fb53846fd49331bf8832fcd7e4517c3f07c951b95d5e0e102e572bbbadda8101";
-    valid = await isValidSignatureAsync(signature, message, publicKey);
+    valid = await SignatureDart.isValidSignatureAsync(
+        signature, message, publicKey);
     expect(valid, true, reason: "The signature should be valid");
   });
 
@@ -284,46 +304,51 @@ void _asyncSignature() {
 
   test("Recover the public key of signatures generated locally [async]",
       () async {
-    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
     final originalPublicKey = wallet.publicKey;
 
     String message = "hello";
-    String signature = await signStringAsync(message, wallet.privateKey);
-    String recoveredPubKey = await recoverSignerPubKeyAsync(signature, message);
+    String signature =
+        await SignatureDart.signStringAsync(message, wallet.privateKey);
+    String recoveredPubKey =
+        await SignatureDart.recoverSignerPubKeyAsync(signature, message);
     expect(recoveredPubKey, originalPublicKey,
         reason: "The public key should match");
 
     message = "àèìòù";
-    signature = await signStringAsync(message, wallet.privateKey);
-    recoveredPubKey = await recoverSignerPubKeyAsync(signature, message);
+    signature = await SignatureDart.signStringAsync(message, wallet.privateKey);
+    recoveredPubKey =
+        await SignatureDart.recoverSignerPubKeyAsync(signature, message);
     expect(recoveredPubKey, originalPublicKey,
         reason: "The public key should match");
   });
 
   test("Verify a signature generated locally [async]", () async {
-    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
     final expectedPublicKey = wallet.publicKey;
 
     String message = "hello";
-    String signature = await signStringAsync(message, wallet.privateKey);
-    bool valid =
-        await isValidSignatureAsync(signature, message, expectedPublicKey);
+    String signature =
+        await SignatureDart.signStringAsync(message, wallet.privateKey);
+    bool valid = await SignatureDart.isValidSignatureAsync(
+        signature, message, expectedPublicKey);
     expect(valid, true, reason: "The signature should be valid");
 
     message = "àèìòù";
-    signature = await signStringAsync(message, wallet.privateKey);
-    valid = await isValidSignatureAsync(signature, message, expectedPublicKey);
+    signature = await SignatureDart.signStringAsync(message, wallet.privateKey);
+    valid = await SignatureDart.isValidSignatureAsync(
+        signature, message, expectedPublicKey);
     expect(valid, true, reason: "The signature should be valid");
   });
 
   // The same with JSON payloads
 
   test("Sign a JSON body [async]", () async {
-    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
     Map<String, dynamic> body = {
@@ -338,7 +363,8 @@ void _asyncSignature() {
       "phone": "5555555",
       "timestamp": 1582821257721
     };
-    String signature = await signJsonPayloadAsync(body, wallet.privateKey);
+    String signature =
+        await JSONSignatureDart.signJsonPayloadAsync(body, wallet.privateKey);
     expect(signature,
         "0x3086bf3de0d22d2d51f274d4618ea963b60b1e590f5ef0b1a2df17447746d4503f595e87330fb9cc9387c321acc9e476baedfd0681d864f68f4f1bc84548725c1b");
 
@@ -354,7 +380,8 @@ void _asyncSignature() {
       "phone": "5555555555",
       "timestamp": 1582820811597
     };
-    signature = await signJsonPayloadAsync(body, wallet.privateKey);
+    signature =
+        await JSONSignatureDart.signJsonPayloadAsync(body, wallet.privateKey);
     expect(signature,
         "0x12d77e67c734022f7ab66231377621b75b454d724303bb158019549cf9f02d384d9af1d33266ca017248d8914b111cbb68b7cc9f045e95ccbde5ce389254450f1b");
   });
@@ -380,7 +407,9 @@ void _asyncSignature() {
     };
     String signature =
         "0x3086bf3de0d22d2d51f274d4618ea963b60b1e590f5ef0b1a2df17447746d4503f595e87330fb9cc9387c321acc9e476baedfd0681d864f68f4f1bc84548725c1b";
-    expect(await isValidJsonSignatureAsync(signature, body, expectedPublicKey),
+    expect(
+        await JSONSignatureDart.isValidJsonSignatureAsync(
+            signature, body, expectedPublicKey),
         true,
         reason: "The signature should be valid");
 
@@ -400,7 +429,9 @@ void _asyncSignature() {
 
     signature =
         "0x12d77e67c734022f7ab66231377621b75b454d724303bb158019549cf9f02d384d9af1d33266ca017248d8914b111cbb68b7cc9f045e95ccbde5ce389254450f1b";
-    expect(await isValidJsonSignatureAsync(signature, body, expectedPublicKey),
+    expect(
+        await JSONSignatureDart.isValidJsonSignatureAsync(
+            signature, body, expectedPublicKey),
         true,
         reason: "The signature should be valid");
   });
@@ -408,113 +439,131 @@ void _asyncSignature() {
 
 void _signingMatch() {
   test("Sync and async should match", () async {
-    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
     // Plain
     String message = "hello";
-    String signature1 = signString(message, wallet.privateKey);
-    String signature2 = await signStringAsync(message, wallet.privateKey);
+    String signature1 = SignatureDart.signString(message, wallet.privateKey);
+    String signature2 =
+        await SignatureDart.signStringAsync(message, wallet.privateKey);
     expect(signature1, signature2);
 
-    String recoveredPubKey1 = recoverSignerPubKey(signature1, message);
+    String recoveredPubKey1 =
+        SignatureDart.recoverSignerPubKey(signature1, message);
     String recoveredPubKey2 =
-        await recoverSignerPubKeyAsync(signature2, message);
+        await SignatureDart.recoverSignerPubKeyAsync(signature2, message);
     expect(recoveredPubKey1, recoveredPubKey2);
 
-    bool isValid1 = isValidSignature(signature1, message, wallet.publicKey);
-    bool isValid2 =
-        await isValidSignatureAsync(signature2, message, wallet.publicKey);
+    bool isValid1 =
+        SignatureDart.isValidSignature(signature1, message, wallet.publicKey);
+    bool isValid2 = await SignatureDart.isValidSignatureAsync(
+        signature2, message, wallet.publicKey);
     expect(isValid1, isValid2);
 
     // UTF-8
     message = "àèìòù";
-    signature1 = signString(message, wallet.privateKey);
-    signature2 = await signStringAsync(message, wallet.privateKey);
+    signature1 = SignatureDart.signString(message, wallet.privateKey);
+    signature2 =
+        await SignatureDart.signStringAsync(message, wallet.privateKey);
     expect(signature1, signature2);
 
-    recoveredPubKey1 = recoverSignerPubKey(signature1, message);
-    recoveredPubKey2 = await recoverSignerPubKeyAsync(signature2, message);
+    recoveredPubKey1 = SignatureDart.recoverSignerPubKey(signature1, message);
+    recoveredPubKey2 =
+        await SignatureDart.recoverSignerPubKeyAsync(signature2, message);
     expect(recoveredPubKey1, recoveredPubKey2);
 
-    isValid1 = isValidSignature(signature1, message, wallet.publicKey);
-    isValid2 =
-        await isValidSignatureAsync(signature2, message, wallet.publicKey);
+    isValid1 =
+        SignatureDart.isValidSignature(signature1, message, wallet.publicKey);
+    isValid2 = await SignatureDart.isValidSignatureAsync(
+        signature2, message, wallet.publicKey);
     expect(isValid1, isValid2);
   });
 
   test("Sync and async should match with JSON", () async {
-    EthereumWallet wallet = EthereumWallet.fromMnemonic(
+    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
     // Plain json
     Map<String, dynamic> payload = {"hello": 1234, "abcde": 2345};
-    String signature1 = signJsonPayload(payload, wallet.privateKey);
-    String signature2 = await signJsonPayloadAsync(payload, wallet.privateKey);
+    String signature1 =
+        JSONSignatureDart.signJsonPayload(payload, wallet.privateKey);
+    String signature2 = await JSONSignatureDart.signJsonPayloadAsync(
+        payload, wallet.privateKey);
     expect(signature1, signature2);
 
-    String recoveredPubKey1 = recoverJsonSignerPubKey(signature1, payload);
+    String recoveredPubKey1 =
+        JSONSignatureDart.recoverJsonSignerPubKey(signature1, payload);
     String recoveredPubKey2 =
-        await recoverJsonSignerPubKeyAsync(signature2, payload);
+        await JSONSignatureDart.recoverJsonSignerPubKeyAsync(
+            signature2, payload);
     expect(recoveredPubKey1, recoveredPubKey2);
 
-    bool isValid1 = isValidJsonSignature(signature1, payload, wallet.publicKey);
-    bool isValid2 =
-        await isValidJsonSignatureAsync(signature2, payload, wallet.publicKey);
+    bool isValid1 = JSONSignatureDart.isValidJsonSignature(
+        signature1, payload, wallet.publicKey);
+    bool isValid2 = await JSONSignatureDart.isValidJsonSignatureAsync(
+        signature2, payload, wallet.publicKey);
     expect(isValid1, isValid2);
 
     // UTF-8 json
     payload = {"Z": 1234, "àèìòù": 2345};
-    signature1 = signJsonPayload(payload, wallet.privateKey);
-    signature2 = await signJsonPayloadAsync(payload, wallet.privateKey);
+    signature1 = JSONSignatureDart.signJsonPayload(payload, wallet.privateKey);
+    signature2 = await JSONSignatureDart.signJsonPayloadAsync(
+        payload, wallet.privateKey);
     expect(signature1, signature2);
 
-    recoveredPubKey1 = recoverJsonSignerPubKey(signature1, payload);
-    recoveredPubKey2 = await recoverJsonSignerPubKeyAsync(signature2, payload);
+    recoveredPubKey1 =
+        JSONSignatureDart.recoverJsonSignerPubKey(signature1, payload);
+    recoveredPubKey2 = await JSONSignatureDart.recoverJsonSignerPubKeyAsync(
+        signature2, payload);
     expect(recoveredPubKey1, recoveredPubKey2);
 
-    isValid1 = isValidJsonSignature(signature1, payload, wallet.publicKey);
-    isValid2 =
-        await isValidJsonSignatureAsync(signature2, payload, wallet.publicKey);
+    isValid1 = JSONSignatureDart.isValidJsonSignature(
+        signature1, payload, wallet.publicKey);
+    isValid2 = await JSONSignatureDart.isValidJsonSignatureAsync(
+        signature2, payload, wallet.publicKey);
     expect(isValid1, isValid2);
   });
 }
 
 void _reproduceableSignatures() {
   test("JSON payloads should be signed in alphabetic order", () async {
-    final wallet = EthereumWallet.random();
+    final wallet = EthereumDartWallet.random();
 
     // Simple types
     String payload1 = serializeJsonBody("Hello");
-    String signature1 = signString(payload1, wallet.privateKey);
+    String signature1 = SignatureDart.signString(payload1, wallet.privateKey);
     String payload2 = serializeJsonBody("Hello");
-    String signature2 = signString(payload2, wallet.privateKey);
+    String signature2 = SignatureDart.signString(payload2, wallet.privateKey);
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    bool isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    bool isValid =
+        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
     expect(isValid, true);
 
     //
     payload1 = serializeJsonBody(1234);
-    signature1 = signString(payload1, wallet.privateKey);
+    signature1 = SignatureDart.signString(payload1, wallet.privateKey);
     payload2 = serializeJsonBody(1234);
-    signature2 = signString(payload2, wallet.privateKey);
+    signature2 = SignatureDart.signString(payload2, wallet.privateKey);
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    isValid =
+        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
     expect(isValid, true);
 
     // Maps
     payload1 = serializeJsonBody({"a": 1234, "z": 2345});
-    signature1 = signString(payload1, wallet.privateKey);
+    signature1 = SignatureDart.signString(payload1, wallet.privateKey);
     payload2 = serializeJsonBody({"z": 2345, "a": 1234});
-    signature2 = signString(payload2, wallet.privateKey);
+    signature2 = SignatureDart.signString(payload2, wallet.privateKey);
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    isValid =
+        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
     expect(isValid, true);
 
     // Recursive maps
@@ -522,16 +571,17 @@ void _reproduceableSignatures() {
       "a": 1,
       "b": {"c": 3, "d": 4}
     });
-    signature1 = signString(payload1, wallet.privateKey);
+    signature1 = SignatureDart.signString(payload1, wallet.privateKey);
     payload2 = serializeJsonBody({
       "b": {"d": 4, "c": 3},
       "a": 1
     });
-    signature2 = signString(payload2, wallet.privateKey);
+    signature2 = SignatureDart.signString(payload2, wallet.privateKey);
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    isValid =
+        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
     expect(isValid, true);
 
     // Lists
@@ -541,18 +591,19 @@ void _reproduceableSignatures() {
       4,
       5
     ]);
-    signature1 = signString(payload1, wallet.privateKey);
+    signature1 = SignatureDart.signString(payload1, wallet.privateKey);
     payload2 = serializeJsonBody([
       {"z": 10, "m": 10, "a": 10},
       {"y": 11, "n": 11, "b": 11},
       4,
       5
     ]);
-    signature2 = signString(payload2, wallet.privateKey);
+    signature2 = SignatureDart.signString(payload2, wallet.privateKey);
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    isValid =
+        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
     expect(isValid, true);
 
     // Recursive maps and lists
@@ -565,7 +616,7 @@ void _reproduceableSignatures() {
         5
       ]
     });
-    signature1 = signString(payload1, wallet.privateKey);
+    signature1 = SignatureDart.signString(payload1, wallet.privateKey);
     payload2 = serializeJsonBody({
       "b": [
         {"z": 10, "m": 10, "a": 10},
@@ -575,11 +626,12 @@ void _reproduceableSignatures() {
       ],
       "a": 1
     });
-    signature2 = signString(payload2, wallet.privateKey);
+    signature2 = SignatureDart.signString(payload2, wallet.privateKey);
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    isValid = isValidSignature(signature1, payload1, wallet.publicKey);
+    isValid =
+        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
     expect(isValid, true);
   });
 }

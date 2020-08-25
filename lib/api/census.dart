@@ -11,7 +11,7 @@ Future<String> digestHexClaim(String hexPublicKey) {
     throw Exception("The payload is empty");
 
   return wrap1ParamFunc<String, String>(
-      dvoteNative.digestHexClaim, hexPublicKey);
+      dvoteNative.Hashing.digestHexClaim, hexPublicKey);
 }
 
 /// Fetch the Merkle Proof that proves that the given claim is part

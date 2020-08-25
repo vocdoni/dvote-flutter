@@ -8,8 +8,13 @@ final publicKey =
 
 void signatures() {
   try {
-    final signature = signString(messageToSign, privKeyToSign);
-    final valid = isValidSignature(signature, messageToSign, publicKey);
+    // final signature = SignatureNative.signString(messageToSign, privKeyToSign);
+    // final valid =
+    //     SignatureNative.isValidSignature(signature, messageToSign, publicKey);
+
+    final signature = SignatureDart.signString(messageToSign, privKeyToSign);
+    final valid =
+        SignatureDart.isValidSignature(signature, messageToSign, publicKey);
 
     print("Signed: $messageToSign");
     print("Priv Key: $privKeyToSign");

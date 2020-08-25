@@ -1,11 +1,9 @@
 import 'dart:typed_data';
 
+import "package:dvote_native/dvote_native.dart" as dvoteNative;
 import 'package:dvote/crypto/asyncify.dart';
-import 'package:web3dart/credentials.dart';
 import 'package:web3dart/crypto.dart';
 import "package:hex/hex.dart";
-import 'package:bip32/bip32.dart' as bip32;
-import 'package:bip39/bip39.dart' as bip39;
 
 import "../constants.dart";
 
@@ -13,8 +11,7 @@ import "../constants.dart";
 // / DART WALLET
 // ////////////////////////////////////////////////////////////////////////////
 
-/// Pure Dart implementation of an Ethereum Wallet. May be slower than the version using native code.
-class EthereumDartWallet {
+class EthereumNativeWallet {
   final String mnemonic;
   final String hdPath;
   final Uint8List entityAddressHashBytes; // HEX without 0x (may be null)
@@ -22,23 +19,28 @@ class EthereumDartWallet {
   /// Creates an Ethereum wallet for the given mnemonic, using the (optional) HD path.
   /// If an entityAddress is defined, the results private key, public key and address will
   /// be a unique derivation for the given entity that no one else will be able to correlate.
-  EthereumDartWallet.fromMnemonic(this.mnemonic,
+  EthereumNativeWallet.fromMnemonic(this.mnemonic,
       {String hdPath = DEFAULT_HD_PATH, String entityAddressHash})
       : this.hdPath = hdPath,
         this.entityAddressHashBytes = entityAddressHash is String
             ? HEX.decode(entityAddressHash.replaceAll(RegExp(r"^0x"), ""))
             : null {
-    if (!bip39.validateMnemonic(mnemonic))
+    try {
+      dvoteNative.Wallet.computePrivateKey(mnemonic);
+    } catch (err) {
       throw Exception("The provided mnemonic is not valid");
-    else if (entityAddressHashBytes is Uint8List &&
-        entityAddressHashBytes.length != 32)
+    }
+
+    if (entityAddressHashBytes is Uint8List &&
+        entityAddressHashBytes.length != 32) {
       throw Exception("Invalid address hash length");
+    }
   }
 
   /// Creates a new Ethereum wallet using a random mnemonic and the (optional) HD path.
   /// If an entityAddress is defined, the results private key, public key and address will
   /// be a unique derivation for the given entity that no one else will be able to correlate.
-  EthereumDartWallet.random(
+  EthereumNativeWallet.random(
       {int size = 192,
       String hdPath = DEFAULT_HD_PATH,
       String entityAddressHash})
@@ -55,13 +57,14 @@ class EthereumDartWallet {
   /// Creates a new Ethereum wallet using a random mnemonic and the (optional) HD path.
   /// If an entityAddress is defined, the results private key, public key and address will
   /// be a unique derivation for the given entity that no one else will be able to correlate.
-  static Future<EthereumDartWallet> randomAsync(
+  static Future<EthereumNativeWallet> randomAsync(
       {int size = 192,
       String hdPath = DEFAULT_HD_PATH,
       String entityAddressHash}) async {
-    final mnemonic = await wrap1ParamFunc<String, int>(_randomMnemonic, size);
+    final mnemonic = await wrap1ParamFunc<String, int>(
+        dvoteNative.Wallet.generateMnemonic, size);
 
-    return EthereumDartWallet.fromMnemonic(mnemonic,
+    return EthereumNativeWallet.fromMnemonic(mnemonic,
         hdPath: hdPath, entityAddressHash: entityAddressHash);
   }
 
@@ -165,7 +168,7 @@ class EthereumDartWallet {
 
   static String _randomMnemonic(int size) {
     assert(size is int);
-    return bip39.generateMnemonic(strength: size);
+    return dvoteNative.Wallet.generateMnemonic(size);
   }
 
   /// Returns a byte array representation of the private key
@@ -177,26 +180,20 @@ class EthereumDartWallet {
     final hdPath = args[1];
     assert(hdPath is String);
 
-    final seed = bip39.mnemonicToSeedHex(mnemonic);
-    final root = bip32.BIP32.fromSeed(HEX.decode(seed));
-    final child = root.derivePath(hdPath);
-    return child.privateKey;
+    final privKey =
+        dvoteNative.Wallet.computePrivateKey(mnemonic, hdPath ?? "");
+    return HEX.decode(privKey);
   }
 
   /// Returns a byte array representation of the public key
   /// derived from the current mnemonic
-  static Uint8List _publicKeyBytes(String privateKey) {
-    final privKeyBigInt = hexToInt(privateKey);
-    return privateKeyToPublic(privKeyBigInt);
+  static Uint8List _publicKeyBytes(String hexPrivateKey) {
+    final pubKey = dvoteNative.Wallet.computePublicKey(hexPrivateKey);
+    return HEX.decode(pubKey);
   }
 
-  static String _address(String privateKey) {
-    final privKeyBigInt = hexToInt(privateKey);
-    final pubKeyBytes = privateKeyToPublic(privKeyBigInt);
-
-    final addrBytes = publicKeyToAddress(pubKeyBytes);
-    final addr = EthereumAddress(addrBytes);
-    return addr.hexEip55;
+  static String _address(String hexPrivateKey) {
+    return dvoteNative.Wallet.computeAddress(hexPrivateKey);
   }
 
   static bool _isValidPrivateKey(Uint8List privKey) {

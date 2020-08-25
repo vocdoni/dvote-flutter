@@ -20,7 +20,7 @@ void pollVoting() {
   test("Should compute valid poll nullifiers", () async {
     final processId =
         "0x8b35e10045faa886bd2e18636cd3cb72e80203a04e568c47205bf0313a0f60d1";
-    var wallet = EthereumWallet.fromMnemonic(
+    var wallet = EthereumDartWallet.fromMnemonic(
         "seven family better journey display approve crack burden run pattern filter topple");
     expect(wallet.privateKey,
         "0xdc44bf8c260abe06a7265c5775ea4fb68ecd1b1940cfa76c1726141ec0da5ddc");
@@ -30,21 +30,21 @@ void pollVoting() {
     expect(nullifier,
         "0xf6e3fe2d68f3ccc3af2a7835b302e42c257e2de6539c264542f11e5588e8c162");
 
-    wallet = EthereumWallet.fromMnemonic(
+    wallet = EthereumDartWallet.fromMnemonic(
         "myth like bonus scare over problem client lizard pioneer submit female collect",
         hdPath: "m/44'/60'/0'/0/0");
     nullifier = await getPollNullifier(wallet.address, processId);
     expect(nullifier,
         "0x13bf966813b5299110d34b1e565d62d8c26ecb1f76f92ca8bd21fd91600360bc");
 
-    wallet = EthereumWallet.fromMnemonic(
+    wallet = EthereumDartWallet.fromMnemonic(
         "myth like bonus scare over problem client lizard pioneer submit female collect",
         hdPath: "m/44'/60'/0'/0/2");
     nullifier = await getPollNullifier(wallet.address, processId);
     expect(nullifier,
         "0x25e1ec205509664e2433b9f9930c901eb1f2e31e851468a6ef7329dd9ada3bc8");
 
-    wallet = EthereumWallet.fromMnemonic(
+    wallet = EthereumDartWallet.fromMnemonic(
         "myth like bonus scare over problem client lizard pioneer submit female collect",
         hdPath: "m/44'/60'/0'/0/3");
     nullifier = await getPollNullifier(wallet.address, processId);
@@ -52,7 +52,7 @@ void pollVoting() {
         "0x419761e28c5103fa4ddac3d575a940c683aa647c31a8ac1073c8780f4664efcb");
   });
   test("Should bundle a Vote Package into a valid Vote Envelope", () async {
-    final wallet = EthereumWallet.fromMnemonic(
+    final wallet = EthereumDartWallet.fromMnemonic(
         "seven family better journey display approve crack burden run pattern filter topple");
 
     String processId =
@@ -94,7 +94,7 @@ void pollVoting() {
 
   test("Should bundle an encrypted Vote Package into a valid Vote Envelope",
       () async {
-    final wallet = EthereumWallet.fromMnemonic(
+    final wallet = EthereumDartWallet.fromMnemonic(
         "seven family better journey display approve crack burden run pattern filter topple");
 
     final votePrivateKey =
@@ -156,7 +156,7 @@ void pollVoting() {
 
   test("Should bundle a Vote Package encrypted with N keys in the right order",
       () async {
-    final wallet = EthereumWallet.fromMnemonic(
+    final wallet = EthereumDartWallet.fromMnemonic(
         "seven family better journey display approve crack burden run pattern filter topple");
 
     final encryptionKeys = [

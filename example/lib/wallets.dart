@@ -3,7 +3,8 @@ import './constants.dart';
 
 void wallets() {
   try {
-    final wallet = EthereumWallet.random(hdPath: PATH);
+    // final wallet = EthereumNativeWallet.random(hdPath: PATH);
+    final wallet = EthereumDartWallet.random(hdPath: PATH);
     final mnemonic = wallet.mnemonic;
     final privKey = wallet.privateKey;
     final pubKey = wallet.publicKey;

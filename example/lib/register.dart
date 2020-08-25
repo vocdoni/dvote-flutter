@@ -37,7 +37,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       var uuid = Uuid();
       dvoteGw = DVoteGateway(RESISTRY_URL, skipHealthCheck: true);
-      final wallet = EthereumWallet.random(hdPath: "m/44'/60'/0'/0/5");
+      // final wallet = EthereumNativeWallet.random(hdPath: "m/44'/60'/0'/0/5");
+      final wallet = EthereumDartWallet.random(hdPath: "m/44'/60'/0'/0/5");
 
       var token = uuid.v4();
       reply = await validateRegistrationToken(

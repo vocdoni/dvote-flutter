@@ -15,7 +15,8 @@ import "./entity.dart";
 import "../blockchain/index.dart";
 import '../models/dart/entity.pb.dart';
 import '../models/dart/process.pb.dart';
-import '../util/json-signature.dart';
+// import '../util/json-signature.dart';
+import '../util/json-signature-native.dart';
 import '../constants.dart';
 import 'package:dvote_native/dvote_native.dart' as dvoteNative;
 
@@ -687,7 +688,8 @@ Future<Map<String, dynamic>> packagePollEnvelope(List<int> votes,
       package["encryptionKeyIndexes"] = packageValues["keyIndexes"];
     }
 
-    final signature = await signJsonPayloadAsync(package, signingPrivateKey);
+    final signature = await JSONSignatureNative.signJsonPayloadAsync(
+        package, signingPrivateKey);
     package["signature"] = signature;
 
     return package;
@@ -721,7 +723,7 @@ String _generateZkProof(List<dynamic> args) {
 
   final Map<String, dynamic> circuitInputs = args[0];
   final String provingKeyPath = args[1];
-  return dvoteNative.generateZkProof(circuitInputs, provingKeyPath);
+  return dvoteNative.Snarks.generateZkProof(circuitInputs, provingKeyPath);
 }
 
 // ////////////////////////////////////////////////////////////////////////////

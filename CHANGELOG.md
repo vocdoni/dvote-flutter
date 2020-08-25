@@ -1,3 +1,8 @@
+## 0.13.0
+
+- Using native primitives for wallet, signing and hashing from dvote-flutter-native
+- Providing separate wrappers for pure dart and native versions
+
 ## 0.12.18
 
 - Improving the error handling of `getBlockStatus()`
