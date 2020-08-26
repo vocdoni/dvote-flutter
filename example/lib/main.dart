@@ -1,11 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:dvote_example/gateway.dart';
 import 'package:dvote_example/metadata.dart';
-import 'package:flutter/material.dart';
-// import "./metadata.dart";
-// import "./gateway.dart";
-import "./register.dart";
-// import "./wallets.dart";
-// import "./signatures.dart";
+import "package:dvote_example/register.dart";
+import "package:dvote_example/wallets.dart";
+import "package:dvote_example/signatures.dart";
+import "package:dvote_example/hashing.dart";
 // import "./vote.dart";
 
 void main() async {
@@ -24,6 +23,36 @@ class ExampleApp extends StatelessWidget {
       ),
       body: ListView(
         children: <Widget>[
+          Card(
+            child: ListTile(
+              leading: FlutterLogo(size: 72.0),
+              title: Text('Wallet'),
+              subtitle: Text('Generating Ethereum wallets'),
+              isThreeLine: true,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => WalletScreen())),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: FlutterLogo(size: 72.0),
+              title: Text('Signature'),
+              subtitle: Text('Signing and recovering signer keys'),
+              isThreeLine: true,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => SignatureScreen())),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: FlutterLogo(size: 72.0),
+              title: Text('Hashing'),
+              subtitle: Text('Generating Poseidon hashes'),
+              isThreeLine: true,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => HashingScreen())),
+            ),
+          ),
           Card(
             child: ListTile(
               leading: FlutterLogo(size: 72.0),

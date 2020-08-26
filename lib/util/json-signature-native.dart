@@ -1,13 +1,13 @@
 import './json-content.dart';
-import '../crypto/signature.dart';
+import '../crypto/signature-native.dart';
 
-class JSONSignatureDart {
+class JSONSignatureNative {
   /// Sign the given body using privateKey. Returns an hex-encoded string with the signature.
   static String signJsonPayload(Map<String, dynamic> body, String privateKey,
       {int chainId}) {
     final strBody = serializeJsonBody(body);
 
-    return SignatureDart.signString(strBody, privateKey, chainId: chainId);
+    return SignatureNative.signString(strBody, privateKey, chainId: chainId);
   }
 
   /// Sign the given body using privateKey. Returns an hex-encoded string with the signature.
@@ -15,7 +15,8 @@ class JSONSignatureDart {
       Map<String, dynamic> body, String privateKey,
       {int chainId}) {
     final strBody = serializeJsonBody(body);
-    return SignatureDart.signStringAsync(strBody, privateKey, chainId: chainId);
+    return SignatureNative.signStringAsync(strBody, privateKey,
+        chainId: chainId);
   }
 
   /// Recover the public key that signed the given JSON payload into the given signature
@@ -26,7 +27,7 @@ class JSONSignatureDart {
       throw Exception("Invalid parameters");
 
     final strBody = serializeJsonBody(body);
-    return SignatureDart.recoverSignerPubKey(signature, strBody,
+    return SignatureNative.recoverSignerPubKey(signature, strBody,
         chainId: chainId);
   }
 
@@ -38,7 +39,7 @@ class JSONSignatureDart {
       throw Exception("Invalid parameters");
 
     final strBody = serializeJsonBody(body);
-    return SignatureDart.recoverSignerPubKeyAsync(signature, strBody,
+    return SignatureNative.recoverSignerPubKeyAsync(signature, strBody,
         chainId: chainId);
   }
 
@@ -52,7 +53,7 @@ class JSONSignatureDart {
     else if (publicKey == null || publicKey == "") return true;
 
     final strBody = serializeJsonBody(body);
-    return SignatureDart.isValidSignature(signature, strBody, publicKey,
+    return SignatureNative.isValidSignature(signature, strBody, publicKey,
         chainId: chainId);
   }
 
@@ -66,7 +67,7 @@ class JSONSignatureDart {
     else if (publicKey == null || publicKey == "") return Future.value(true);
 
     final strBody = serializeJsonBody(body);
-    return SignatureDart.isValidSignatureAsync(signature, strBody, publicKey,
+    return SignatureNative.isValidSignatureAsync(signature, strBody, publicKey,
         chainId: chainId);
   }
 }

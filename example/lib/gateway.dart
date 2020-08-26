@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 
 import 'package:dvote/dvote.dart';
 import './constants.dart';
-import 'dart:convert';
 
 class GatewayScreen extends StatefulWidget {
   @override

@@ -8,7 +8,9 @@ import 'package:http/http.dart' as http;
 import 'package:dvote/util/dev.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
-import '../util/json-signature.dart';
+// import '../util/json-signature.dart';
+import '../util/json-signature-native.dart';
+import '../util/json-content.dart';
 import "../constants.dart";
 
 import 'package:web3dart/web3dart.dart';
@@ -130,7 +132,8 @@ class DVoteGateway {
     if (privateKey == null || privateKey == "") {
       requestPayload = {"id": id, "request": requestBody, "signature": ""};
     } else {
-      final signature = await signJsonPayloadAsync(requestBody, privateKey);
+      final signature = await JSONSignatureNative.signJsonPayloadAsync(
+          requestBody, privateKey);
       requestPayload = {
         "id": id,
         "request": sortJsonFields(
@@ -217,7 +220,7 @@ class DVoteGateway {
         jsonResponse["timestamp"] > signatureValidUntil) {
       return req.completer
           .completeError(Exception("The response timestamp is invalid"));
-    } else if (!await isValidJsonSignatureAsync(
+    } else if (!await JSONSignatureNative.isValidJsonSignatureAsync(
         givenSignature, jsonResponse, publicKey)) {
       return req.completer
           .completeError(Exception("The response signature is not valid"));
