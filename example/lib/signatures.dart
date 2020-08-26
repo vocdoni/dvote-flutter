@@ -88,11 +88,11 @@ class _SignatureScreenState extends State<SignatureScreen> {
             padding: EdgeInsets.all(16),
             child: Column(
               children: <Widget>[
-                Text("Signing '$MESSAGE'"),
-                Text("From sk\n$PRIVATE_KEY"),
-                Text("From pubk\n$PUBLIC_KEY"),
-                Text("Signature\n$_signature"),
-                Text("Recovered public key\n$_recoveredPubKey"),
+                Text("Signing '$MESSAGE'\n"),
+                Text("From private key\n$PRIVATE_KEY\n"),
+                Text("From public key\n$PUBLIC_KEY\n"),
+                Text("Signature\n$_signature\n"),
+                Text("Recovered public key\n$_recoveredPubKey\n"),
                 Text("Valid\n$_valid"),
               ],
             ),

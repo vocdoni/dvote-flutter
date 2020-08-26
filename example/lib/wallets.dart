@@ -10,6 +10,8 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen> {
   String _mnemonic = "-", _privKey = "-", _pubKey = "-", _addr = "-";
+  String _status;
+  DateTime _start, _mid, _end;
   String _error;
 
   @override
@@ -24,16 +26,24 @@ class _WalletScreenState extends State<WalletScreen> {
     String mnemonic, privKey, pubKey, addr;
 
     try {
+      _start = DateTime.now();
+
+      // Native computation
       final wallet = EthereumNativeWallet.random(hdPath: HD_PATH);
       mnemonic = wallet.mnemonic;
       privKey = wallet.privateKey;
       pubKey = wallet.publicKey;
       addr = wallet.address;
 
+      _mid = DateTime.now();
+
+      // Dart computation
       final pureWallet = EthereumDartWallet.fromMnemonic(mnemonic);
       assert(pureWallet.privateKey == privKey);
       assert(pureWallet.publicKey == pubKey);
       assert(pureWallet.address == addr);
+
+      _end = DateTime.now();
     } catch (err) {
       error = err.toString();
     }
@@ -55,6 +65,10 @@ class _WalletScreenState extends State<WalletScreen> {
       _privKey = privKey;
       _pubKey = pubKey;
       _addr = addr;
+      _status =
+          """Native computation: ${_mid.difference(_start).inMilliseconds}ms
+Dart computation: ${_end.difference(_mid).inMilliseconds}ms
+      """;
     });
   }
 
@@ -81,10 +95,11 @@ class _WalletScreenState extends State<WalletScreen> {
             padding: EdgeInsets.all(16),
             child: Column(
               children: <Widget>[
-                Text("Mnemonic '$_mnemonic'"),
-                Text("Private key\n$_privKey"),
-                Text("Public key\n$_pubKey"),
-                Text("Address\n$_addr"),
+                Text("Mnemonic '$_mnemonic'\n"),
+                Text("Private key\n$_privKey\n"),
+                Text("Public key\n$_pubKey\n"),
+                Text("Address\n$_addr\n"),
+                Text(_status)
               ],
             ),
           ),

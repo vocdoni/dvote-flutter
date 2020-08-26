@@ -143,7 +143,7 @@ class EthereumNativeWallet {
   /// Returns an Hexadecimal representation of the public key
   /// derived from the current mnemonic
   String get publicKey {
-    return "0x04" + HEX.encode(this.publicKeyBytes);
+    return "0x" + HEX.encode(this.publicKeyBytes);
   }
 
   /// Returns an Hexadecimal representation of the public key
@@ -151,7 +151,7 @@ class EthereumNativeWallet {
   Future<String> get publicKeyAsync {
     return this
         .publicKeyBytesAsync
-        .then((pubKeyBytes) => "0x04" + HEX.encode(pubKeyBytes));
+        .then((pubKeyBytes) => "0x" + HEX.encode(pubKeyBytes));
   }
 
   String get address {
@@ -180,15 +180,16 @@ class EthereumNativeWallet {
     final hdPath = args[1];
     assert(hdPath is String);
 
-    final privKey =
-        dvoteNative.Wallet.computePrivateKey(mnemonic, hdPath ?? "");
+    final privKey = dvoteNative.Wallet.computePrivateKey(mnemonic, hdPath ?? "")
+        .replaceFirst("0x", "");
     return HEX.decode(privKey);
   }
 
   /// Returns a byte array representation of the public key
   /// derived from the current mnemonic
   static Uint8List _publicKeyBytes(String hexPrivateKey) {
-    final pubKey = dvoteNative.Wallet.computePublicKey(hexPrivateKey);
+    final pubKey = dvoteNative.Wallet.computePublicKey(hexPrivateKey)
+        .replaceFirst("0x", "");
     return HEX.decode(pubKey);
   }
 

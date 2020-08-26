@@ -73,9 +73,9 @@ class _HashingScreenState extends State<HashingScreen> {
             padding: EdgeInsets.all(16),
             child: Column(
               children: <Widget>[
-                Text("Hashing '$PUBLIC_KEY'"),
-                Text(_digestedHexClaim),
-                Text("Hashing '$MESSAGE'"),
+                Text("Hashing '$PUBLIC_KEY'\n"),
+                Text(_digestedHexClaim + "\n"),
+                Text("Hashing '$MESSAGE'\n"),
                 Text(_digestedStringClaim),
               ],
             ),
