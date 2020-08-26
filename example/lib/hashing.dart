@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:dvote/dvote.dart';
 
-const MESSAGE = "hello";
-const PRIVATE_KEY =
-    "fad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19";
+const MESSAGE = "Hello world";
 const PUBLIC_KEY =
     "0x049a7df67f79246283fdc93af76d4f8cdd62c4886e8cd870944e817dd0b97934fdd7719d0810951e03418205868a5c1b40b192451367f28e0088dd75e15de40c05";
 
-class SignatureScreen extends StatefulWidget {
+class HashingScreen extends StatefulWidget {
   @override
-  _SignatureScreenState createState() => _SignatureScreenState();
+  _HashingScreenState createState() => _HashingScreenState();
 }
 
-class _SignatureScreenState extends State<SignatureScreen> {
-  String _signature = "-";
-  String _recoveredPubKey = "-";
-  bool _valid = false;
+class _HashingScreenState extends State<HashingScreen> {
+  String _digestedHexClaim = "-", _digestedStringClaim = "-";
   String _error;
 
   @override
@@ -27,24 +23,14 @@ class _SignatureScreenState extends State<SignatureScreen> {
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     String error;
-    String signature, recoveredPubKey;
-    bool valid;
+    String digestedHexClaim, digestedStringClaim;
 
     try {
-      signature = await SignatureNative.signStringAsync(MESSAGE, PRIVATE_KEY);
-      recoveredPubKey =
-          await SignatureNative.recoverSignerPubKeyAsync(signature, MESSAGE);
-      valid = await SignatureNative.isValidSignatureAsync(
-          signature, MESSAGE, PUBLIC_KEY);
+      digestedHexClaim = await digestHexClaim(PUBLIC_KEY);
+      digestedStringClaim = await digestStringClaim(MESSAGE);
     } catch (err) {
       error = err.toString();
     }
-
-    assert(signature == SignatureNative.signString(MESSAGE, PRIVATE_KEY));
-    assert(recoveredPubKey ==
-        SignatureNative.recoverSignerPubKey(signature, MESSAGE));
-    assert(valid ==
-        SignatureNative.isValidSignature(signature, MESSAGE, PUBLIC_KEY));
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
@@ -59,9 +45,8 @@ class _SignatureScreenState extends State<SignatureScreen> {
     }
 
     setState(() {
-      _signature = signature;
-      _recoveredPubKey = recoveredPubKey;
-      _valid = valid;
+      _digestedHexClaim = digestedHexClaim;
+      _digestedStringClaim = digestedStringClaim;
     });
   }
 
@@ -70,7 +55,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
     if (_error != null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Signature'),
+          title: const Text('Hashing'),
         ),
         body: Container(
           child: Text("Error: " + _error),
@@ -80,7 +65,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Signature'),
+        title: const Text('Hashing'),
       ),
       body: ListView(
         children: <Widget>[
@@ -88,12 +73,10 @@ class _SignatureScreenState extends State<SignatureScreen> {
             padding: EdgeInsets.all(16),
             child: Column(
               children: <Widget>[
-                Text("Signing '$MESSAGE'"),
-                Text("From sk\n$PRIVATE_KEY"),
-                Text("From pubk\n$PUBLIC_KEY"),
-                Text("Signature\n$_signature"),
-                Text("Recovered public key\n$_recoveredPubKey"),
-                Text("Valid\n$_valid"),
+                Text("Hashing '$PUBLIC_KEY'"),
+                Text(_digestedHexClaim),
+                Text("Hashing '$MESSAGE'"),
+                Text(_digestedStringClaim),
               ],
             ),
           ),

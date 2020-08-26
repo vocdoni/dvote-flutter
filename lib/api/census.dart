@@ -1,18 +1,6 @@
-import 'package:dvote/crypto/asyncify.dart';
 import 'package:dvote/dvote.dart';
 import 'package:dvote/util/dev.dart';
 import '../net/gateway.dart';
-import 'package:dvote_native/dvote_native.dart' as dvoteNative;
-
-/// Returns the Poseidon hash of the given hex ECDSA public key.
-/// The result is provided in base64
-Future<String> digestHexClaim(String hexPublicKey) {
-  if (!(hexPublicKey is String) || hexPublicKey.length == 0)
-    throw Exception("The payload is empty");
-
-  return wrap1ParamFunc<String, String>(
-      dvoteNative.Hashing.digestHexClaim, hexPublicKey);
-}
 
 /// Fetch the Merkle Proof that proves that the given claim is part
 /// of the Census Merkle Tree with the given Root Hash
