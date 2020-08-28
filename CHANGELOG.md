@@ -1,3 +1,7 @@
+## 0.14.1
+
+- Dependency version bump
+
 ## 0.14.0
 
 - **Breaking**: Using uncompressed public keys by default
