@@ -4,9 +4,9 @@ import 'dart:math';
 import 'package:dvote/util/dev.dart';
 import 'package:dvote/wrappers/content-uri.dart';
 import 'package:dvote/blockchain/index.dart';
-import 'package:dvote/api/entity.dart';
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
+import 'package:dvote/wrappers/entities.dart';
 
 import "../constants.dart";
 import 'package:http/http.dart' as http;
@@ -63,7 +63,7 @@ Future<ContentURI> getDefaultBootnodeContentUri(String networkId) async {
     try {
       var result = await callEntityResolverMethod(uri, "text", [
         Uint8List.fromList(hexEntityId),
-        TEXT_RECORD_KEYS["VOCDONI_BOOT_NODES"]
+        TextRecordKeys.VOCDONI_BOOT_NODES
       ]);
       if (result is List && result[0] is String) return ContentURI(result[0]);
     } catch (err) {

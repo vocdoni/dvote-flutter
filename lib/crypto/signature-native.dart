@@ -92,8 +92,7 @@ class SignatureNative {
     else if (strPayload == null) throw Exception("The payload is empty");
 
     try {
-      return "0x04" +
-          dvoteNative.Wallet.recoverSigner(hexSignature, strPayload);
+      return dvoteNative.Wallet.recoverSigner(hexSignature, strPayload);
     } catch (err) {
       throw Exception("The signature could not be verified");
     }

@@ -16,7 +16,7 @@ Future<void> vote() async {
   final String privateKey = wallet.privateKey;
   final entityId = ENTITY_ID;
   final String address = wallet.address;
-  final String pubKey = wallet.publicKey;
+  final String pubKey = wallet.publicKey(uncompressed: false);
   final String pubKeyClaim = await digestHexClaim(pubKey);
   // final String pubKeyClaim = CENSUS_PUB_KEY_CLAIM;
   // final String censusMerkleRoot = CENSUS_MERKLE_ROOT;

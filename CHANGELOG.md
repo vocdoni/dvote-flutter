@@ -1,3 +1,9 @@
+## 0.14.0
+
+- **Breaking**: Using uncompressed public keys by default
+- **Breaking**: `Wallet.publicKey` and `Wallet.publicKeyAsync` are no longer a getter, but a function accepting parameters
+- Supporting signatures with `v` values of `0x1b-0x1c` as well as `0x00-0x01`
+
 ## 0.13.0
 
 - Using native primitives for wallet, signing and hashing from dvote-flutter-native

@@ -32,15 +32,19 @@ class _WalletScreenState extends State<WalletScreen> {
       final wallet = EthereumNativeWallet.random(hdPath: HD_PATH);
       mnemonic = wallet.mnemonic;
       privKey = wallet.privateKey;
-      pubKey = wallet.publicKey;
+      pubKey = wallet.publicKey(uncompressed: false);
       addr = wallet.address;
 
       _mid = DateTime.now();
 
       // Dart computation
-      final pureWallet = EthereumDartWallet.fromMnemonic(mnemonic);
-      assert(pureWallet.privateKey == privKey);
-      assert(pureWallet.publicKey == pubKey);
+      final pureWallet =
+          EthereumDartWallet.fromMnemonic(mnemonic, hdPath: HD_PATH);
+
+      final purePrivKey = pureWallet.privateKey;
+      assert(purePrivKey == privKey,
+          "Keys should equal: Pure Dart PK: $purePrivKey - Native PK: $privKey - Mnemonic: '$mnemonic'");
+      assert(pureWallet.publicKey(uncompressed: false) == pubKey);
       assert(pureWallet.address == addr);
 
       _end = DateTime.now();
@@ -56,6 +60,11 @@ class _WalletScreenState extends State<WalletScreen> {
     if (error != null) {
       setState(() {
         _error = error;
+
+        _mnemonic = mnemonic;
+        _privKey = privKey;
+        _pubKey = pubKey;
+        _addr = addr;
       });
       return;
     }
@@ -74,17 +83,6 @@ Dart computation: ${_end.difference(_mid).inMilliseconds}ms
 
   @override
   Widget build(BuildContext context) {
-    if (_error != null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Wallet'),
-        ),
-        body: Container(
-          child: Text("Error: " + _error),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wallet'),
@@ -95,11 +93,17 @@ Dart computation: ${_end.difference(_mid).inMilliseconds}ms
             padding: EdgeInsets.all(16),
             child: Column(
               children: <Widget>[
+                _error != null
+                    ? Text(
+                        "ERROR: $_error\n\n-----\n\n",
+                        style: TextStyle(color: Colors.red),
+                      )
+                    : Container(),
                 Text("Mnemonic '$_mnemonic'\n"),
                 Text("Private key\n$_privKey\n"),
                 Text("Public key\n$_pubKey\n"),
                 Text("Address\n$_addr\n"),
-                Text(_status)
+                Text(_status ?? "")
               ],
             ),
           ),

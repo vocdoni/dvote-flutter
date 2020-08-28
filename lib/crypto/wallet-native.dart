@@ -130,27 +130,28 @@ class EthereumNativeWallet {
 
   /// Returns a byte array representation of the public key
   /// derived from the current mnemonic
-  Uint8List get publicKeyBytes {
-    return _publicKeyBytes(this.privateKey);
+  Uint8List publicKeyBytes({bool uncompressed = false}) {
+    return _publicKeyBytes([this.privateKey, uncompressed]);
   }
 
   /// Returns a byte array representation of the public key
   /// derived from the current mnemonic
-  Future<Uint8List> get publicKeyBytesAsync {
-    return wrap1ParamFunc<Uint8List, String>(_publicKeyBytes, this.privateKey);
+  Future<Uint8List> publicKeyBytesAsync({bool uncompressed = false}) {
+    return wrap2ParamFunc<Uint8List, String, bool>(
+        _publicKeyBytes, this.privateKey, uncompressed);
   }
 
   /// Returns an Hexadecimal representation of the public key
   /// derived from the current mnemonic
-  String get publicKey {
-    return "0x" + HEX.encode(this.publicKeyBytes);
+  String publicKey({bool uncompressed = false}) {
+    return "0x" + HEX.encode(this.publicKeyBytes(uncompressed: uncompressed));
   }
 
   /// Returns an Hexadecimal representation of the public key
   /// derived from the current mnemonic
-  Future<String> get publicKeyAsync {
+  Future<String> publicKeyAsync({bool uncompressed = false}) {
     return this
-        .publicKeyBytesAsync
+        .publicKeyBytesAsync(uncompressed: uncompressed)
         .then((pubKeyBytes) => "0x" + HEX.encode(pubKeyBytes));
   }
 
@@ -187,8 +188,15 @@ class EthereumNativeWallet {
 
   /// Returns a byte array representation of the public key
   /// derived from the current mnemonic
-  static Uint8List _publicKeyBytes(String hexPrivateKey) {
-    final pubKey = dvoteNative.Wallet.computePublicKey(hexPrivateKey)
+  static Uint8List _publicKeyBytes(List<dynamic> args) {
+    assert(args.length == 2);
+    final hexPrivateKey = args[0];
+    assert(hexPrivateKey is String);
+    final uncompressed = args[1];
+    assert(uncompressed is bool);
+
+    final pubKey = dvoteNative.Wallet.computePublicKey(hexPrivateKey,
+            uncompressed: uncompressed)
         .replaceFirst("0x", "");
     return HEX.decode(pubKey);
   }

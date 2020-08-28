@@ -98,14 +98,14 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.13.0"
+    version: "0.14.0"
   dvote_native:
     dependency: transitive
     description:
       name: dvote_native
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.0"
+    version: "0.9.0"
   faker:
     dependency: "direct main"
     description:

@@ -92,7 +92,7 @@ void _syncSignature() {
     EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
-    final originalPublicKey = wallet.publicKey;
+    final originalPublicKey = wallet.publicKey(uncompressed: true);
 
     String message = "hello";
     String signature = SignatureDart.signString(message, wallet.privateKey);
@@ -112,7 +112,7 @@ void _syncSignature() {
     EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
-    final expectedPublicKey = wallet.publicKey;
+    final expectedPublicKey = wallet.publicKey(uncompressed: true);
 
     String message = "hello";
     String signature = SignatureDart.signString(message, wallet.privateKey);
@@ -307,7 +307,7 @@ void _asyncSignature() {
     EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
-    final originalPublicKey = wallet.publicKey;
+    final originalPublicKey = wallet.publicKey(uncompressed: true);
 
     String message = "hello";
     String signature =
@@ -329,7 +329,7 @@ void _asyncSignature() {
     EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
         'poverty castle step need baby chair measure leader dress print cruise baby avoid fee sock shoulder rate opinion');
 
-    final expectedPublicKey = wallet.publicKey;
+    final expectedPublicKey = wallet.publicKey(uncompressed: true);
 
     String message = "hello";
     String signature =
@@ -456,9 +456,9 @@ void _signingMatch() {
     expect(recoveredPubKey1, recoveredPubKey2);
 
     bool isValid1 =
-        SignatureDart.isValidSignature(signature1, message, wallet.publicKey);
+        SignatureDart.isValidSignature(signature1, message, wallet.publicKey());
     bool isValid2 = await SignatureDart.isValidSignatureAsync(
-        signature2, message, wallet.publicKey);
+        signature2, message, wallet.publicKey());
     expect(isValid1, isValid2);
 
     // UTF-8
@@ -474,9 +474,9 @@ void _signingMatch() {
     expect(recoveredPubKey1, recoveredPubKey2);
 
     isValid1 =
-        SignatureDart.isValidSignature(signature1, message, wallet.publicKey);
+        SignatureDart.isValidSignature(signature1, message, wallet.publicKey());
     isValid2 = await SignatureDart.isValidSignatureAsync(
-        signature2, message, wallet.publicKey);
+        signature2, message, wallet.publicKey());
     expect(isValid1, isValid2);
   });
 
@@ -500,9 +500,9 @@ void _signingMatch() {
     expect(recoveredPubKey1, recoveredPubKey2);
 
     bool isValid1 = JSONSignatureDart.isValidJsonSignature(
-        signature1, payload, wallet.publicKey);
+        signature1, payload, wallet.publicKey());
     bool isValid2 = await JSONSignatureDart.isValidJsonSignatureAsync(
-        signature2, payload, wallet.publicKey);
+        signature2, payload, wallet.publicKey());
     expect(isValid1, isValid2);
 
     // UTF-8 json
@@ -519,9 +519,9 @@ void _signingMatch() {
     expect(recoveredPubKey1, recoveredPubKey2);
 
     isValid1 = JSONSignatureDart.isValidJsonSignature(
-        signature1, payload, wallet.publicKey);
+        signature1, payload, wallet.publicKey());
     isValid2 = await JSONSignatureDart.isValidJsonSignatureAsync(
-        signature2, payload, wallet.publicKey);
+        signature2, payload, wallet.publicKey());
     expect(isValid1, isValid2);
   });
 }
@@ -538,8 +538,8 @@ void _reproduceableSignatures() {
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    bool isValid =
-        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
+    bool isValid = SignatureDart.isValidSignature(
+        signature1, payload1, wallet.publicKey());
     expect(isValid, true);
 
     //
@@ -550,8 +550,8 @@ void _reproduceableSignatures() {
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    isValid =
-        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
+    isValid = SignatureDart.isValidSignature(
+        signature1, payload1, wallet.publicKey());
     expect(isValid, true);
 
     // Maps
@@ -562,8 +562,8 @@ void _reproduceableSignatures() {
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    isValid =
-        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
+    isValid = SignatureDart.isValidSignature(
+        signature1, payload1, wallet.publicKey());
     expect(isValid, true);
 
     // Recursive maps
@@ -580,8 +580,8 @@ void _reproduceableSignatures() {
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    isValid =
-        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
+    isValid = SignatureDart.isValidSignature(
+        signature1, payload1, wallet.publicKey());
     expect(isValid, true);
 
     // Lists
@@ -602,8 +602,8 @@ void _reproduceableSignatures() {
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    isValid =
-        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
+    isValid = SignatureDart.isValidSignature(
+        signature1, payload1, wallet.publicKey());
     expect(isValid, true);
 
     // Recursive maps and lists
@@ -630,8 +630,8 @@ void _reproduceableSignatures() {
     expect(payload1, payload2);
     expect(signature1, signature2);
 
-    isValid =
-        SignatureDart.isValidSignature(signature1, payload1, wallet.publicKey);
+    isValid = SignatureDart.isValidSignature(
+        signature1, payload1, wallet.publicKey());
     expect(isValid, true);
   });
 }

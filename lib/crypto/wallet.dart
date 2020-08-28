@@ -127,28 +127,29 @@ class EthereumDartWallet {
 
   /// Returns a byte array representation of the public key
   /// derived from the current mnemonic
-  Uint8List get publicKeyBytes {
-    return _publicKeyBytes(this.privateKey);
+  Uint8List publicKeyBytes({bool uncompressed = false}) {
+    return _publicKeyBytes([this.privateKey, uncompressed]);
   }
 
   /// Returns a byte array representation of the public key
   /// derived from the current mnemonic
-  Future<Uint8List> get publicKeyBytesAsync {
-    return wrap1ParamFunc<Uint8List, String>(_publicKeyBytes, this.privateKey);
+  Future<Uint8List> publicKeyBytesAsync({bool uncompressed = false}) {
+    return wrap2ParamFunc<Uint8List, String, bool>(
+        _publicKeyBytes, this.privateKey, uncompressed);
   }
 
   /// Returns an Hexadecimal representation of the public key
   /// derived from the current mnemonic
-  String get publicKey {
-    return "0x04" + HEX.encode(this.publicKeyBytes);
+  String publicKey({bool uncompressed = false}) {
+    return "0x" + HEX.encode(this.publicKeyBytes(uncompressed: uncompressed));
   }
 
   /// Returns an Hexadecimal representation of the public key
   /// derived from the current mnemonic
-  Future<String> get publicKeyAsync {
+  Future<String> publicKeyAsync({bool uncompressed = false}) {
     return this
-        .publicKeyBytesAsync
-        .then((pubKeyBytes) => "0x04" + HEX.encode(pubKeyBytes));
+        .publicKeyBytesAsync(uncompressed: uncompressed)
+        .then((pubKeyBytes) => "0x" + HEX.encode(pubKeyBytes));
   }
 
   String get address {
@@ -185,9 +186,34 @@ class EthereumDartWallet {
 
   /// Returns a byte array representation of the public key
   /// derived from the current mnemonic
-  static Uint8List _publicKeyBytes(String privateKey) {
-    final privKeyBigInt = hexToInt(privateKey);
-    return privateKeyToPublic(privKeyBigInt);
+  static Uint8List _publicKeyBytes(List<dynamic> args) {
+    assert(args.length == 2);
+    final hexPrivateKey = args[0];
+    assert(hexPrivateKey is String);
+    final uncompressed = args[1];
+    assert(uncompressed is bool);
+
+    final privKeyBigInt = hexToInt(hexPrivateKey);
+    final pubKeyBytes = privateKeyToPublic(privKeyBigInt);
+
+    List<int> result = List<int>();
+    if (uncompressed) {
+      result.add(4);
+      result.addAll(pubKeyBytes);
+      return Uint8List.fromList(result);
+    }
+
+    final xBytes = pubKeyBytes.sublist(0, 32);
+    final ySign = pubKeyBytes[63];
+
+    if (ySign & 0x01 == 0) {
+      result.add(2);
+      result.addAll(xBytes);
+    } else {
+      result.add(3);
+      result.addAll(xBytes);
+    }
+    return Uint8List.fromList(result);
   }
 
   static String _address(String privateKey) {

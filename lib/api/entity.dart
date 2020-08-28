@@ -5,17 +5,11 @@ import 'package:dvote/util/dev.dart';
 import 'package:dvote/wrappers/content-uri.dart';
 import 'package:convert/convert.dart';
 import 'package:dvote/util/parsers.dart';
+import 'package:dvote/wrappers/entities.dart';
 
 import '../blockchain/index.dart';
 import '../models/dart/entity.pb.dart';
 import './file.dart';
-
-/// ENS keys used to store the Text Records on the Smart Contract
-const Map<String, String> TEXT_RECORD_KEYS = {
-  "JSON_METADATA_CONTENT_URI": "vnd.vocdoni.meta",
-  "VOCDONI_BOOT_NODES": "vnd.vocdoni.boot-nodes",
-  "VOCDONI_GATEWAY_HEARTBEAT": "vnd.vocdoni.gateway-heartbeat"
-};
 
 Future<EntityMetadata> fetchEntity(
     EntityReference entityRef, DVoteGateway dvoteGw, Web3Gateway web3Gw) async {
@@ -33,7 +27,7 @@ Future<EntityMetadata> fetchEntity(
   try {
     result = await callEntityResolverMethod(web3Gw.rpcUri, "text", [
       Uint8List.fromList(hexEntityId),
-      TEXT_RECORD_KEYS["JSON_METADATA_CONTENT_URI"]
+      TextRecordKeys.JSON_METADATA_CONTENT_URI
     ]);
     if (result == null || result.length == 0 || result.first == null)
       throw Exception("The metadata of the entity can't be found");

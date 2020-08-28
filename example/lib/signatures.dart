@@ -92,7 +92,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
                 Text("From private key\n$PRIVATE_KEY\n"),
                 Text("From public key\n$PUBLIC_KEY\n"),
                 Text("Signature\n$_signature\n"),
-                Text("Recovered public key\n$_recoveredPubKey\n"),
+                Text("Recovered public key (compressed)\n$_recoveredPubKey\n"),
                 Text("Valid\n$_valid"),
               ],
             ),
