@@ -1,4 +1,4 @@
-import 'package:dvote/crypto/asyncify.dart';
+import 'package:dvote/util/asyncify.dart';
 import 'package:dvote_native/dvote_native.dart' as dvoteNative;
 
 class SignatureNative {

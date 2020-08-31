@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:dvote/crypto/asyncify.dart';
+import 'package:dvote/util/asyncify.dart';
 import 'package:hex/hex.dart';
 import 'package:web3dart/crypto.dart' as crypto;
 

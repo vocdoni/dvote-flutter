@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart'; // To hash the passphrase to a fixed length
-import 'package:dvote/crypto/asyncify.dart';
+import 'package:dvote/util/asyncify.dart';
 import 'package:pinenacl/secret.dart'
     show SecretBox, SealedBox, PrivateKey, PublicKey, EncryptedMessage;
 
