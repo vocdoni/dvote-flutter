@@ -353,7 +353,7 @@ Future<bool> getEnvelopeStatus(
 
 /// Computes the nullifier of the user's vote within a voting process.
 /// Returns a hex string with kecak256(bytes(address) + bytes(processId))
-Future<String> getPollNullifier(String address, String processId) {
+Future<String> getSignedVoteNullifier(String address, String processId) {
   address = address.replaceFirst(new RegExp(r'^0x'), '');
   processId = processId.replaceFirst(new RegExp(r'^0x'), '');
 
@@ -361,11 +361,11 @@ Future<String> getPollNullifier(String address, String processId) {
   if (processId.length != 64) return Future.value(null);
 
   return wrap2ParamFunc<String, String, String>(
-      _getPollNullifier, address, processId);
+      _getSignedVoteNullifier, address, processId);
 }
 
 // internal wrapped function to run the hash computation out of the UI thread
-String _getPollNullifier(List<dynamic> args) {
+String _getSignedVoteNullifier(List<dynamic> args) {
   assert(args.length == 2);
   final address = args[0];
   assert(address is String);
@@ -636,12 +636,12 @@ Future<void> submitEnvelope(
   }
 }
 
-Future<String> packageSnarkEnvelope(
+Future<String> packageAnonymousEnvelope(
     List<int> votes, String proof, String privateKey) async {
   throw Exception("unimplemented");
   // TODO: Generate hash of private key for nullifier as in Snarks
   /*
-  String votePackage = packageSnarkVote(votes);
+  String votePackage = packageVoteContent(votes);
   Map<String, String>  package = {
     "processId": processId,
     "proof": proof, // ZK Proof
@@ -653,7 +653,7 @@ Future<String> packageSnarkEnvelope(
   */
 }
 
-Future<Map<String, dynamic>> packagePollEnvelope(List<int> votes,
+Future<Map<String, dynamic>> packageSignedEnvelope(List<int> votes,
     String merkleProof, String processId, String signingPrivateKey,
     {ProcessKeys processKeys}) async {
   if (!(votes is List) ||
@@ -675,7 +675,7 @@ Future<Map<String, dynamic>> packagePollEnvelope(List<int> votes,
     final nonce = _generateRandomNonce(32);
 
     final packageValues =
-        await packagePollVote(votes, processKeys: processKeys);
+        await packageVoteContent(votes, processKeys: processKeys);
 
     Map<String, dynamic> package = {
       "processId": processId,
@@ -732,23 +732,9 @@ String _generateZkProof(List<dynamic> args) {
 // / Internal helpers
 // ////////////////////////////////////////////////////////////////////////////
 
-String packageSnarkVote(List<int> votes, String publicKey) {
-  final nonce = _generateRandomNonce(16);
-
-  // TODO: ENCRYPT IT WITH publicKey
-
-  Map<String, dynamic> package = {
-    "type": "snark-vote",
-    "nonce":
-        nonce, // random number to prevent guessing the encrypted payload before the key is revealed
-    "votes": votes // Directly mapped to the `questions` field of the metadata
-  };
-  return base64.encode(utf8.encode(jsonEncode(package)));
-}
-
 /// Packages the vote and returns `{ votePackage: "..." }` on non-encrypted polls and
 /// `{ votePackage: "...", keyIndexes: [0, 1, 2, 3, 4] }` on encrypted polls
-Future<Map<String, dynamic>> packagePollVote(List<int> votes,
+Future<Map<String, dynamic>> packageVoteContent(List<int> votes,
     {ProcessKeys processKeys}) async {
   if (!(votes is List))
     throw Exception("Invalid parameters");

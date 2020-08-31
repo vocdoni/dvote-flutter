@@ -1,3 +1,10 @@
+## 0.15.0
+
+- Renamed `packageSnarkEnvelope` into `packageAnonymousEnvelope`
+- Renamed `packagePollEnvelope` into `packageSignedEnvelope`
+- Merged `packageSnarkVote` and `packagePollVote` into `packageVoteContent`
+- Renamed `getPollNullifier` into `getSignedVoteNullifier`
+
 ## 0.14.1
 
 - Dependency version bump

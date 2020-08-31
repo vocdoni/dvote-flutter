@@ -1,6 +1,6 @@
 import 'dart:convert';
 import './ens-public-resolver-contract.dart';
-import './vote-contract.dart';
+import './process-contract.dart';
 import '../net/gateway.dart';
 import '../blockchain/ens.dart';
 
