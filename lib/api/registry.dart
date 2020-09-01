@@ -1,5 +1,4 @@
 import 'package:dvote/dvote.dart';
-import '../net/gateway.dart';
 
 // HANDLERS
 Future<Map<String, dynamic>> register(
@@ -9,7 +8,7 @@ Future<Map<String, dynamic>> register(
     String email,
     String phone,
     DateTime dateOfBirth,
-    DVoteGateway dvoteGw,
+    GatewayPool gw,
     String privateKey) async {
   try {
     Map<String, dynamic> reqParams = {
@@ -23,8 +22,8 @@ Future<Map<String, dynamic>> register(
       },
       "entityId": entityId
     };
-    Map<String, dynamic> response = await dvoteGw.sendRequest(reqParams,
-        timeout: 7, privateKey: privateKey);
+    Map<String, dynamic> response =
+        await gw.sendRequest(reqParams, timeout: 7, privateKey: privateKey);
     if (!(response is Map)) {
       throw Exception("Invalid response received from the gateway");
     }
@@ -36,10 +35,10 @@ Future<Map<String, dynamic>> register(
 }
 
 Future<Map<String, dynamic>> validateRegistrationToken(String entityId,
-    String validationToken, DVoteGateway dvoteGw, String privateKey) async {
+    String validationToken, DVoteGateway gw, String privateKey) async {
   if (!(entityId is String) ||
       !(validationToken is String) ||
-      !(dvoteGw is DVoteGateway) ||
+      !(gw is DVoteGateway) ||
       !(privateKey is String)) {
     throw Exception("Invalid parameters");
   }
@@ -50,8 +49,8 @@ Future<Map<String, dynamic>> validateRegistrationToken(String entityId,
       "token": validationToken,
       "entityId": entityId
     };
-    Map<String, dynamic> response = await dvoteGw.sendRequest(reqParams,
-        timeout: 7, privateKey: privateKey);
+    Map<String, dynamic> response =
+        await gw.sendRequest(reqParams, timeout: 7, privateKey: privateKey);
     if (!(response is Map)) {
       throw Exception("Invalid response received from the gateway");
     }
@@ -65,9 +64,9 @@ Future<Map<String, dynamic>> validateRegistrationToken(String entityId,
 /// Checks whether the given public key is already registered on the entity.
 /// Returns `{ "registered": bool, "needsUpdate": bool }`
 Future<Map<String, dynamic>> registrationStatus(
-    String entityId, DVoteGateway dvoteGw, String privateKey) async {
+    String entityId, GatewayPool gw, String privateKey) async {
   if (!(entityId is String) ||
-      !(dvoteGw is DVoteGateway) ||
+      !(gw is GatewayPool) ||
       !(privateKey is String)) {
     throw Exception("Invalid parameters");
   }
@@ -77,8 +76,8 @@ Future<Map<String, dynamic>> registrationStatus(
       "method": "registrationStatus",
       "entityId": entityId
     };
-    Map<String, dynamic> response = await dvoteGw.sendRequest(reqParams,
-        timeout: 7, privateKey: privateKey);
+    Map<String, dynamic> response =
+        await gw.sendRequest(reqParams, timeout: 7, privateKey: privateKey);
     if (!(response is Map) || !(response["status"] is Map)) {
       throw Exception("Invalid response received from the gateway");
     }

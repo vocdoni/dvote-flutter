@@ -1,11 +1,10 @@
-import 'package:dvote/dvote.dart';
+import 'package:dvote/net/gateway-pool.dart';
 import 'package:dvote/util/dev.dart';
-import '../net/gateway.dart';
 
 /// Fetch the Merkle Proof that proves that the given claim is part
 /// of the Census Merkle Tree with the given Root Hash
 Future<String> generateProof(String censusMerkleRootHash, String base64Claim,
-    bool isDigested, DVoteGateway dvoteGw) async {
+    bool isDigested, GatewayPool gw) async {
   if (!(censusMerkleRootHash is String) || !(base64Claim is String))
     throw Exception('Invalid parameters');
   try {
@@ -15,7 +14,7 @@ Future<String> generateProof(String censusMerkleRootHash, String base64Claim,
       "digested": isDigested,
       "claimData": base64Claim,
     };
-    final response = await dvoteGw.sendRequest(reqParams, timeout: 20);
+    final response = await gw.sendRequest(reqParams, timeout: 20);
     if (!(response is Map)) {
       throw Exception("Invalid response received from the gateway");
     }
@@ -30,7 +29,7 @@ Future<String> generateProof(String censusMerkleRootHash, String base64Claim,
 
 /// Determine whether the Merkle Proof is valid for the given claim
 Future<bool> checkProof(String censusMerkleRootHash, String base64Claim,
-    bool isDigested, String proofData, DVoteGateway dvoteGw) async {
+    bool isDigested, String proofData, GatewayPool gw) async {
   if (!(censusMerkleRootHash is String) || !(base64Claim is String))
     throw Exception('Invalid parameters');
   try {
@@ -41,7 +40,7 @@ Future<bool> checkProof(String censusMerkleRootHash, String base64Claim,
       "claimData": base64Claim,
       "proofData": proofData
     };
-    final response = await dvoteGw.sendRequest(reqParams, timeout: 12);
+    final response = await gw.sendRequest(reqParams, timeout: 12);
     if (!(response is Map) || !(response["validProof"] is bool)) {
       throw Exception("Invalid response received from the gateway");
     }
@@ -55,9 +54,8 @@ Future<bool> checkProof(String censusMerkleRootHash, String base64Claim,
 }
 
 /// Get the number of people in the census with the given Merkle Root Hash
-Future<int> getCensusSize(
-    String censusMerkleRootHash, DVoteGateway dvoteGw) async {
-  if (!(censusMerkleRootHash is String) || !(dvoteGw is DVoteGateway))
+Future<int> getCensusSize(String censusMerkleRootHash, GatewayPool gw) async {
+  if (!(censusMerkleRootHash is String) || !(gw is GatewayPool))
     throw Exception('Invalid parameters');
   try {
     Map<String, dynamic> reqParams = {
@@ -65,7 +63,7 @@ Future<int> getCensusSize(
       "censusId": censusMerkleRootHash
     };
     Map<String, dynamic> response =
-        await dvoteGw.sendRequest(reqParams, timeout: 12);
+        await gw.sendRequest(reqParams, timeout: 12);
     if (!(response is Map) || !(response["size"] is int)) {
       throw Exception("Invalid response received from the gateway");
     }

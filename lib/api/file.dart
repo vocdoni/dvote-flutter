@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dvote/net/http.dart';
-import "../net/gateway.dart";
+import "../net/gateway-pool.dart";
 import "../net/ipfs.dart";
 import "../wrappers/content-uri.dart";
 
 /// Fetch the given content URI using a Vocdoni Gateway
 /// and return it as a string
 Future<String> fetchFileString(ContentURI cUri,
-    [DVoteGateway gw, int gwTimeout]) {
+    [GatewayPool gw, int gwTimeout]) {
   return fetchFileBytes(cUri, gw ?? null, gwTimeout)
       .then((Uint8List data) => utf8.decode(data.toList()));
 }
@@ -16,7 +16,7 @@ Future<String> fetchFileString(ContentURI cUri,
 /// Fetch the given content URI using a Vocdoni Gateway
 /// and return it as a byte array
 Future<Uint8List> fetchFileBytes(ContentURI cUri,
-    [DVoteGateway gw, int gwTimeout]) async {
+    [GatewayPool gw, int gwTimeout]) async {
   if (cUri == null) throw Exception("Invalid Content URI");
 
   // Attempt 1: fetch all from a gateway

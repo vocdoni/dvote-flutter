@@ -268,31 +268,34 @@ Feed parseFeed(String json) {
 // GATEWAY BOOT NODES
 // ////////////////////////////////////////////////////////////////////////////
 
-BootNodeGateways parseBootnodeGateways(String json) {
+BootNodeGateways parseBootnodeInfo(String json) {
   try {
     BootNodeGateways result = BootNodeGateways();
     final networkIdMap = jsonDecode(json);
-    if (!(networkIdMap is Map)) return null;
+    if (networkIdMap is! Map) return null;
 
     (networkIdMap as Map).forEach((k, value) {
-      if (!(k is String) || !(value is Map))
-        return;
-      else if (k == "mainnet") {
-        result.homestead = _parseBootnodeGateway(value);
-      } else if (k == "goerli") {
-        result.goerli = _parseBootnodeGateway(value);
-      } else if (k == "xdai") {
-        result.xdai = _parseBootnodeGateway(value);
+      switch (k) {
+        case "mainnet":
+        case "homestead":
+          result.homestead = _parseBootnodeNetworkItems(value);
+          break;
+        case "goerli":
+          result.goerli = _parseBootnodeNetworkItems(value);
+          break;
+        case "xdai":
+          result.xdai = _parseBootnodeNetworkItems(value);
+          break;
       }
     });
     return result;
   } catch (err) {
-    throw Exception("The boot nodes could not be parsed");
+    throw Exception("The boot nodes data could not be parsed");
   }
 }
 
-BootNodeGateways_NetworkNodes _parseBootnodeGateway(Map item) {
-  if (!(item["dvote"] is List) && !(item["web3"]) is List) return null;
+BootNodeGateways_NetworkNodes _parseBootnodeNetworkItems(Map item) {
+  if (item["dvote"] is! List && item["web3"] is! List) return null;
 
   BootNodeGateways_NetworkNodes result = BootNodeGateways_NetworkNodes();
   if (item["dvote"] is List) {
