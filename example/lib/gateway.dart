@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:dvote/dvote.dart';
 import './constants.dart';
@@ -10,7 +9,6 @@ class GatewayScreen extends StatefulWidget {
 }
 
 class _GatewayScreenState extends State<GatewayScreen> {
-  String _gwInfoStr = "-";
   String _dvoteGwStr = "-";
   String _web3GwStr = "-";
   String _error;
@@ -24,24 +22,11 @@ class _GatewayScreenState extends State<GatewayScreen> {
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     String error;
-    GatewayInfo gwInfo;
-    DVoteGateway dvoteGw;
-    Web3Gateway web3Gw;
-    String dvoteGwStr;
-    String web3GwStr;
-    EntityReference entity = EntityReference();
-    entity.entityId = ENTITY_ID;
-    entity.entryPoints.addAll([WEB3_ENTRY_POINT]);
+    GatewayPool gw;
 
     try {
-      gwInfo = await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);
-      dvoteGw = DVoteGateway(gwInfo.dvote, publicKey: gwInfo.publicKey);
-      web3Gw = Web3Gateway(gwInfo.web3);
-      // web3Gw
-      dvoteGwStr = dvoteGw.uri;
-      web3GwStr = web3Gw.wsUri;
-    } on PlatformException catch (err) {
-      error = err.message;
+      gw = await GatewayPool.discover(NETWORK_ID,
+          bootnodeUri: BOOTNODES_URL_RW, maxGatewayCount: 5, timeout: 10);
     } catch (err) {
       error = err.toString();
     }
@@ -59,9 +44,13 @@ class _GatewayScreenState extends State<GatewayScreen> {
     }
 
     setState(() {
-      _gwInfoStr = gwInfo.toString();
-      _dvoteGwStr = dvoteGwStr;
-      _web3GwStr = web3GwStr;
+      _dvoteGwStr = "URI: " +
+          gw.current.dvote.uri +
+          "\nHealth: " +
+          gw.current.dvote.health.toString() +
+          "\nSupported APIs: " +
+          gw.current.dvote.supportedApis.join(", ");
+      _web3GwStr = "URI: " + gw.current.web3.uri;
     });
   }
 
@@ -70,7 +59,7 @@ class _GatewayScreenState extends State<GatewayScreen> {
     if (_error != null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Gateway\'s Metadata'),
+          title: const Text('Gateway Discovery'),
         ),
         body: Container(
           child: Text("Error: " + _error),
@@ -78,12 +67,8 @@ class _GatewayScreenState extends State<GatewayScreen> {
       );
     }
 
-    final gwInfo = '''GatawayInfo:\n
-$_gwInfoStr''';
-    final dvoteGw = '''DvoteGateway:\n
-$_dvoteGwStr''';
-    final web3Gw = '''Web3Gateway:\n
-$_web3GwStr''';
+    final dvoteGw = "DvoteGateway info:\n$_dvoteGwStr\n";
+    final web3Gw = "Web3Gateway info:\n$_web3GwStr\n";
 
     return Scaffold(
       appBar: AppBar(
@@ -94,7 +79,7 @@ $_web3GwStr''';
           Padding(
             padding: EdgeInsets.all(16),
             child: Column(
-              children: <Widget>[Text(gwInfo), Text(dvoteGw), Text(web3Gw)],
+              children: <Widget>[Text(dvoteGw), Text(web3Gw)],
             ),
           ),
         ],

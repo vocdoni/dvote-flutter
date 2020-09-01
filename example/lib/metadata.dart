@@ -30,18 +30,16 @@ class _MetadataScreenState extends State<MetadataScreen> {
     entity.entityId = ENTITY_ID;
 
     try {
-      final gwInfo =
-          await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);
-      final dvoteGw = DVoteGateway(gwInfo.dvote, publicKey: gwInfo.publicKey);
-      final web3Gw = Web3Gateway(gwInfo.web3);
+      final gw = await GatewayPool.discover(NETWORK_ID,
+          bootnodeUri: BOOTNODES_URL_RW, maxGatewayCount: 5, timeout: 10);
 
-      final entityMeta = await fetchEntity(entity, dvoteGw, web3Gw);
+      final entityMeta = await fetchEntity(entity, gw);
       entityMetaStr = jsonEncode(entityMeta.toString());
 
       if ((entityMeta.votingProcesses?.active?.length is int) &&
           entityMeta.votingProcesses.active.length > 0) {
         final pid = entityMeta.votingProcesses?.active?.first;
-        final processMeta = await getProcessMetadata(pid, dvoteGw, web3Gw);
+        final processMeta = await getProcessMetadata(pid, gw);
         processMetaStr = processMeta.toString();
         // print(processMetaStr);
       }
