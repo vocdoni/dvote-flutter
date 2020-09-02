@@ -1,5 +1,9 @@
 ## 0.15.0
 
+- DVoteGateway now uses HTTP
+- Adding the Gateway wrapper for DVoteGateway and Web3Gateway
+- Adding the GatewayPool class
+- Adding Gateway discovery capabilities
 - Renamed `packageSnarkEnvelope` into `packageAnonymousEnvelope`
 - Renamed `packagePollEnvelope` into `packageSignedEnvelope`
 - Merged `packageSnarkVote` and `packagePollVote` into `packageVoteContent`
