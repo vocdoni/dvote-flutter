@@ -13,7 +13,11 @@ export './crypto/signature-native.dart';
 export './crypto/wallet.dart';
 export './crypto/wallet-native.dart';
 
+export './net/gateway-dvote.dart';
+export './net/gateway-web3.dart';
 export './net/gateway.dart';
+export './net/gateway-pool.dart';
+export './net/gateway-discovery.dart';
 export './net/bootnodes.dart';
 
 export './wrappers/content-uri.dart';

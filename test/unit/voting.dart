@@ -11,7 +11,7 @@ void pollVoting() {
     String processId =
         "74394b43b2d3f1c4df79fe5a4a67d07cfdab053f586253286d515d36e89db3e7";
 
-    final nullifier1 = await getPollNullifier(address, processId);
+    final nullifier1 = await getSignedVoteNullifier(address, processId);
     expect(nullifier1,
         "0x1b131b6f4e099ebb77b5886f606f5f9af1f20837c45945482e0af2b1df46fe86");
   });
@@ -26,28 +26,28 @@ void pollVoting() {
         "0xdc44bf8c260abe06a7265c5775ea4fb68ecd1b1940cfa76c1726141ec0da5ddc");
     expect(wallet.address, "0xaDDAa28Fb1fe87362A6dFdC9d3EEA03d0C221d81");
 
-    String nullifier = await getPollNullifier(wallet.address, processId);
+    String nullifier = await getSignedVoteNullifier(wallet.address, processId);
     expect(nullifier,
         "0xf6e3fe2d68f3ccc3af2a7835b302e42c257e2de6539c264542f11e5588e8c162");
 
     wallet = EthereumDartWallet.fromMnemonic(
         "myth like bonus scare over problem client lizard pioneer submit female collect",
         hdPath: "m/44'/60'/0'/0/0");
-    nullifier = await getPollNullifier(wallet.address, processId);
+    nullifier = await getSignedVoteNullifier(wallet.address, processId);
     expect(nullifier,
         "0x13bf966813b5299110d34b1e565d62d8c26ecb1f76f92ca8bd21fd91600360bc");
 
     wallet = EthereumDartWallet.fromMnemonic(
         "myth like bonus scare over problem client lizard pioneer submit female collect",
         hdPath: "m/44'/60'/0'/0/2");
-    nullifier = await getPollNullifier(wallet.address, processId);
+    nullifier = await getSignedVoteNullifier(wallet.address, processId);
     expect(nullifier,
         "0x25e1ec205509664e2433b9f9930c901eb1f2e31e851468a6ef7329dd9ada3bc8");
 
     wallet = EthereumDartWallet.fromMnemonic(
         "myth like bonus scare over problem client lizard pioneer submit female collect",
         hdPath: "m/44'/60'/0'/0/3");
-    nullifier = await getPollNullifier(wallet.address, processId);
+    nullifier = await getSignedVoteNullifier(wallet.address, processId);
     expect(nullifier,
         "0x419761e28c5103fa4ddac3d575a940c683aa647c31a8ac1073c8780f4664efcb");
   });
@@ -64,7 +64,7 @@ void pollVoting() {
   //   String siblings =
   //       "0x0003000000000000000000000000000000000000000000000000000000000006f0d72fbd8b3a637488107b0d8055410180ec017a4d76dbb97bee1c3086a25e25b1a6134dbd323c420d6fc2ac3aaf8fff5f9ac5bc0be5949be64b7cfd1bcc5f1f";
 
-  //   final envelope1 = await packagePollEnvelope(
+  //   final envelope1 = await packageSignedEnvelope(
   //       [1, 2, 3], siblings, processId, wallet.privateKey);
   //   expect(envelope1["processId"], processId);
   //   expect(envelope1["proof"], siblings);
@@ -82,7 +82,7 @@ void pollVoting() {
   //   siblings =
   //       "0x0003000000100000000002000000000300000000000400000000000050000006f0d72fbd8b3a637488107b0d8055410180ec017a4d76dbb97bee1c3086a25e25b1a6134dbd323c420d6fc2ac3aaf8fff5f9ac5bc0be5949be64b7cfd1bcc5f1f";
 
-  //   final envelope2 = await packagePollEnvelope(
+  //   final envelope2 = await packageSignedEnvelope(
   //       [5, 6, 7], siblings, processId, wallet.privateKey);
   //   expect(envelope2["processId"], processId);
   //   expect(envelope2["proof"], siblings);
@@ -140,7 +140,7 @@ void pollVoting() {
   //     entry.idx = 0;
   //     entry.key = votePublicKey;
   //     processKeys.encryptionPubKeys = [entry];
-  //     final envelope = await packagePollEnvelope(
+  //     final envelope = await packageSignedEnvelope(
   //         item["votes"], item["siblings"], item["processId"], wallet.privateKey,
   //         processKeys: processKeys);
   //     expect(envelope["processId"], item["processId"]);
@@ -235,7 +235,7 @@ void pollVoting() {
   //         .cast<ProcessKey>()
   //         .toList();
 
-  //     final envelope = await packagePollEnvelope(
+  //     final envelope = await packageSignedEnvelope(
   //         item["votes"], item["siblings"], item["processId"], wallet.privateKey,
   //         processKeys: processKeys);
   //     expect(envelope["processId"], item["processId"]);

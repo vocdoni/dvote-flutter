@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 // import 'package:faker/faker.dart';
 import 'package:uuid/uuid.dart';
 
@@ -36,20 +35,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       var uuid = Uuid();
-      dvoteGw = DVoteGateway(RESISTRY_URL, skipHealthCheck: true);
-      // final wallet = EthereumNativeWallet.random(hdPath: "m/44'/60'/0'/0/5");
-      final wallet = EthereumDartWallet.random(hdPath: "m/44'/60'/0'/0/5");
+      dvoteGw = DVoteGateway(RESISTRY_URL);
+      final wallet = EthereumNativeWallet.random(hdPath: "m/44'/60'/0'/0/5");
+      // final wallet = EthereumDartWallet.random(hdPath: "m/44'/60'/0'/0/5");
 
       var token = uuid.v4();
       reply = await validateRegistrationToken(
           ENTITY_ID, token, dvoteGw, wallet.privateKey);
-      dvoteGw.disconnect();
-    } on PlatformException catch (err) {
-      error = err.message;
-      dvoteGw.disconnect();
     } catch (err) {
       error = err.toString();
-      dvoteGw.disconnect();
     }
 
     // If the widget was removed from the tree while the asynchronous platform

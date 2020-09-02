@@ -2,17 +2,19 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:math';
 import 'package:convert/convert.dart';
-import 'package:dvote/crypto/asyncify.dart';
-import 'package:dvote/dvote.dart';
-import 'package:dvote/util/parsers.dart';
-import 'package:dvote/wrappers/process-keys.dart';
+import 'package:dvote/net/gateway-web3.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web3dart/crypto.dart';
 import 'dart:typed_data';
+import 'package:dvote/api/file.dart';
+import 'package:dvote/util/asyncify.dart';
+import 'package:dvote/util/parsers.dart';
+import 'package:dvote/wrappers/content-uri.dart';
+import 'package:dvote/wrappers/process-keys.dart';
+import 'package:dvote/crypto/encryption.dart';
 
-import '../net/gateway.dart';
+import '../net/gateway-pool.dart';
 import "./entity.dart";
-import "../blockchain/index.dart";
 import '../models/dart/entity.pb.dart';
 import '../models/dart/process.pb.dart';
 // import '../util/json-signature.dart';
@@ -117,14 +119,14 @@ class BlockStatus {
 
 /// Fetch both the active and ended voting processes of an Entity
 Future<List<ProcessMetadata>> fetchAllProcesses(
-    EntityReference entityRef, DVoteGateway dvoteGw, Web3Gateway web3Gw) async {
+    EntityReference entityRef, GatewayPool gw) async {
   try {
-    final entity = await fetchEntity(entityRef, dvoteGw, web3Gw);
+    final entity = await fetchEntity(entityRef, gw);
 
     final List<String> processes = entity.votingProcesses?.active ?? [];
     processes.addAll(entity.votingProcesses?.ended ?? []);
 
-    return getProcessesMetadata(processes, dvoteGw, web3Gw);
+    return getProcessesMetadata(processes, gw);
   } catch (err) {
     throw Exception("The voting processes can't be retrieved");
   }
@@ -132,13 +134,13 @@ Future<List<ProcessMetadata>> fetchAllProcesses(
 
 /// Fetch the active voting processes of an Entity
 Future<List<ProcessMetadata>> fetchActiveProcesses(
-    EntityReference entityRef, DVoteGateway dvoteGw, Web3Gateway web3Gw) async {
+    EntityReference entityRef, GatewayPool gw) async {
   try {
-    final entity = await fetchEntity(entityRef, dvoteGw, web3Gw);
+    final entity = await fetchEntity(entityRef, gw);
 
     final List<String> processes = entity.votingProcesses?.active ?? [];
 
-    return getProcessesMetadata(processes, dvoteGw, web3Gw);
+    return getProcessesMetadata(processes, gw);
   } catch (err) {
     throw Exception("The active voting processes can't be retrieved");
   }
@@ -146,22 +148,21 @@ Future<List<ProcessMetadata>> fetchActiveProcesses(
 
 /// Fetch the ended voting processes of an Entity
 Future<List<ProcessMetadata>> fetchEndedProcesses(
-    EntityReference entityRef, DVoteGateway dvoteGw, Web3Gateway web3Gw) async {
+    EntityReference entityRef, GatewayPool gw) async {
   try {
-    final entity = await fetchEntity(entityRef, dvoteGw, web3Gw);
+    final entity = await fetchEntity(entityRef, gw);
 
     final List<String> processes = entity.votingProcesses?.ended ?? [];
 
-    return getProcessesMetadata(processes, dvoteGw, web3Gw);
+    return getProcessesMetadata(processes, gw);
   } catch (err) {
     throw Exception("The active voting processes can't be retrieved");
   }
 }
 
 /// Fetch the metadata for the given Process ID
-Future<ProcessMetadata> getProcessMetadata(
-    String processId, DVoteGateway dvoteGw, Web3Gateway web3Gw) {
-  return getProcessesMetadata([processId], dvoteGw, web3Gw).then((result) {
+Future<ProcessMetadata> getProcessMetadata(String processId, GatewayPool gw) {
+  return getProcessesMetadata([processId], gw).then((result) {
     if (result is List && result.length > 0)
       return result[0];
     else
@@ -171,12 +172,12 @@ Future<ProcessMetadata> getProcessMetadata(
 
 /// Fetch the metadata for the given Process ID's
 Future<List<ProcessMetadata>> getProcessesMetadata(
-    List<String> processIds, DVoteGateway dvoteGw, Web3Gateway web3Gw) {
+    List<String> processIds, GatewayPool gw) {
   return Future.wait(processIds.map((strProcessId) async {
     try {
       final processId = hex.decode(strProcessId.substring(2));
       final processData =
-          await callVotingProcessMethod(web3Gw.rpcUri, "get", [processId]);
+          await gw.callMethod("get", [processId], ContractEnum.Process);
 
       if (!(processData is List) ||
           !(processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI]
@@ -189,10 +190,10 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
       //     processData[ProcessContractGetResultIdx.PROCESS_STATUS] ==
       //         ProcessStatus.CANCELED) return null;
 
-      final String strMetadata = await fetchFileString(
-          ContentURI(
-              processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI]),
-          dvoteGw);
+      final metadataUri = ContentURI(
+          processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI]);
+      final String strMetadata = await fetchFileString(metadataUri, gw);
+
       return parseProcessMetadata(strMetadata);
     } catch (err) {
       if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
@@ -204,7 +205,7 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
 // TODO: UNCOMMENT
 // /// Fetch the envelope type defined for the given Process ID
 // Future<ProcessEnvelopeType> getProcessEnvelopeType(
-//     String processId, Web3Gateway web3Gw) async {
+//     String processId, GatewayPool gw) async {
 //   try {
 //     final pid = hex.decode(processId.substring(2));
 //     final processData =
@@ -222,7 +223,7 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
 
 // TODO: UNCOMMENT
 // /// Fetch the mode defined for the given Process ID
-// Future<ProcessMode> getProcessMode(String processId, Web3Gateway web3Gw) async {
+// Future<ProcessMode> getProcessMode(String processId, GatewayPool gw) async {
 //   try {
 //     final pid = hex.decode(processId.substring(2));
 //     final processData =
@@ -240,7 +241,7 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
 // TODO: UNCOMMENT
 // /// Fetch the status for the given Process ID
 // Future<ProcessStatus> getProcessStatus(
-//     String processId, Web3Gateway web3Gw) async {
+//     String processId, GatewayPool gw) async {
 //   try {
 //     final pid = hex.decode(processId.substring(2));
 //     final processData =
@@ -257,16 +258,14 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
 // }
 
 /// Returns number of existing blocks in the blockchain
-Future<ProcessKeys> getProcessKeys(
-    String processId, DVoteGateway dvoteGw) async {
-  if (dvoteGw == null) throw Exception("Invalid parameters");
+Future<ProcessKeys> getProcessKeys(String processId, GatewayPool gw) async {
+  if (gw == null) throw Exception("Invalid parameters");
   try {
     Map<String, dynamic> reqParams = {
       "method": "getProcessKeys",
       "processId": processId
     };
-    Map<String, dynamic> response =
-        await dvoteGw.sendRequest(reqParams, timeout: 7);
+    Map<String, dynamic> response = await gw.sendRequest(reqParams, timeout: 7);
     if (!(response is Map)) {
       throw Exception("Invalid response received from the gateway");
     }
@@ -292,12 +291,11 @@ Future<ProcessKeys> getProcessKeys(
 }
 
 /// Returns number of existing blocks in the blockchain
-Future<int> getBlockHeight(DVoteGateway dvoteGw) async {
-  if (dvoteGw == null) throw Exception("Invalid parameters");
+Future<int> getBlockHeight(GatewayPool gw) async {
+  if (gw == null) throw Exception("Invalid parameters");
   try {
     Map<String, dynamic> reqParams = {"method": "getBlockHeight"};
-    Map<String, dynamic> response =
-        await dvoteGw.sendRequest(reqParams, timeout: 7);
+    Map<String, dynamic> response = await gw.sendRequest(reqParams, timeout: 7);
     if (!(response is Map) || !(response["height"] is int)) {
       throw Exception("Invalid response received from the gateway");
     }
@@ -308,16 +306,14 @@ Future<int> getBlockHeight(DVoteGateway dvoteGw) async {
 }
 
 /// Returns number of existing envelopes in the process
-Future<int> getEnvelopeHeight(String processId, DVoteGateway dvoteGw) async {
-  if (processId == null || dvoteGw == null)
-    throw Exception("Invalid parameters");
+Future<int> getEnvelopeHeight(String processId, GatewayPool gw) async {
+  if (processId == null || gw == null) throw Exception("Invalid parameters");
   try {
     Map<String, dynamic> reqParams = {
       "method": "getEnvelopeHeight",
       "processId": processId,
     };
-    Map<String, dynamic> response =
-        await dvoteGw.sendRequest(reqParams, timeout: 9);
+    Map<String, dynamic> response = await gw.sendRequest(reqParams, timeout: 9);
     if (!(response is Map) || !(response["height"] is int)) {
       throw Exception("Invalid response received from the gateway");
     }
@@ -329,8 +325,8 @@ Future<int> getEnvelopeHeight(String processId, DVoteGateway dvoteGw) async {
 
 /// Returns the status of an already submited vote envelope
 Future<bool> getEnvelopeStatus(
-    String processId, String nullifier, DVoteGateway dvoteGw) async {
-  if (processId == null || nullifier == null || dvoteGw == null)
+    String processId, String nullifier, GatewayPool gw) async {
+  if (processId == null || nullifier == null || gw == null)
     throw Exception("Invalid parameters");
   try {
     Map<String, dynamic> reqParams = {
@@ -339,7 +335,7 @@ Future<bool> getEnvelopeStatus(
       "processId": processId,
     };
     Map<String, dynamic> response =
-        await dvoteGw.sendRequest(reqParams, timeout: 20);
+        await gw.sendRequest(reqParams, timeout: 20);
     if (!(response is Map) || !(response["registered"] is bool)) {
       throw Exception("Invalid response received from the gateway");
     }
@@ -351,7 +347,7 @@ Future<bool> getEnvelopeStatus(
 
 /// Computes the nullifier of the user's vote within a voting process.
 /// Returns a hex string with kecak256(bytes(address) + bytes(processId))
-Future<String> getPollNullifier(String address, String processId) {
+Future<String> getSignedVoteNullifier(String address, String processId) {
   address = address.replaceFirst(new RegExp(r'^0x'), '');
   processId = processId.replaceFirst(new RegExp(r'^0x'), '');
 
@@ -359,11 +355,11 @@ Future<String> getPollNullifier(String address, String processId) {
   if (processId.length != 64) return Future.value(null);
 
   return wrap2ParamFunc<String, String, String>(
-      _getPollNullifier, address, processId);
+      _getSignedVoteNullifier, address, processId);
 }
 
 // internal wrapped function to run the hash computation out of the UI thread
-String _getPollNullifier(List<dynamic> args) {
+String _getSignedVoteNullifier(List<dynamic> args) {
   assert(args.length == 2);
   final address = args[0];
   assert(address is String);
@@ -382,12 +378,12 @@ String _getPollNullifier(List<dynamic> args) {
 /// Retrieves the current block number, the timestamp at which the block was mined and the average block time in miliseconds for 1m, 10m, 1h, 6h and 24h.
 /// @see estimateBlockAtDateTime (date, gateway)
 /// @see estimateDateAtBlock (blockNumber, gateway)
-Future<BlockStatus> getBlockStatus(DVoteGateway dvoteGw) {
-  if (!(dvoteGw is DVoteGateway))
+Future<BlockStatus> getBlockStatus(GatewayPool gw) {
+  if (gw is! GatewayPool)
     return Future.error(Exception("Invalid Gateway object"));
 
   final body = {"method": "getBlockStatus"};
-  return dvoteGw.sendRequest(body, timeout: 5).then((response) {
+  return gw.sendRequest(body, timeout: 5).then((response) {
     if (!(response is Map))
       throw Exception("Invalid response received from the gateway");
 
@@ -417,12 +413,11 @@ Future<BlockStatus> getBlockStatus(DVoteGateway dvoteGw) {
 /// Returns the block number that is expected to be current at the given date and time
 /// @param dateTime
 /// @param gateway
-Future<int> estimateBlockAtDateTime(
-    DateTime targetDate, DVoteGateway gateway) async {
+Future<int> estimateBlockAtDateTime(DateTime targetDate, GatewayPool gw) async {
   if (!(targetDate is DateTime)) return null;
   final targetTimestamp = targetDate.millisecondsSinceEpoch;
 
-  return getBlockStatus(gateway).then((status) {
+  return getBlockStatus(gw).then((status) {
     final blockTimestamp = status.blockTimestamp;
     final blockTimes = status.averageBlockTimes;
     double averageBlockTime = VOCHAIN_BLOCK_TIME * 1000.0;
@@ -518,10 +513,10 @@ const blocksPerDay = 24 * blocksPerH;
 /// Returns the DateTime at which the given block number is expected to be mined
 /// @param blockNumber
 /// @param gateway
-Future<DateTime> estimateDateAtBlock(int blockNumber, DVoteGateway gateway) {
+Future<DateTime> estimateDateAtBlock(int blockNumber, GatewayPool gw) {
   if (!(blockNumber is int)) return null;
 
-  return getBlockStatus(gateway).then((status) {
+  return getBlockStatus(gw).then((status) {
     // Diff between the last mined block and the given one
     final blockDiff = (blockNumber - status.blockNumber).abs();
     double averageBlockTime = VOCHAIN_BLOCK_TIME * 1000.0;
@@ -609,8 +604,8 @@ Future<DateTime> estimateDateAtBlock(int blockNumber, DVoteGateway gateway) {
 
 /// Submit vote Envelope to the gateway
 Future<void> submitEnvelope(
-    Map<String, dynamic> voteEnvelope, DVoteGateway dvoteGw) async {
-  if (!(voteEnvelope is Map) || !(dvoteGw is DVoteGateway)) {
+    Map<String, dynamic> voteEnvelope, GatewayPool gw) async {
+  if (!(voteEnvelope is Map) || gw is! GatewayPool) {
     throw Exception("Invalid parameters");
   } else if (!(voteEnvelope["processId"] is String) ||
       !(voteEnvelope["proof"] is String) ||
@@ -625,7 +620,7 @@ Future<void> submitEnvelope(
       "method": "submitEnvelope",
       "payload": voteEnvelope
     };
-    Map<String, dynamic> response = await dvoteGw.sendRequest(reqParams);
+    Map<String, dynamic> response = await gw.sendRequest(reqParams);
     if (!(response is Map)) {
       throw Exception("Invalid response received from the gateway");
     }
@@ -634,12 +629,12 @@ Future<void> submitEnvelope(
   }
 }
 
-Future<String> packageSnarkEnvelope(
+Future<String> packageAnonymousEnvelope(
     List<int> votes, String proof, String privateKey) async {
   throw Exception("unimplemented");
   // TODO: Generate hash of private key for nullifier as in Snarks
   /*
-  String votePackage = packageSnarkVote(votes);
+  String votePackage = packageVoteContent(votes);
   Map<String, String>  package = {
     "processId": processId,
     "proof": proof, // ZK Proof
@@ -651,7 +646,7 @@ Future<String> packageSnarkEnvelope(
   */
 }
 
-Future<Map<String, dynamic>> packagePollEnvelope(List<int> votes,
+Future<Map<String, dynamic>> packageSignedEnvelope(List<int> votes,
     String merkleProof, String processId, String signingPrivateKey,
     {ProcessKeys processKeys}) async {
   if (!(votes is List) ||
@@ -673,7 +668,7 @@ Future<Map<String, dynamic>> packagePollEnvelope(List<int> votes,
     final nonce = _generateRandomNonce(32);
 
     final packageValues =
-        await packagePollVote(votes, processKeys: processKeys);
+        await packageVoteContent(votes, processKeys: processKeys);
 
     Map<String, dynamic> package = {
       "processId": processId,
@@ -730,23 +725,9 @@ String _generateZkProof(List<dynamic> args) {
 // / Internal helpers
 // ////////////////////////////////////////////////////////////////////////////
 
-String packageSnarkVote(List<int> votes, String publicKey) {
-  final nonce = _generateRandomNonce(16);
-
-  // TODO: ENCRYPT IT WITH publicKey
-
-  Map<String, dynamic> package = {
-    "type": "snark-vote",
-    "nonce":
-        nonce, // random number to prevent guessing the encrypted payload before the key is revealed
-    "votes": votes // Directly mapped to the `questions` field of the metadata
-  };
-  return base64.encode(utf8.encode(jsonEncode(package)));
-}
-
 /// Packages the vote and returns `{ votePackage: "..." }` on non-encrypted polls and
 /// `{ votePackage: "...", keyIndexes: [0, 1, 2, 3, 4] }` on encrypted polls
-Future<Map<String, dynamic>> packagePollVote(List<int> votes,
+Future<Map<String, dynamic>> packageVoteContent(List<int> votes,
     {ProcessKeys processKeys}) async {
   if (!(votes is List))
     throw Exception("Invalid parameters");

@@ -2,6 +2,7 @@ import 'package:dvote/dvote.dart';
 import './constants.dart';
 
 Future<void> vote() async {
+  GatewayPool gw;
   EntityMetadata entityMeta;
   ProcessMetadata processMeta;
   Map<String, dynamic> pollVoteEnvelope;
@@ -24,17 +25,12 @@ Future<void> vote() async {
   EntityReference entityRef = EntityReference();
   entityRef.entityId = entityId;
 
-  GatewayInfo gwInfo =
-      await getRandomGatewayDetails(BOOTNODES_URL_RW, NETWORK_ID);
-  final dvoteGw = DVoteGateway(gwInfo.dvote, publicKey: gwInfo.publicKey);
-  final web3Gw = Web3Gateway(gwInfo.web3);
-
-  // Get some metadata
   try {
-    final isUp = await DVoteGateway.isUp(dvoteGw.uri);
-    if (!isUp) throw Exception("The gateway is down");
+    gw = await GatewayPool.discover(NETWORK_ID,
+        bootnodeUri: BOOTNODES_URL_RW, maxGatewayCount: 5, timeout: 10);
 
-    entityMeta = await fetchEntity(entityRef, dvoteGw, web3Gw);
+    // Get some metadata
+    entityMeta = await fetchEntity(entityRef, gw);
     print("\nLoading process metadata");
 
     final pid = entityMeta.votingProcesses?.active?.firstWhere(
@@ -44,7 +40,7 @@ Future<void> vote() async {
       print("There are no active processes");
       return;
     }
-    processMeta = await getProcessMetadata(pid, dvoteGw, web3Gw);
+    processMeta = await getProcessMetadata(pid, gw);
     processMeta.meta["id"] = pid;
     print("Process ID: $pid");
   } catch (err) {
@@ -54,42 +50,40 @@ Future<void> vote() async {
 
   // Prepare the vote
   try {
-    final isUp = await DVoteGateway.isUp(dvoteGw.uri);
-    if (!isUp) throw Exception("The gateway is down");
-
     // Block height
     print("\nQuerying the block height");
-    blockHeight = await getBlockHeight(dvoteGw);
+    blockHeight = await getBlockHeight(gw);
     if (!(blockHeight is int)) throw Exception("The census size is not valid");
     print("Block height: $blockHeight");
 
     // Census size
     print("\nQuerying for the Census size");
-    censusSize = await getCensusSize(processMeta.census.merkleRoot, dvoteGw);
-    // censusSize = await getCensusSize(censusMerkleRoot, dvoteGw);
+    censusSize = await getCensusSize(processMeta.census.merkleRoot, gw);
+    // censusSize = await getCensusSize(censusMerkleRoot, gw);
     if (!(censusSize is int)) throw Exception("The census size is not valid");
     print("Census size: $censusSize");
 
     // Envelope height
     print("\nQuerying for the Envelope height");
-    envelopeHeight = await getEnvelopeHeight(processMeta.meta["id"], dvoteGw);
+    envelopeHeight = await getEnvelopeHeight(processMeta.meta["id"], gw);
     if (!(envelopeHeight is int))
       throw Exception("The envelope height is not valid");
     print("Envelope height: $envelopeHeight");
 
     // Remaining seconds
     print("\nEstimating");
-    dateAtBlock = await estimateDateAtBlock(processMeta.startBlock, dvoteGw);
+    dateAtBlock = await estimateDateAtBlock(processMeta.startBlock, gw);
     print("Process start block: $dateAtBlock");
     dateAtBlock = await estimateDateAtBlock(
-        processMeta.startBlock + processMeta.blockCount, dvoteGw);
+        processMeta.startBlock + processMeta.blockCount, gw);
     print("Process end block: $dateAtBlock");
 
     // Merkle Proof
     print("\nRequesting Merkle Proof");
+    final isDigested = true;
     merkleProof = await generateProof(
-        processMeta.census.merkleRoot, pubKeyClaim, true, dvoteGw);
-    // merkleProof = await generateProof(censusMerkleRoot, pubKeyClaim, dvoteGw);
+        processMeta.census.merkleRoot, pubKeyClaim, isDigested, gw);
+    // merkleProof = await generateProof(censusMerkleRoot, pubKeyClaim, gw);
     if (!(merkleProof is String))
       throw Exception("The Merkle Proof is not valid");
     print("Merkle Proof:   $merkleProof");
@@ -97,19 +91,20 @@ Future<void> vote() async {
     // Generate Envelope
     print("\nGenerating the Vote Envelope");
     final voteValues = [1, 2, 1];
-    pollVoteEnvelope = await packagePollEnvelope(
+    pollVoteEnvelope = await packageSignedEnvelope(
         voteValues, merkleProof, processMeta.meta["id"], privateKey);
     print("Poll vote envelope:  $pollVoteEnvelope");
 
     // Submit Envelope
     print("\nSubmitting the vote");
-    await submitEnvelope(pollVoteEnvelope, dvoteGw);
+    await submitEnvelope(pollVoteEnvelope, gw);
 
     // Get envelope status
-    final nullifier = await getPollNullifier(address, processMeta.meta["id"]);
+    final nullifier =
+        await getSignedVoteNullifier(address, processMeta.meta["id"]);
     print("Nullifier: $nullifier");
     final registered =
-        await getEnvelopeStatus(processMeta.meta["id"], nullifier, dvoteGw);
+        await getEnvelopeStatus(processMeta.meta["id"], nullifier, gw);
     print("Registered: $registered");
   } catch (err) {
     print(err);
