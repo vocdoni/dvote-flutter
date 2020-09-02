@@ -73,16 +73,16 @@ class ExampleApp extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => MetadataScreen())),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: FlutterLogo(size: 72.0),
-              title: Text('Register'),
-              subtitle: Text('Register User to Backend'),
-              isThreeLine: true,
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen())),
-            ),
-          ),
+          // Card(
+          //   child: ListTile(
+          //     leading: FlutterLogo(size: 72.0),
+          //     title: Text('Register'),
+          //     subtitle: Text('Register User to Backend'),
+          //     isThreeLine: true,
+          //     onTap: () => Navigator.push(context,
+          //         MaterialPageRoute(builder: (context) => RegisterScreen())),
+          //   ),
+          // ),
         ],
       ),
     );

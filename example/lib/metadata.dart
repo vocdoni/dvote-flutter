@@ -30,12 +30,15 @@ class _MetadataScreenState extends State<MetadataScreen> {
     entity.entityId = ENTITY_ID;
 
     try {
+      print("Discovering nodes");
       final gw = await GatewayPool.discover(NETWORK_ID,
           bootnodeUri: BOOTNODES_URL_RW, maxGatewayCount: 5, timeout: 10);
 
+      print("Fetching entity");
       final entityMeta = await fetchEntity(entity, gw);
       entityMetaStr = jsonEncode(entityMeta.toString());
 
+      print("Fetching process");
       if ((entityMeta.votingProcesses?.active?.length is int) &&
           entityMeta.votingProcesses.active.length > 0) {
         final pid = entityMeta.votingProcesses?.active?.first;

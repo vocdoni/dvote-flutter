@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:dvote/util/dev.dart';
 import 'package:dvote/util/json-signature-native.dart';
 import 'package:dvote/util/random.dart';
 import 'package:dvote/util/timestamp.dart';
@@ -61,7 +62,7 @@ class DVoteGateway {
   int get health => _health;
   List<String> get supportedApis => _supportedApis;
 
-  /// Creates a new DVoteGateway instance. 
+  /// Creates a new DVoteGateway instance.
   /// NOTE: URI's using the websocket protocol will be rewritten into using http/s
   DVoteGateway(String gatewayUri, {this.publicKey}) {
     this._gatewayUri = gatewayUri.startsWith("ws")
@@ -104,13 +105,14 @@ class DVoteGateway {
         )
         .then((response) => this._digestResponse(response, comp, id))
         .catchError((err) {
+          devPrint("[Gateway] Response error from $_gatewayUri: $err");
           if (!comp.isCompleted) comp.completeError(err);
         });
 
     // Trigger a timeout after N seconds
     Future.delayed(Duration(seconds: timeout)).then((_) {
       if (comp.isCompleted) return;
-      comp.completeError(TimeoutException("The request took too long"));
+      comp.completeError(TimeoutException("Time out"));
     });
 
     return comp.future;
@@ -201,11 +203,11 @@ class DVoteGateway {
     return DVoteGateway(gatewayUri)
         .sendRequest(req, timeout: timeout)
         .then((result) {
-      if (result["apiList"] is! List && result["apiList"] is! List<String>)
-        throw Exception("Invalid response");
+      if (result["apiList"] is! List) throw Exception("Invalid response");
 
+      final List apis = result["apiList"] ?? [];
       return DVoteGatewayStatus(
-          true, result["health"] ?? 0, result["apiList"] ?? <String>[]);
+          true, result["health"] ?? 0, apis.cast<String>().toList());
     }).catchError((err) {
       return DVoteGatewayStatus(false, 0, <String>[]);
     });
