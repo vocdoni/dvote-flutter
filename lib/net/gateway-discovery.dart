@@ -68,7 +68,7 @@ Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
 
     // updateStatus will throw if it is down
     return gw.updateStatus().then((_) {
-      // gw.health and gw.supportedApis will be populated otherwise
+      // gw.health and gw.supportedApis are populated
       dvoteNodes.add(gw); // working
     }).catchError((err) {
       devPrint("[Discovery] ${candidate.uri} failed: $err");

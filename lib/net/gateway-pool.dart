@@ -30,6 +30,9 @@ class GatewayPool {
             networkId: networkId,
             maxGatewayCount: maxGatewayCount)
         .then((gws) {
+      if (gws.length == 0)
+        throw Exception("The network has no gateways available");
+
       // Create a GatewayPool object
       return GatewayPool(gws, networkId,
           bootnodeUri: bootnodeUri,
@@ -61,8 +64,10 @@ class GatewayPool {
   Future<void> shift() {
     assert(this.current is Gateway);
 
-    devPrint("[GW Pool] Disconnecting from ${current.web3.uri}");
-    this.current?.dispose();
+    if (current.web3 is Web3Gateway) {
+      devPrint("[GW Pool] Disconnecting from ${current.web3.uri}");
+      this.current?.dispose();
+    }
 
     if (this.errorCount >= this._pool.length) {
       return this.refresh();

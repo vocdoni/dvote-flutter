@@ -52,18 +52,22 @@ class DVoteApiList {
 
 /// Client class to send HTTP requests to a DVote Gateway
 class DVoteGateway {
-  final String _gatewayUri;
-  final String _publicKey;
+  String _gatewayUri;
+  final String publicKey;
   int _health;
   List<String> _supportedApis;
 
   String get uri => _gatewayUri;
-  String get publicKey => _publicKey;
   int get health => _health;
   List<String> get supportedApis => _supportedApis;
 
-  DVoteGateway(this._gatewayUri, {String publicKey})
-      : this._publicKey = publicKey;
+  /// Creates a new DVoteGateway instance. 
+  /// NOTE: URI's using the websocket protocol will be rewritten into using http/s
+  DVoteGateway(String gatewayUri, {this.publicKey}) {
+    this._gatewayUri = gatewayUri.startsWith("ws")
+        ? gatewayUri.replaceFirst("ws", "http")
+        : gatewayUri;
+  }
 
   /// Perform a raw request to the Vocdoni Gateway and wait for a response to
   /// arrive within a given timeout
@@ -93,11 +97,15 @@ class DVoteGateway {
 
     // Launch the request and report the result if not already completed
     http
-        .post(_gatewayUri, body: requestPayload)
+        .post(
+          _gatewayUri,
+          body: jsonEncode(requestPayload),
+          headers: {"Content-Type": "application/json"},
+        )
         .then((response) => this._digestResponse(response, comp, id))
         .catchError((err) {
-      if (!comp.isCompleted) comp.completeError(err);
-    });
+          if (!comp.isCompleted) comp.completeError(err);
+        });
 
     // Trigger a timeout after N seconds
     Future.delayed(Duration(seconds: timeout)).then((_) {
@@ -170,7 +178,7 @@ class DVoteGateway {
   }
 
   /// Calls `getGatewayInfo` on the current node and updates the internal state.
-  Future<void> updateStatus({int timeout = 4}) {
+  Future<void> updateStatus({int timeout = 6}) {
     return DVoteGateway.getStatus(this._gatewayUri, timeout: timeout)
         .then((result) {
       if (result.isUp != true) throw Exception("The gateway is down");
@@ -182,9 +190,8 @@ class DVoteGateway {
 
   /// Calls `getGatewayInfo` on the current node.
   static Future<DVoteGatewayStatus> getStatus(String gatewayUri,
-      {int timeout = 4}) async {
-    final pingOk =
-        await DVoteGateway._checkPing(gatewayUri, timeout: timeout >> 1);
+      {int timeout = 6}) async {
+    final pingOk = await DVoteGateway._checkPing(gatewayUri, timeout: timeout);
     if (!pingOk) return DVoteGatewayStatus(false, 0, <String>[]);
 
     final req = {
@@ -192,7 +199,7 @@ class DVoteGateway {
       "timestamp": getTimestampForGateway()
     };
     return DVoteGateway(gatewayUri)
-        .sendRequest(req, timeout: timeout >> 1)
+        .sendRequest(req, timeout: timeout)
         .then((result) {
       if (result["apiList"] is! List && result["apiList"] is! List<String>)
         throw Exception("Invalid response");
@@ -205,7 +212,7 @@ class DVoteGateway {
   }
 
   /// Determines whether the given URL responds to `HTTP GET /ping`
-  static Future<bool> _checkPing(String gatewayUri, {int timeout = 4}) {
+  static Future<bool> _checkPing(String gatewayUri, {int timeout = 6}) {
     final uri = Uri.parse(gatewayUri);
     final completer = Completer<bool>();
     final pingUrl = uri.hasPort
