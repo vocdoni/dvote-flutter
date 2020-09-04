@@ -12,6 +12,8 @@ class HashingScreen extends StatefulWidget {
 
 class _HashingScreenState extends State<HashingScreen> {
   String _digestedHexClaim = "-", _digestedStringClaim = "-";
+  Duration _duration1;
+  Duration _duration2;
   String _error;
 
   @override
@@ -22,12 +24,23 @@ class _HashingScreenState extends State<HashingScreen> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    String error;
+    DateTime start, mid, end;
     String digestedHexClaim, digestedStringClaim;
+    String error;
 
     try {
-      digestedHexClaim = await digestHexClaim(PUBLIC_KEY);
-      digestedStringClaim = await digestStringClaim(MESSAGE);
+      start = DateTime.now();
+      // sync
+      digestedHexClaim = Hashing.digestHexClaim(PUBLIC_KEY);
+      digestedStringClaim = Hashing.digestStringClaim(MESSAGE);
+
+      mid = DateTime.now();
+
+      // async
+      await Hashing.digestHexClaimAsync(PUBLIC_KEY);
+      await Hashing.digestStringClaimAsync(MESSAGE);
+
+      end = DateTime.now();
     } catch (err) {
       error = err.toString();
     }
@@ -47,6 +60,8 @@ class _HashingScreenState extends State<HashingScreen> {
     setState(() {
       _digestedHexClaim = digestedHexClaim;
       _digestedStringClaim = digestedStringClaim;
+      _duration1 = mid.difference(start);
+      _duration2 = end.difference(mid);
     });
   }
 
@@ -63,6 +78,17 @@ class _HashingScreenState extends State<HashingScreen> {
       );
     }
 
+    final info = '''Hashing '$PUBLIC_KEY'
+$_digestedHexClaim
+
+Hashing '$MESSAGE'
+$_digestedStringClaim
+
+---
+
+Sync: ${_duration1?.inMilliseconds}ms
+Async: ${_duration2?.inMilliseconds}ms''';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Hashing'),
@@ -73,10 +99,7 @@ class _HashingScreenState extends State<HashingScreen> {
             padding: EdgeInsets.all(16),
             child: Column(
               children: <Widget>[
-                Text("Hashing '$PUBLIC_KEY'\n"),
-                Text(_digestedHexClaim + "\n"),
-                Text("Hashing '$MESSAGE'\n"),
-                Text(_digestedStringClaim),
+                Text(info),
               ],
             ),
           ),

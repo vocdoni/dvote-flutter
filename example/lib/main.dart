@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dvote_example/gateway.dart';
 import 'package:dvote_example/metadata.dart';
 import "package:dvote_example/register.dart";
+import "package:dvote_example/encryption.dart";
 import "package:dvote_example/wallets.dart";
 import "package:dvote_example/signatures.dart";
 import "package:dvote_example/hashing.dart";
@@ -41,6 +42,16 @@ class ExampleApp extends StatelessWidget {
               isThreeLine: true,
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (context) => SignatureScreen())),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: FlutterLogo(size: 72.0),
+              title: Text('Encryption'),
+              subtitle: Text('Encrypting and decrypting strings'),
+              isThreeLine: true,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => EncryptionScreen())),
             ),
           ),
           Card(

@@ -7,6 +7,7 @@ export './api/file.dart';
 export './api/registry.dart';
 
 export './crypto/encryption.dart';
+export './crypto/encryption-native.dart';
 export './crypto/hashing.dart';
 export './crypto/signature.dart';
 export './crypto/signature-native.dart';

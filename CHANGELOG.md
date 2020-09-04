@@ -1,3 +1,8 @@
+## 0.16.0
+
+- Providing symmetric encryption using native bindings (SecretBox)
+- Providing sync and async versions of the Poseidon hashing function
+
 ## 0.15.0
 
 - DVoteGateway now uses HTTP
