@@ -1,6 +1,9 @@
 import 'package:dvote/dvote.dart';
 
 // HANDLERS
+
+/// Connects to the backend using the given HTTP DVoteGateway connection
+/// and registers the given user with the given signing key key
 Future<Map<String, dynamic>> register(
     String entityId,
     String firstName,
@@ -8,10 +11,10 @@ Future<Map<String, dynamic>> register(
     String email,
     String phone,
     DateTime dateOfBirth,
-    GatewayPool gw,
+    DVoteGateway registryGw,
     String privateKey) async {
   try {
-    Map<String, dynamic> reqParams = {
+    final Map<String, dynamic> reqParams = {
       "method": "register",
       "memberInfo": {
         "firstName": firstName,
@@ -22,38 +25,38 @@ Future<Map<String, dynamic>> register(
       },
       "entityId": entityId
     };
-    Map<String, dynamic> response =
-        await gw.sendRequest(reqParams, timeout: 7, privateKey: privateKey);
+    final response = await registryGw.sendRequest(reqParams,
+        timeout: 7, privateKey: privateKey);
     if (!(response is Map)) {
-      throw Exception("Invalid response received from the gateway");
+      throw Exception("Invalid response");
     }
     return response;
   } catch (err) {
     throw Exception(
-        "The registration token could not be validated: " + err.toString());
+        "The registration could not be completed: " + err.toString());
   }
 }
 
+/// Connects to the backend using the given HTTP DVoteGateway connection
+/// and uses the given token to verify the user
 Future<Map<String, dynamic>> validateRegistrationToken(String entityId,
-    String validationToken, DVoteGateway gw, String privateKey) async {
-  if (!(entityId is String) ||
-      !(validationToken is String) ||
-      !(gw is DVoteGateway) ||
-      !(privateKey is String)) {
+    String validationToken, DVoteGateway registryGw, String privateKey) async {
+  if (entityId is! String ||
+      validationToken is! String ||
+      registryGw is! DVoteGateway ||
+      privateKey is! String) {
     throw Exception("Invalid parameters");
   }
 
   try {
-    Map<String, dynamic> reqParams = {
+    final Map<String, dynamic> reqParams = {
       "method": "validateToken",
       "token": validationToken,
       "entityId": entityId
     };
-    Map<String, dynamic> response =
-        await gw.sendRequest(reqParams, timeout: 7, privateKey: privateKey);
-    if (!(response is Map)) {
-      throw Exception("Invalid response received from the gateway");
-    }
+    final response = await registryGw.sendRequest(reqParams,
+        timeout: 7, privateKey: privateKey);
+    if (response is! Map) throw Exception("Invalid response");
     return response;
   } catch (err) {
     throw Exception(
@@ -61,29 +64,29 @@ Future<Map<String, dynamic>> validateRegistrationToken(String entityId,
   }
 }
 
-/// Checks whether the given public key is already registered on the entity.
+/// Connects to the backend using the given HTTP DVoteGateway connection
+/// and checks whether the given public key is already registered on the entity.
 /// Returns `{ "registered": bool, "needsUpdate": bool }`
 Future<Map<String, dynamic>> registrationStatus(
-    String entityId, GatewayPool gw, String privateKey) async {
-  if (!(entityId is String) ||
-      !(gw is GatewayPool) ||
-      !(privateKey is String)) {
+    String entityId, DVoteGateway registryGw, String privateKey) async {
+  if (entityId is! String ||
+      registryGw is! DVoteGateway ||
+      privateKey is! String) {
     throw Exception("Invalid parameters");
   }
 
   try {
-    Map<String, dynamic> reqParams = {
+    final Map<String, dynamic> reqParams = {
       "method": "registrationStatus",
       "entityId": entityId
     };
-    Map<String, dynamic> response =
-        await gw.sendRequest(reqParams, timeout: 7, privateKey: privateKey);
+    final response = await registryGw.sendRequest(reqParams,
+        timeout: 7, privateKey: privateKey);
     if (!(response is Map) || !(response["status"] is Map)) {
-      throw Exception("Invalid response received from the gateway");
+      throw Exception("Invalid response");
     }
     return response["status"];
   } catch (err) {
-    throw Exception(
-        "The registration token could not be validated: " + err.toString());
+    throw Exception("The status could not be checked: " + err.toString());
   }
 }

@@ -1,3 +1,7 @@
+## 0.17.0
+
+- Updating the registration handler endpoints to use DVoteGateways
+
 ## 0.16.0
 
 - Providing symmetric encryption using native bindings (SecretBox)
