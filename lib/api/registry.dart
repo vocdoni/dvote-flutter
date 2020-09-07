@@ -26,7 +26,7 @@ Future<Map<String, dynamic>> register(
       "entityId": entityId
     };
     final response = await registryGw.sendRequest(reqParams,
-        timeout: 7, privateKey: privateKey);
+        timeout: 16, privateKey: privateKey);
     if (!(response is Map)) {
       throw Exception("Invalid response");
     }
@@ -55,7 +55,7 @@ Future<Map<String, dynamic>> validateRegistrationToken(String entityId,
       "entityId": entityId
     };
     final response = await registryGw.sendRequest(reqParams,
-        timeout: 7, privateKey: privateKey);
+        timeout: 12, privateKey: privateKey);
     if (response is! Map) throw Exception("Invalid response");
     return response;
   } catch (err) {
@@ -81,7 +81,7 @@ Future<Map<String, dynamic>> registrationStatus(
       "entityId": entityId
     };
     final response = await registryGw.sendRequest(reqParams,
-        timeout: 7, privateKey: privateKey);
+        timeout: 10, privateKey: privateKey);
     if (!(response is Map) || !(response["status"] is Map)) {
       throw Exception("Invalid response");
     }
