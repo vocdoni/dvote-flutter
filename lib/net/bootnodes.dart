@@ -16,7 +16,7 @@ import 'package:dvote/util/dev.dart';
 var random = Random.secure();
 
 /// Retrieve the Content URI of the boot nodes Content URI provided by Vocdoni.
-/// `networkId` should be among "mainnet", "goerli" or "xdai"
+/// `networkId` should be among "mainnet", "goerli", "xdai" or "sokol"
 Future<String> resolveWellKnownBootnodeUri(String networkId) async {
   List<String> providerUris;
   String entityId;
@@ -33,6 +33,10 @@ Future<String> resolveWellKnownBootnodeUri(String networkId) async {
     case "xdai":
       providerUris = ["https://dai.poa.network"];
       entityId = VOCDONI_XDAI_ENTITY_ID;
+      break;
+    case "sokol":
+      providerUris = ["https://sokol.poa.network"];
+      entityId = VOCDONI_SOKOL_ENTITY_ID;
       break;
     default:
       throw Exception("Invalid Network ID");

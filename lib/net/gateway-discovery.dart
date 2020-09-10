@@ -35,6 +35,9 @@ Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
     case "xdai":
       networkNodes = info.xdai;
       break;
+    case "sokol":
+      networkNodes = info.sokol;
+      break;
     default:
       throw Exception("Invalid network ID: " + networkId);
   }

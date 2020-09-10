@@ -286,6 +286,9 @@ BootNodeGateways parseBootnodeInfo(String json) {
         case "xdai":
           result.xdai = _parseBootnodeNetworkItems(value);
           break;
+        case "sokol":
+          result.sokol = _parseBootnodeNetworkItems(value);
+          break;
       }
     });
     return result;

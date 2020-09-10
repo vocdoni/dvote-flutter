@@ -1,3 +1,7 @@
+## 0.17.1
+
+- Adding support for the Sokol network
+
 ## 0.17.0
 
 - Updating the registration handler endpoints to use DVoteGateways
