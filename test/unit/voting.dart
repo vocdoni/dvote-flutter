@@ -1,7 +1,12 @@
 // import 'dart:convert';
 // import 'dart:typed_data';
 
+import 'dart:convert';
+import 'dart:ffi';
+
+import 'package:dvote/util/parsers.dart';
 import 'package:dvote/wrappers/process-keys.dart';
+import 'package:dvote/wrappers/process-results.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dvote/dvote.dart';
 
@@ -50,6 +55,19 @@ void pollVoting() {
     nullifier = await getSignedVoteNullifier(wallet.address, processId);
     expect(nullifier,
         "0x419761e28c5103fa4ddac3d575a940c683aa647c31a8ac1073c8780f4664efcb");
+  });
+
+  test("Should parse valid process results", () async {
+    final fakeResponse =
+        '{"height":2,"ok":true,"request":"ZH61xq6LE3NAe73Ds5KB9A==","results":[[2]],"state":"canceled","timestamp":1600785127,"type":"poll-vote"}';
+    final Map<String, dynamic> decodedMessage = jsonDecode(fakeResponse);
+    final results = parseRawResults(decodedMessage);
+    final List<List<int>> expectedResults = [
+      [2]
+    ];
+    expect(results.type, "poll-vote");
+    expect(results.state, "canceled");
+    expect(results.results, expectedResults);
   });
 
   // NOTE: Can't test on pure Dart, given that the code below depends on iOS/Android native targets

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:convert/convert.dart';
 import 'package:dvote/net/gateway-web3.dart';
+import 'package:dvote/wrappers/process-results.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web3dart/crypto.dart';
 import 'dart:typed_data';
@@ -256,6 +257,24 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
 //     return null;
 //   }
 // }
+
+/// Returns number of existing blocks in the blockchain
+Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
+  if (gw == null) throw Exception("Invalid parameters");
+  try {
+    Map<String, dynamic> reqParams = {
+      "method": "getResults",
+      "processId": processId
+    };
+    Map<String, dynamic> response = await gw.sendRequest(reqParams, timeout: 7);
+    if (!(response is Map)) {
+      throw Exception("Invalid response received from the gateway");
+    }
+    return parseRawResults(response);
+  } catch (err) {
+    throw Exception("Unable to get process results: $err");
+  }
+}
 
 /// Returns number of existing blocks in the blockchain
 Future<ProcessKeys> getProcessKeys(String processId, GatewayPool gw) async {

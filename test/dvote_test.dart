@@ -9,6 +9,7 @@ import "./integration/entity.dart";
 import "./unit/voting.dart";
 
 void main() {
+  pollVoting();
   encryption();
   hdWallet();
   signature();
@@ -20,5 +21,5 @@ void main() {
   web3Gateway();
 
   entity();
-  pollVoting();
+  // pollVoting();
 }

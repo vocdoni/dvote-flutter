@@ -1,10 +1,12 @@
 import "dart:convert";
+import 'dart:ffi';
 
 import "package:dvote/models/dart/entity.pb.dart";
 import "package:dvote/models/dart/feed.pb.dart";
 import 'package:dvote/models/dart/process.pb.dart';
 import 'package:dvote/models/dart/gateway.pb.dart';
 import 'package:dvote/util/dev.dart';
+import 'package:dvote/wrappers/process-results.dart';
 
 // ////////////////////////////////////////////////////////////////////////////
 // ENTITY
@@ -170,6 +172,28 @@ ProcessMetadata parseProcessMetadata(String json) {
     return result;
   } catch (err) {
     throw Exception("The process metadata could not be parsed");
+  }
+}
+
+// Parse raw results Map into ProcessResults object
+ProcessResults parseRawResults(Map<String, dynamic> response) {
+  try {
+    ProcessResults processResults = ProcessResults();
+    if (response["results"] is List) {
+      processResults.results = (response["results"] as List)
+          .whereType<List>()
+          .map((list) => list.whereType<int>().toList())
+          .toList();
+    }
+    if (response["state"] is String) {
+      processResults.state = response["state"];
+    }
+    if (response["type"] is String) {
+      processResults.type = response["type"];
+    }
+    return processResults;
+  } catch (err) {
+    throw Exception("The process results could not be retrieved: $err");
   }
 }
 
