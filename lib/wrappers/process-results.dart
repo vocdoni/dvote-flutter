@@ -6,4 +6,7 @@ class ProcessResults {
   String type;
 
   ProcessResults();
+  toString() {
+    return "type: $type \nstate: $state \nresults: $results";
+  }
 }
