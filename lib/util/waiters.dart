@@ -3,23 +3,28 @@ import 'dart:async';
 import 'package:dvote/dvote.dart';
 import 'package:dvote/net/gateway-pool.dart';
 
-Future waitVochainBlocks(int blocks, GatewayPool gw) async {
+Future waitVochainBlocks(int blockCount, GatewayPool gw) async {
   if (gw == null) throw Exception("Invalid parameters");
 
-  final targetBlock = blocks + await getBlockHeight(gw);
-  var future = new Future(() {
-    // runs every 2000 ms second
-    Timer.periodic(new Duration(milliseconds: 2000), (timer) {
-      int lastBlock;
-      getBlockHeight(gw).then((currentBlock) {
-        if (currentBlock != lastBlock) {
-          lastBlock = currentBlock;
-        }
-        if (currentBlock >= targetBlock) {
-          return;
-        }
-      });
+  int lastBlock = await getBlockHeight(gw);
+  final targetBlock = blockCount + lastBlock;
+
+  final compl = Completer<void>();
+
+  // runs every 2000 ms second
+  Timer.periodic(Duration(milliseconds: 2000), (timer) {
+    getBlockHeight(gw).then((currentBlock) {
+      if (compl.isCompleted)
+        return;
+      else if (currentBlock >= targetBlock) {
+        compl.complete();
+        timer.cancel();
+        return;
+      } else if (currentBlock != lastBlock) {
+        lastBlock = currentBlock;
+      }
     });
   });
-  return future;
+
+  return compl.future;
 }
