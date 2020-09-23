@@ -12,6 +12,7 @@ class ResultsScreen extends StatefulWidget {
 
 class _ResultsScreenState extends State<ResultsScreen> {
   String _rawResultStr = "-";
+  String _resultsDigestStr = "-";
   String _error;
 
   @override
@@ -23,6 +24,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     String rawResultStr;
+    String resultsDigestStr;
     String error;
 
     try {
@@ -31,6 +33,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
           bootnodeUri: BOOTNODES_URL_RW, maxGatewayCount: 5, timeout: 10);
 
       print("Fetching process results");
+      final resultsDigest = await getResultsDigest(RESULTS_PROCESS_ID, gw);
+      resultsDigestStr = resultsDigest.toString();
       final rawResults = await getRawResults(RESULTS_PROCESS_ID, gw);
       rawResultStr = rawResults.toString();
     } on PlatformException catch (err) {
@@ -53,6 +57,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     setState(() {
       _rawResultStr = rawResultStr;
+      _resultsDigestStr = resultsDigestStr;
     });
   }
 
@@ -69,12 +74,14 @@ class _ResultsScreenState extends State<ResultsScreen> {
       );
     }
 
-    final rawResults = '''Results for process $RESULTS_PROCESS_ID:\n
-$_rawResultStr''';
+    final rawResults = '''Raw Results for process $RESULTS_PROCESS_ID:\n
+$_rawResultStr\n''';
+    final resultsDigest = '''Results Digest for process $RESULTS_PROCESS_ID:\n
+$_resultsDigestStr''';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Results'),
+        title: const Text('Process Results'),
       ),
       body: ListView(
         children: <Widget>[
@@ -83,6 +90,7 @@ $_rawResultStr''';
             child: Column(
               children: <Widget>[
                 Text(rawResults),
+                Text(resultsDigest),
               ],
             ),
           ),

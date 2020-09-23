@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:convert/convert.dart';
 import 'package:dvote/net/gateway-web3.dart';
+import 'package:dvote/util/waiters.dart';
 import 'package:dvote/wrappers/process-results.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web3dart/crypto.dart';
@@ -259,8 +260,9 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
 // }
 
 /// Returns number of existing blocks in the blockchain
-Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
-  if (gw == null) throw Exception("Invalid parameters");
+Future<RawResults> getRawResults(String processId, GatewayPool gw) async {
+  if (gw == null || processId == "") throw Exception("Invalid parameters");
+  processId = processId.startsWith("0x") ? processId : "0x" + processId;
   try {
     Map<String, dynamic> reqParams = {
       "method": "getResults",
@@ -273,6 +275,88 @@ Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
     return parseRawResults(response);
   } catch (err) {
     throw Exception("Unable to get process results: $err");
+  }
+}
+
+Future<ProcessResults> getResultsDigest(
+    String processId, GatewayPool gw) async {
+  if (gw == null || processId == "") throw Exception("Invalid parameters");
+  final pid = processId.startsWith("0x") ? processId : "0x" + processId;
+  try {
+    final processMetadata = await getProcessMetadata(pid, gw);
+    final rawResults = await getRawResults(pid, gw);
+    // get process keys
+
+    final currentBlock = await getBlockHeight(gw);
+    if (processMetadata != null) {
+      switch (processMetadata.type) {
+        case "encrypted-poll":
+          if (currentBlock < processMetadata.startBlock) {
+            return ProcessResults();
+          } else if ((currentBlock <
+                  (processMetadata.startBlock + processMetadata.blockCount)) &&
+              rawResults.state != "canceled") {
+            return ProcessResults();
+          }
+          int retries = 3;
+          ProcessKeys procKeys;
+          do {
+            procKeys = await getProcessKeys(pid, gw);
+            if (procKeys != null &&
+                procKeys.encryptionPrivKeys != null &&
+                procKeys.encryptionPrivKeys.length > 0) break;
+            await waitVochainBlocks(2, gw);
+            retries--;
+          } while (retries >= 0);
+          if (procKeys == null ||
+              procKeys.encryptionPrivKeys == null ||
+              procKeys.encryptionPrivKeys.length < 1) {
+            return ProcessResults();
+          }
+          break;
+        default:
+      }
+      final resultsDigest = ProcessResults();
+      if (processMetadata.details.questions == null ||
+          processMetadata.details.questions.length == 0) {
+        throw Exception("Process metadata has no questions");
+      }
+      resultsDigest.questions = new List<ProcessResultItem>();
+      // resultsDigest.questions.add(ProcessResultItem(
+      //     processMetadata.details.questions[0].type,
+      //     processMetadata.details.questions[0].question));
+
+      for (int i = 0; i < processMetadata.details.questions.length; i++) {
+        if (processMetadata.details.questions[i] != null) {
+          resultsDigest.questions.add(ProcessResultItem(
+              processMetadata.details.questions[i].type,
+              processMetadata.details.questions[i].question));
+          resultsDigest.questions[i].voteResults = new List<VoteResults>();
+          for (int j = 0;
+              j < processMetadata.details.questions[i].voteOptions.length;
+              j++) {
+            int votes;
+            if (i >= rawResults.results.length ||
+                j >= rawResults.results[i].length) {
+              votes = 0;
+            } else {
+              votes = rawResults.results[0][0];
+            }
+            resultsDigest.questions[i].voteResults.add(VoteResults(
+                processMetadata
+                    .details.questions[i].voteOptions[j].title["default"],
+                votes));
+          }
+        } else {
+          throw Exception("Metadata question is null");
+        }
+      }
+      return resultsDigest;
+    } else {
+      throw Exception("Process Metadata is empty");
+    }
+  } catch (err) {
+    throw Exception("The results are not available: $err");
   }
 }
 

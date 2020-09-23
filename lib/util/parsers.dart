@@ -176,9 +176,9 @@ ProcessMetadata parseProcessMetadata(String json) {
 }
 
 // Parse raw results Map into ProcessResults object
-ProcessResults parseRawResults(Map<String, dynamic> response) {
+RawResults parseRawResults(Map<String, dynamic> response) {
   try {
-    ProcessResults processResults = ProcessResults();
+    RawResults processResults = RawResults();
     if (response["results"] is List) {
       processResults.results = (response["results"] as List)
           .whereType<List>()
