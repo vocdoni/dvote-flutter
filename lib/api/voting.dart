@@ -272,7 +272,7 @@ Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
     if (!(response is Map)) {
       throw Exception("Invalid response received from the gateway");
     }
-    return parseRawResults(response);
+    return parseProcessResults(response);
   } catch (err) {
     throw Exception("Unable to get process results: $err");
   }
@@ -292,8 +292,8 @@ Future<ProcessResultsDigested> getResultsDigest(
           "Cannot get results for process which has not started yet");
     }
     final rawResults = await getRawResults(pid, gw);
-    if (processMetadata.details.questions?.isEmpty ?? false) {
-      return ProcessResultsDigested();
+    if (processMetadata.details.questions?.isEmpty ?? true) {
+      return ProcessResultsDigested(rawResults.state, rawResults.type);
     }
     if (processMetadata == null) {
       throw Exception("Process Metadata is empty");
@@ -313,42 +313,15 @@ Future<ProcessResultsDigested> getResultsDigest(
           await waitVochainBlocks(2, gw);
           retries--;
         } while (retries >= 0);
-        if (procKeys?.encryptionPrivKeys?.isEmpty ?? false) {
+        if (procKeys?.encryptionPrivKeys?.isEmpty ?? true) {
           return null;
         }
         break;
       default:
     }
-    final resultsDigest = ProcessResultsDigested();
-    resultsDigest.questions = new List<ProcessResultItem>();
-
-    for (int i = 0; i < processMetadata.details.questions.length; i++) {
-      if (processMetadata.details.questions[i] == null) {
-        throw Exception("Metadata question is null");
-      }
-      resultsDigest.questions.add(ProcessResultItem(
-          processMetadata.details.questions[i].type,
-          processMetadata.details.questions[i].question));
-      resultsDigest.questions[i].voteResults = new List<VoteResults>();
-      for (int j = 0;
-          j < processMetadata.details.questions[i].voteOptions.length;
-          j++) {
-        int votes;
-        if (i >= rawResults.results.length ||
-            j >= rawResults.results[i].length) {
-          votes = 0;
-        } else {
-          votes = rawResults.results[i][j];
-        }
-        resultsDigest.questions[i].voteResults.add(VoteResults(
-            processMetadata
-                .details.questions[i].voteOptions[j].title["default"],
-            votes));
-      }
-    }
-    return resultsDigest;
+    return parseProcessResultsDigested(rawResults, processMetadata);
   } catch (err) {
-    throw Exception("The results are not available: $err");
+    throw Exception("The results could not be digested: $err");
   }
 }
 

@@ -28,3 +28,9 @@ Future waitVochainBlocks(int blockCount, GatewayPool gw) async {
 
   return compl.future;
 }
+
+Future waitUntilVochainBlock(int block, GatewayPool gw) async {
+  final currentBlock = await getBlockHeight(gw);
+  if (currentBlock >= block) return;
+  return waitVochainBlocks(block - currentBlock, gw);
+}

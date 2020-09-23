@@ -2,17 +2,51 @@
 // import 'dart:typed_data';
 
 import 'dart:convert';
-import 'dart:ffi';
 
 import 'package:dvote/util/parsers.dart';
-import 'package:dvote/wrappers/process-keys.dart';
 import 'package:dvote/wrappers/process-results.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dvote/dvote.dart';
 
 void pollVoting() {
+  void testProcessResults(String fakeResponse, String state, String type,
+      List<List<int>> expectedResults) {
+    final Map<String, dynamic> decodedMessage = jsonDecode(fakeResponse);
+    final results = parseProcessResults(decodedMessage);
+    expect(results.type, type);
+    expect(results.state, state);
+    expect(results.results, expectedResults);
+  }
+
+  void testProcessResultsDigest(
+      ProcessMetadata fakeMetadata, ProcessResults fakeResults) {
+    final resultsDigested =
+        parseProcessResultsDigested(fakeResults, fakeMetadata);
+    expect(resultsDigested.type, fakeResults.type);
+    expect(resultsDigested.state, fakeResults.state);
+    expect(resultsDigested.questions.length,
+        fakeMetadata.details.questions.length);
+    for (int i = 0; i < resultsDigested.questions.length; i++) {
+      expect(resultsDigested.questions[i].type,
+          fakeMetadata.details.questions[i].type);
+      expect(resultsDigested.questions[i].question["default"],
+          fakeMetadata.details.questions[i].question["default"]);
+      for (int j = 0;
+          j < fakeMetadata.details.questions[i].voteOptions.length;
+          j++) {
+        expect(resultsDigested.questions[i].voteResults[j].title,
+            fakeMetadata.details.questions[i].voteOptions[j].title["default"]);
+        expect(resultsDigested.questions[i].voteResults[j].votes,
+            fakeResults.results[i][j]);
+      }
+      // expect(resultsDigested.questions[i]);
+      // expect(resultsDigested.questions[i]);
+    }
+  }
+
   test("Simple poll nullifier", () async {
     String address = "424797Ed6d902E17b9180BFcEF452658e148e0Ab";
+
     String processId =
         "74394b43b2d3f1c4df79fe5a4a67d07cfdab053f586253286d515d36e89db3e7";
 
@@ -58,16 +92,61 @@ void pollVoting() {
   });
 
   test("Should parse valid process results", () async {
-    final fakeResponse =
+    final fakeResponse0 =
         '{"height":2,"ok":true,"request":"ZH61xq6LE3NAe73Ds5KB9A==","results":[[2]],"state":"canceled","timestamp":1600785127,"type":"poll-vote"}';
-    final Map<String, dynamic> decodedMessage = jsonDecode(fakeResponse);
-    final results = parseRawResults(decodedMessage);
-    final List<List<int>> expectedResults = [
+    final fakeResponse1 =
+        '{"height":200,"ok":true,"request":"abcdefghijk==","results":[[0, 1, 2, 3], [22], [342, 0, 1]],"state":"active","timestamp":1600785127,"type":"poll-vote"}';
+    final fakeResponse2 =
+        '{"height":1,"ok":true,"request":"33333333333==","results":[[2, 1, 3, 4, 5, 6, 45, 4, 3, 2, 2, 3, 3]],"state":"finished","timestamp":1600785127,"type":"encrypted-poll"}';
+    final List<List<int>> expectedResults0 = [
       [2]
     ];
-    expect(results.type, "poll-vote");
-    expect(results.state, "canceled");
-    expect(results.results, expectedResults);
+    final List<List<int>> expectedResults1 = [
+      [0, 1, 2, 3],
+      [22],
+      [342, 0, 1],
+    ];
+    final List<List<int>> expectedResults2 = [
+      [2, 1, 3, 4, 5, 6, 45, 4, 3, 2, 2, 3, 3]
+    ];
+    testProcessResults(
+        fakeResponse0, "canceled", "poll-vote", expectedResults0);
+    testProcessResults(fakeResponse1, "active", "poll-vote", expectedResults1);
+    testProcessResults(
+        fakeResponse2, "finished", "encrypted-poll", expectedResults2);
+  });
+
+  test("Should parse valid process results digest", () async {
+    final fakeMetadata0 = ProcessMetadata();
+    final fakeResults0 = ProcessResults.empty();
+    ProcessMetadata_Details details = ProcessMetadata_Details();
+    List<ProcessMetadata_Details_Question> questions =
+        List<ProcessMetadata_Details_Question>();
+    fakeResults0.type = "poll-vote";
+    fakeResults0.state = "finished";
+    fakeResults0.results = List<List<int>>();
+    for (int i = 0; i < 10; i++) {
+      final question = ProcessMetadata_Details_Question();
+      question.type = "Type " + i.toString();
+      question.question.addAll({"default": "Question " + i.toString()});
+      question.description.addAll({"default": "Description " + i.toString()});
+      fakeResults0.results.add([]);
+      final options = List<ProcessMetadata_Details_Question_VoteOption>();
+      for (int j = 0; j < 3; j++) {
+        final option = ProcessMetadata_Details_Question_VoteOption();
+        option.title.addAll({"default": "Yes" + i.toString()});
+        option.title.addAll({"default": "No" + i.toString()});
+        option.value = i;
+        options.add(option);
+        fakeResults0.results[i].add(j);
+      }
+      question.voteOptions.addAll(options);
+      questions.add(question);
+    }
+    details.questions.addAll(questions);
+    fakeMetadata0.details = details;
+
+    testProcessResultsDigest(fakeMetadata0, fakeResults0);
   });
 
   // NOTE: Can't test on pure Dart, given that the code below depends on iOS/Android native targets

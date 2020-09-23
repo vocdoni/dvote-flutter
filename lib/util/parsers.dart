@@ -174,8 +174,8 @@ ProcessMetadata parseProcessMetadata(String json) {
   }
 }
 
-// Parse raw results Map into ProcessResultsDigested object
-ProcessResults parseRawResults(Map<String, dynamic> response) {
+// Parse raw results Map into ProcessResults object
+ProcessResults parseProcessResults(Map<String, dynamic> response) {
   try {
     ProcessResults processResults = ProcessResults.empty();
     if (response["results"] is List) {
@@ -194,6 +194,44 @@ ProcessResults parseRawResults(Map<String, dynamic> response) {
   } catch (err) {
     throw Exception("The process results could not be retrieved: $err");
   }
+}
+
+ProcessResultsDigested parseProcessResultsDigested(
+    ProcessResults rawResults, ProcessMetadata processMetadata) {
+  if (rawResults == null || processMetadata == null) {
+    return null;
+  }
+  if (processMetadata.details.questions?.isEmpty ?? true) {
+    return ProcessResultsDigested(rawResults.state, rawResults.type);
+  }
+  final resultsDigest =
+      ProcessResultsDigested(rawResults.state, rawResults.type);
+  resultsDigest.questions = new List<ProcessResultItem>();
+
+  for (int i = 0; i < processMetadata.details.questions.length; i++) {
+    if (processMetadata.details.questions[i] == null) {
+      throw Exception("Metadata question is null");
+    }
+    resultsDigest.questions.add(ProcessResultItem(
+        processMetadata.details.questions[i].type,
+        processMetadata.details.questions[i].question,
+        processMetadata.details.questions[i].description));
+    resultsDigest.questions[i].voteResults = new List<VoteResults>();
+    for (int j = 0;
+        j < processMetadata.details.questions[i].voteOptions.length;
+        j++) {
+      int votes;
+      if (i >= rawResults.results.length || j >= rawResults.results[i].length) {
+        votes = 0;
+      } else {
+        votes = rawResults.results[i][j];
+      }
+      resultsDigest.questions[i].voteResults.add(VoteResults(
+          processMetadata.details.questions[i].voteOptions[j].title["default"],
+          votes));
+    }
+  }
+  return resultsDigest;
 }
 
 List<ProcessMetadata_Details_Question> _parseQuestions(List items) {

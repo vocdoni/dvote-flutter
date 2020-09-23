@@ -6,21 +6,27 @@ class ProcessResults {
   ProcessResults.empty();
   ProcessResults(this.state, this.type, this.results);
   toString() {
-    return "type: $type \nstate: $state \nresults: $results";
+    return "ProcessResults: type $type, state $state, results $results";
   }
 }
 
 class ProcessResultsDigested {
+  String state;
+  String type;
   List<ProcessResultItem> questions;
 
+  ProcessResultsDigested(this.state, this.type);
+
   toString() {
-    String s = "Process results: \n";
+    String s = "Process results: \nType: $type, state: $state \n";
+    if (questions?.isEmpty ?? true) {
+      s += "No questions available";
+      return s;
+    }
     if (questions?.isNotEmpty ?? false) {
       for (int i = 0; i < questions.length; i++) {
         s += "Question ${i + 1}: \n" + questions[i].toString() + "\n";
       }
-    } else {
-      s = "No questions available";
     }
     return s;
   }
@@ -29,15 +35,14 @@ class ProcessResultsDigested {
 class ProcessResultItem {
   String type;
   Map<String, String> question;
+  Map<String, String> description;
   List<VoteResults> voteResults;
 
   toString() {
-    String s =
-        "Type: $type\nQuestion: ${question["default"]} \nResults: $voteResults";
-    return s;
+    return "Question: $type, question: ${question["default"]}, description: ${description["default"]}, results: $voteResults";
   }
 
-  ProcessResultItem(this.type, this.question);
+  ProcessResultItem(this.type, this.question, this.description);
 }
 
 class VoteResults {
