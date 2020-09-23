@@ -1,5 +1,4 @@
 import "dart:convert";
-import 'dart:ffi';
 
 import "package:dvote/models/dart/entity.pb.dart";
 import "package:dvote/models/dart/feed.pb.dart";
@@ -175,10 +174,10 @@ ProcessMetadata parseProcessMetadata(String json) {
   }
 }
 
-// Parse raw results Map into ProcessResults object
-RawResults parseRawResults(Map<String, dynamic> response) {
+// Parse raw results Map into ProcessResultsDigested object
+ProcessResults parseRawResults(Map<String, dynamic> response) {
   try {
-    RawResults processResults = RawResults();
+    ProcessResults processResults = ProcessResults.empty();
     if (response["results"] is List) {
       processResults.results = (response["results"] as List)
           .whereType<List>()

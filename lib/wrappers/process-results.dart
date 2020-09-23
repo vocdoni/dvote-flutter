@@ -1,24 +1,21 @@
-import 'dart:ffi';
-
-import 'package:dvote/dvote.dart';
-
-class RawResults {
+class ProcessResults {
   List<List<int>> results;
   String state;
   String type;
 
-  RawResults();
+  ProcessResults.empty();
+  ProcessResults(this.state, this.type, this.results);
   toString() {
     return "type: $type \nstate: $state \nresults: $results";
   }
 }
 
-class ProcessResults {
+class ProcessResultsDigested {
   List<ProcessResultItem> questions;
 
   toString() {
     String s = "Process results: \n";
-    if (questions != null && questions.length > 0) {
+    if (questions?.isNotEmpty ?? false) {
       for (int i = 0; i < questions.length; i++) {
         s += "Question ${i + 1}: \n" + questions[i].toString() + "\n";
       }

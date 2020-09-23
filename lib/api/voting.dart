@@ -260,7 +260,7 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
 // }
 
 /// Returns number of existing blocks in the blockchain
-Future<RawResults> getRawResults(String processId, GatewayPool gw) async {
+Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
   if (gw == null || processId == "") throw Exception("Invalid parameters");
   processId = processId.startsWith("0x") ? processId : "0x" + processId;
   try {
@@ -278,83 +278,75 @@ Future<RawResults> getRawResults(String processId, GatewayPool gw) async {
   }
 }
 
-Future<ProcessResults> getResultsDigest(
+Future<ProcessResultsDigested> getResultsDigest(
     String processId, GatewayPool gw) async {
   if (gw == null || processId == "") throw Exception("Invalid parameters");
   final pid = processId.startsWith("0x") ? processId : "0x" + processId;
   try {
     final processMetadata = await getProcessMetadata(pid, gw);
-    final rawResults = await getRawResults(pid, gw);
-    // get process keys
-
     final currentBlock = await getBlockHeight(gw);
-    if (processMetadata != null) {
-      switch (processMetadata.type) {
-        case "encrypted-poll":
-          if (currentBlock < processMetadata.startBlock) {
-            return ProcessResults();
-          } else if ((currentBlock <
-                  (processMetadata.startBlock + processMetadata.blockCount)) &&
-              rawResults.state != "canceled") {
-            return ProcessResults();
-          }
-          int retries = 3;
-          ProcessKeys procKeys;
-          do {
-            procKeys = await getProcessKeys(pid, gw);
-            if (procKeys != null &&
-                procKeys.encryptionPrivKeys != null &&
-                procKeys.encryptionPrivKeys.length > 0) break;
-            await waitVochainBlocks(2, gw);
-            retries--;
-          } while (retries >= 0);
-          if (procKeys == null ||
-              procKeys.encryptionPrivKeys == null ||
-              procKeys.encryptionPrivKeys.length < 1) {
-            return ProcessResults();
-          }
-          break;
-        default:
-      }
-      final resultsDigest = ProcessResults();
-      if (processMetadata.details.questions == null ||
-          processMetadata.details.questions.length == 0) {
-        throw Exception("Process metadata has no questions");
-      }
-      resultsDigest.questions = new List<ProcessResultItem>();
-      // resultsDigest.questions.add(ProcessResultItem(
-      //     processMetadata.details.questions[0].type,
-      //     processMetadata.details.questions[0].question));
 
-      for (int i = 0; i < processMetadata.details.questions.length; i++) {
-        if (processMetadata.details.questions[i] != null) {
-          resultsDigest.questions.add(ProcessResultItem(
-              processMetadata.details.questions[i].type,
-              processMetadata.details.questions[i].question));
-          resultsDigest.questions[i].voteResults = new List<VoteResults>();
-          for (int j = 0;
-              j < processMetadata.details.questions[i].voteOptions.length;
-              j++) {
-            int votes;
-            if (i >= rawResults.results.length ||
-                j >= rawResults.results[i].length) {
-              votes = 0;
-            } else {
-              votes = rawResults.results[0][0];
-            }
-            resultsDigest.questions[i].voteResults.add(VoteResults(
-                processMetadata
-                    .details.questions[i].voteOptions[j].title["default"],
-                votes));
-          }
-        } else {
-          throw Exception("Metadata question is null");
-        }
-      }
-      return resultsDigest;
-    } else {
+    // If process hasn't started yet, throw exception
+    if (currentBlock < processMetadata.startBlock) {
+      throw Exception(
+          "Cannot get results for process which has not started yet");
+    }
+    final rawResults = await getRawResults(pid, gw);
+    if (processMetadata.details.questions?.isEmpty ?? false) {
+      return ProcessResultsDigested();
+    }
+    if (processMetadata == null) {
       throw Exception("Process Metadata is empty");
     }
+    switch (processMetadata.type) {
+      case "encrypted-poll":
+        if ((currentBlock <
+                (processMetadata.startBlock + processMetadata.blockCount)) &&
+            rawResults.state != "canceled") {
+          return null;
+        }
+        int retries = 3;
+        ProcessKeys procKeys;
+        do {
+          procKeys = await getProcessKeys(pid, gw);
+          if (procKeys?.encryptionPrivKeys?.isNotEmpty ?? false) break;
+          await waitVochainBlocks(2, gw);
+          retries--;
+        } while (retries >= 0);
+        if (procKeys?.encryptionPrivKeys?.isEmpty ?? false) {
+          return null;
+        }
+        break;
+      default:
+    }
+    final resultsDigest = ProcessResultsDigested();
+    resultsDigest.questions = new List<ProcessResultItem>();
+
+    for (int i = 0; i < processMetadata.details.questions.length; i++) {
+      if (processMetadata.details.questions[i] == null) {
+        throw Exception("Metadata question is null");
+      }
+      resultsDigest.questions.add(ProcessResultItem(
+          processMetadata.details.questions[i].type,
+          processMetadata.details.questions[i].question));
+      resultsDigest.questions[i].voteResults = new List<VoteResults>();
+      for (int j = 0;
+          j < processMetadata.details.questions[i].voteOptions.length;
+          j++) {
+        int votes;
+        if (i >= rawResults.results.length ||
+            j >= rawResults.results[i].length) {
+          votes = 0;
+        } else {
+          votes = rawResults.results[i][j];
+        }
+        resultsDigest.questions[i].voteResults.add(VoteResults(
+            processMetadata
+                .details.questions[i].voteOptions[j].title["default"],
+            votes));
+      }
+    }
+    return resultsDigest;
   } catch (err) {
     throw Exception("The results are not available: $err");
   }
@@ -369,7 +361,7 @@ Future<ProcessKeys> getProcessKeys(String processId, GatewayPool gw) async {
       "processId": processId
     };
     Map<String, dynamic> response = await gw.sendRequest(reqParams, timeout: 7);
-    if (!(response is Map)) {
+    if (response is! Map) {
       throw Exception("Invalid response received from the gateway");
     }
 

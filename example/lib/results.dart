@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:dvote/dvote.dart';
+import 'package:dvote/wrappers/process-results.dart';
 import './constants.dart';
-import 'dart:convert';
 
 class ResultsScreen extends StatefulWidget {
   @override
@@ -12,7 +12,7 @@ class ResultsScreen extends StatefulWidget {
 
 class _ResultsScreenState extends State<ResultsScreen> {
   String _rawResultStr = "-";
-  String _resultsDigestStr = "-";
+  ProcessResultsDigested _resultsDigest;
   String _error;
 
   @override
@@ -24,7 +24,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     String rawResultStr;
-    String resultsDigestStr;
+    ProcessResultsDigested resultsDigest;
     String error;
 
     try {
@@ -33,8 +33,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           bootnodeUri: BOOTNODES_URL_RW, maxGatewayCount: 5, timeout: 10);
 
       print("Fetching process results");
-      final resultsDigest = await getResultsDigest(RESULTS_PROCESS_ID, gw);
-      resultsDigestStr = resultsDigest.toString();
+      resultsDigest = await getResultsDigest(RESULTS_PROCESS_ID, gw);
       final rawResults = await getRawResults(RESULTS_PROCESS_ID, gw);
       rawResultStr = rawResults.toString();
     } on PlatformException catch (err) {
@@ -57,7 +56,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     setState(() {
       _rawResultStr = rawResultStr;
-      _resultsDigestStr = resultsDigestStr;
+      _resultsDigest = resultsDigest;
     });
   }
 
@@ -76,8 +75,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     final rawResults = '''Raw Results for process $RESULTS_PROCESS_ID:\n
 $_rawResultStr\n''';
-    final resultsDigest = '''Results Digest for process $RESULTS_PROCESS_ID:\n
-$_resultsDigestStr''';
 
     return Scaffold(
       appBar: AppBar(
@@ -90,7 +87,7 @@ $_resultsDigestStr''';
             child: Column(
               children: <Widget>[
                 Text(rawResults),
-                Text(resultsDigest),
+                Text(_resultsDigest.toString()),
               ],
             ),
           ),
