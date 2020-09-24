@@ -212,11 +212,13 @@ ProcessResultsDigested parseProcessResultsDigested(
     if (processMetadata.details.questions[i] == null) {
       throw Exception("Metadata question is null");
     }
+
     resultsDigest.questions.add(ProcessResultItem(
         processMetadata.details.questions[i].type,
         processMetadata.details.questions[i].question,
         processMetadata.details.questions[i].description));
     resultsDigest.questions[i].voteResults = new List<VoteResults>();
+
     for (int j = 0;
         j < processMetadata.details.questions[i].voteOptions.length;
         j++) {

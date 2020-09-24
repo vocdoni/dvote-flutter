@@ -26,6 +26,7 @@ void pollVoting() {
     expect(resultsDigested.state, fakeResults.state);
     expect(resultsDigested.questions.length,
         fakeMetadata.details.questions.length);
+
     for (int i = 0; i < resultsDigested.questions.length; i++) {
       expect(resultsDigested.questions[i].type,
           fakeMetadata.details.questions[i].type);
@@ -39,8 +40,6 @@ void pollVoting() {
         expect(resultsDigested.questions[i].voteResults[j].votes,
             fakeResults.results[i][j]);
       }
-      // expect(resultsDigested.questions[i]);
-      // expect(resultsDigested.questions[i]);
     }
   }
 
@@ -91,13 +90,13 @@ void pollVoting() {
         "0x419761e28c5103fa4ddac3d575a940c683aa647c31a8ac1073c8780f4664efcb");
   });
 
-  test("Should parse valid process results", () async {
+  test("Should parse valid process results", () {
     final fakeResponse0 =
         '{"height":2,"ok":true,"request":"ZH61xq6LE3NAe73Ds5KB9A==","results":[[2]],"state":"canceled","timestamp":1600785127,"type":"poll-vote"}';
     final fakeResponse1 =
         '{"height":200,"ok":true,"request":"abcdefghijk==","results":[[0, 1, 2, 3], [22], [342, 0, 1]],"state":"active","timestamp":1600785127,"type":"poll-vote"}';
     final fakeResponse2 =
-        '{"height":1,"ok":true,"request":"33333333333==","results":[[2, 1, 3, 4, 5, 6, 45, 4, 3, 2, 2, 3, 3]],"state":"finished","timestamp":1600785127,"type":"encrypted-poll"}';
+        '{"height":1,"ok":true,"request":"33333333333==","results":[[2, 1, 3, 4, 5, 6, 45, 4, 3, 2, 2, 3, 3]],"state":"ended","timestamp":1600785127,"type":"encrypted-poll"}';
     final List<List<int>> expectedResults0 = [
       [2]
     ];
@@ -113,7 +112,7 @@ void pollVoting() {
         fakeResponse0, "canceled", "poll-vote", expectedResults0);
     testProcessResults(fakeResponse1, "active", "poll-vote", expectedResults1);
     testProcessResults(
-        fakeResponse2, "finished", "encrypted-poll", expectedResults2);
+        fakeResponse2, "ended", "encrypted-poll", expectedResults2);
   });
 
   test("Should parse valid process results digest", () async {
@@ -123,7 +122,7 @@ void pollVoting() {
     List<ProcessMetadata_Details_Question> questions =
         List<ProcessMetadata_Details_Question>();
     fakeResults0.type = "poll-vote";
-    fakeResults0.state = "finished";
+    fakeResults0.state = "ended";
     fakeResults0.results = List<List<int>>();
     for (int i = 0; i < 10; i++) {
       final question = ProcessMetadata_Details_Question();

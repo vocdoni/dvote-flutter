@@ -11,7 +11,7 @@ Future waitVochainBlocks(int blockCount, GatewayPool gw) async {
 
   final compl = Completer<void>();
 
-  // runs every 2000 ms second
+  // runs every 2000 ms
   Timer.periodic(Duration(milliseconds: 2000), (timer) {
     getBlockHeight(gw).then((currentBlock) {
       if (compl.isCompleted)

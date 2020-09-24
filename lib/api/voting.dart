@@ -269,7 +269,7 @@ Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
       "processId": processId
     };
     Map<String, dynamic> response = await gw.sendRequest(reqParams, timeout: 7);
-    if (!(response is Map)) {
+    if (response is! Map) {
       throw Exception("Invalid response received from the gateway");
     }
     return parseProcessResults(response);
@@ -288,8 +288,7 @@ Future<ProcessResultsDigested> getResultsDigest(
 
     // If process hasn't started yet, throw exception
     if (currentBlock < processMetadata.startBlock) {
-      throw Exception(
-          "Cannot get results for process which has not started yet");
+      return null; // No results yet
     }
     final rawResults = await getRawResults(pid, gw);
     if (processMetadata.details.questions?.isEmpty ?? true) {
@@ -298,27 +297,28 @@ Future<ProcessResultsDigested> getResultsDigest(
     if (processMetadata == null) {
       throw Exception("Process Metadata is empty");
     }
-    switch (processMetadata.type) {
-      case "encrypted-poll":
-        if ((currentBlock <
-                (processMetadata.startBlock + processMetadata.blockCount)) &&
-            rawResults.state != "canceled") {
-          return null;
-        }
-        int retries = 3;
-        ProcessKeys procKeys;
-        do {
-          procKeys = await getProcessKeys(pid, gw);
-          if (procKeys?.encryptionPrivKeys?.isNotEmpty ?? false) break;
-          await waitVochainBlocks(2, gw);
-          retries--;
-        } while (retries >= 0);
-        if (procKeys?.encryptionPrivKeys?.isEmpty ?? true) {
-          return null;
-        }
-        break;
-      default:
+
+    if (processMetadata.type == "encrypted-poll") {
+      final endBlock = processMetadata.startBlock + processMetadata.blockCount;
+      if ((currentBlock < endBlock) && rawResults.state != "canceled") {
+        return null; // No results
+      }
+
+      // Wait until decryption keys are available
+      int retries = 3;
+      ProcessKeys procKeys;
+      do {
+        procKeys = await getProcessKeys(pid, gw);
+        if (procKeys?.encryptionPrivKeys?.isNotEmpty ?? false) break;
+        await waitVochainBlocks(2, gw);
+        retries--;
+      } while (retries >= 0);
+
+      if (procKeys?.encryptionPrivKeys?.isEmpty ?? true) {
+        return null; // No results
+      }
     }
+
     return parseProcessResultsDigested(rawResults, processMetadata);
   } catch (err) {
     throw Exception("The results could not be digested: $err");
