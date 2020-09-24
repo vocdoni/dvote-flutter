@@ -6,7 +6,7 @@ repository: https://gitlab.com/vocdoni/dvote-flutter.git
 documentation: https://vocdoni.io/docs
 
 environment:
-  sdk: ">=2.2.0 <3.0.0"
+  sdk: ">=2.3.0 <3.0.0"
 
 dependencies:
   flutter:
