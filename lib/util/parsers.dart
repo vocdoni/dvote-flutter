@@ -5,6 +5,7 @@ import "package:dvote/models/dart/feed.pb.dart";
 import 'package:dvote/models/dart/process.pb.dart';
 import 'package:dvote/models/dart/gateway.pb.dart';
 import 'package:dvote/util/dev.dart';
+import 'package:dvote/wrappers/process-results.dart';
 
 // ////////////////////////////////////////////////////////////////////////////
 // ENTITY
@@ -171,6 +172,68 @@ ProcessMetadata parseProcessMetadata(String json) {
   } catch (err) {
     throw Exception("The process metadata could not be parsed");
   }
+}
+
+// Parse raw results Map into ProcessResults object
+ProcessResults parseProcessResults(Map<String, dynamic> response) {
+  try {
+    ProcessResults processResults = ProcessResults.empty();
+    if (response["results"] is List) {
+      processResults.results = (response["results"] as List)
+          .whereType<List>()
+          .map((list) => list.whereType<int>().toList())
+          .toList();
+    }
+    if (response["state"] is String) {
+      processResults.state = response["state"];
+    }
+    if (response["type"] is String) {
+      processResults.type = response["type"];
+    }
+    return processResults;
+  } catch (err) {
+    throw Exception("The process results could not be retrieved: $err");
+  }
+}
+
+ProcessResultsDigested parseProcessResultsDigested(
+    ProcessResults rawResults, ProcessMetadata processMetadata) {
+  if (rawResults == null || processMetadata == null) {
+    return null;
+  }
+  if (processMetadata.details.questions?.isEmpty ?? true) {
+    return ProcessResultsDigested(rawResults.state, rawResults.type);
+  }
+  final resultsDigest =
+      ProcessResultsDigested(rawResults.state, rawResults.type);
+  resultsDigest.questions = new List<ProcessResultItem>();
+
+  for (int i = 0; i < processMetadata.details.questions.length; i++) {
+    if (processMetadata.details.questions[i] == null) {
+      throw Exception("Metadata question is null");
+    }
+
+    resultsDigest.questions.add(ProcessResultItem(
+        processMetadata.details.questions[i].type,
+        processMetadata.details.questions[i].question,
+        processMetadata.details.questions[i].description));
+    resultsDigest.questions[i].voteResults = new List<VoteResults>();
+
+    for (int j = 0;
+        j < processMetadata.details.questions[i].voteOptions.length;
+        j++) {
+      int votes;
+      if (i >= rawResults.results.length || j >= rawResults.results[i].length) {
+        votes = 0;
+      } else {
+        votes = rawResults.results[i][j];
+      }
+      resultsDigest.questions[i].voteResults.add(VoteResults(
+          processMetadata.details.questions[i].voteOptions[j].title["default"],
+          votes));
+    }
+  }
+  return resultsDigest;
 }
 
 List<ProcessMetadata_Details_Question> _parseQuestions(List items) {

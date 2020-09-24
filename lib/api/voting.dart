@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:convert/convert.dart';
 import 'package:dvote/net/gateway-web3.dart';
+import 'package:dvote/util/waiters.dart';
+import 'package:dvote/wrappers/process-results.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web3dart/crypto.dart';
 import 'dart:typed_data';
@@ -258,6 +260,72 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
 // }
 
 /// Returns number of existing blocks in the blockchain
+Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
+  if (gw == null || processId == "") throw Exception("Invalid parameters");
+  processId = processId.startsWith("0x") ? processId : "0x" + processId;
+  try {
+    Map<String, dynamic> reqParams = {
+      "method": "getResults",
+      "processId": processId
+    };
+    Map<String, dynamic> response = await gw.sendRequest(reqParams, timeout: 7);
+    if (response is! Map) {
+      throw Exception("Invalid response received from the gateway");
+    }
+    return parseProcessResults(response);
+  } catch (err) {
+    throw Exception("Unable to get process results: $err");
+  }
+}
+
+Future<ProcessResultsDigested> getResultsDigest(
+    String processId, GatewayPool gw) async {
+  if (gw == null || processId == "") throw Exception("Invalid parameters");
+  final pid = processId.startsWith("0x") ? processId : "0x" + processId;
+  try {
+    final processMetadata = await getProcessMetadata(pid, gw);
+    final currentBlock = await getBlockHeight(gw);
+
+    // If process hasn't started yet, throw exception
+    if (currentBlock < processMetadata.startBlock) {
+      return null; // No results yet
+    }
+    final rawResults = await getRawResults(pid, gw);
+    if (processMetadata.details.questions?.isEmpty ?? true) {
+      return ProcessResultsDigested(rawResults.state, rawResults.type);
+    }
+    if (processMetadata == null) {
+      throw Exception("Process Metadata is empty");
+    }
+
+    if (processMetadata.type == "encrypted-poll") {
+      final endBlock = processMetadata.startBlock + processMetadata.blockCount;
+      if ((currentBlock < endBlock) && rawResults.state != "canceled") {
+        return null; // No results
+      }
+
+      // Wait until decryption keys are available
+      int retries = 3;
+      ProcessKeys procKeys;
+      do {
+        procKeys = await getProcessKeys(pid, gw);
+        if (procKeys?.encryptionPrivKeys?.isNotEmpty ?? false) break;
+        await waitVochainBlocks(2, gw);
+        retries--;
+      } while (retries >= 0);
+
+      if (procKeys?.encryptionPrivKeys?.isEmpty ?? true) {
+        return null; // No results
+      }
+    }
+
+    return parseProcessResultsDigested(rawResults, processMetadata);
+  } catch (err) {
+    throw Exception("The results could not be digested: $err");
+  }
+}
+
+/// Returns number of existing blocks in the blockchain
 Future<ProcessKeys> getProcessKeys(String processId, GatewayPool gw) async {
   if (gw == null) throw Exception("Invalid parameters");
   try {
@@ -266,7 +334,7 @@ Future<ProcessKeys> getProcessKeys(String processId, GatewayPool gw) async {
       "processId": processId
     };
     Map<String, dynamic> response = await gw.sendRequest(reqParams, timeout: 7);
-    if (!(response is Map)) {
+    if (response is! Map) {
       throw Exception("Invalid response received from the gateway");
     }
 

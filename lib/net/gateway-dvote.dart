@@ -126,7 +126,6 @@ class DVoteGateway {
     }
 
     Map<String, dynamic> decodedMessage;
-
     try {
       decodedMessage = jsonDecode(response.body);
     } catch (err) {

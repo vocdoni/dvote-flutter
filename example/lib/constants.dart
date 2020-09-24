@@ -12,3 +12,5 @@ const CENSUS_PUB_KEY_CLAIM = "Lf+khO3vB+iZ7KHEVfT5lMvYuYa4u9eMejg4iD2jBKM=";
 const PROCESS_ID =
     "0x239333d368917b24f73940ad17fa5c530a95889895be4a201c46bfc44c787f87";
 const BOOTNODES_URL_RW = "https://bootnodes.vocdoni.net/gateways.json";
+const RESULTS_PROCESS_ID =
+    "0x0f42e4432f784d9e5bc0b888222e73f4a3244d7c42a98aea3383185536b33dab";

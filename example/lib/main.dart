@@ -1,3 +1,4 @@
+import 'package:dvote_example/results.dart';
 import 'package:flutter/material.dart';
 import 'package:dvote_example/gateway.dart';
 import 'package:dvote_example/metadata.dart';
@@ -82,6 +83,16 @@ class ExampleApp extends StatelessWidget {
               isThreeLine: true,
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (context) => MetadataScreen())),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: FlutterLogo(size: 72.0),
+              title: Text('Results'),
+              subtitle: Text('Get Process Results'),
+              isThreeLine: true,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ResultsScreen())),
             ),
           ),
           // Card(
