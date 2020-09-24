@@ -1,3 +1,7 @@
+## 0.17.2
+
+- Allowing to the the results of a voting process
+
 ## 0.17.1
 
 - Adding support for the Sokol network
