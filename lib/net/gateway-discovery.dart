@@ -42,8 +42,12 @@ Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
       throw Exception("Invalid network ID: " + networkId);
   }
 
-  final web3Candidates = networkNodes.web3;
-  final dvoteCandidates = networkNodes.dvote;
+  final web3Candidates = List.from(networkNodes.web3)
+      .cast<BootNodeGateways_NetworkNodes_Web3>()
+      .toList();
+  final dvoteCandidates = List.from(networkNodes.dvote)
+      .cast<BootNodeGateways_NetworkNodes_DVote>()
+      .toList();
   web3Candidates.shuffle();
   dvoteCandidates.shuffle();
 

@@ -1,3 +1,7 @@
+## 0.17.3
+
+- Gateway discovery fix
+
 ## 0.17.2
 
 - Allowing to the the results of a voting process
