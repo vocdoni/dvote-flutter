@@ -279,11 +279,16 @@ Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
 }
 
 Future<ProcessResultsDigested> getResultsDigest(
-    String processId, GatewayPool gw) async {
+    String processId, GatewayPool gw,
+    {ProcessMetadata meta}) async {
   if (gw == null || processId == "") throw Exception("Invalid parameters");
   final pid = processId.startsWith("0x") ? processId : "0x" + processId;
   try {
-    final processMetadata = await getProcessMetadata(pid, gw);
+    // Enable option to pass-in metadata, otherwise call metadata api
+    if (meta == null) {
+      meta = await getProcessMetadata(pid, gw);
+    }
+    final processMetadata = meta;
     final currentBlock = await getBlockHeight(gw);
 
     // If process hasn't started yet, throw exception
