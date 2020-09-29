@@ -21,5 +21,5 @@ void main() {
   web3Gateway();
 
   entity();
-  // pollVoting();
+  pollVoting();
 }

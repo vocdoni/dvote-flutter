@@ -1,3 +1,7 @@
+## 0.17.4
+
+- Adding support for the xDAI staging environment
+
 ## 0.17.3
 
 - Gateway discovery fix

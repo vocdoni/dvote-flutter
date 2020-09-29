@@ -160,8 +160,10 @@ class Web3Gateway {
 
   // HELPERS
 
-  static Future<String> resolveEntityResolverDomain(String gatewayUri) {
-    return resolveName(ENS_PUBLIC_RESOLVER_DOMAIN, gatewayUri).then((address) {
+  static Future<String> resolveEntityResolverDomain(String gatewayUri,
+      {bool testing = false}) {
+    return resolveName(ENS_PUBLIC_RESOLVER_DOMAIN, gatewayUri, testing: testing)
+        .then((address) {
       if (address is! String)
         throw Exception(
             "The domain $ENS_PUBLIC_RESOLVER_DOMAIN does not resolve using $gatewayUri");
@@ -170,8 +172,10 @@ class Web3Gateway {
     });
   }
 
-  static Future<String> resolveProcessDomain(String gatewayUri) {
-    return resolveName(PROCESS_DOMAIN, gatewayUri).then((address) {
+  static Future<String> resolveProcessDomain(String gatewayUri,
+      {bool testing = false}) {
+    return resolveName(PROCESS_DOMAIN, gatewayUri, testing: testing)
+        .then((address) {
       if (address is! String)
         throw Exception(
             "The domain $PROCESS_DOMAIN does not resolve using $gatewayUri");
