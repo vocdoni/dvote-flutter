@@ -11,6 +11,7 @@ enum ContractEnum { EntityResolver, Process }
 /// Client class to wrap calls to Ethereum Smart Contracts using a Web3 endpoint
 class Web3Gateway {
   final String _gatewayUri;
+  final bool useTestingContracts;
   Web3Client _client;
 
   static String _entityResolverAddress; // Lazy loaded
@@ -21,7 +22,7 @@ class Web3Gateway {
 
   String get uri => _gatewayUri;
 
-  Web3Gateway(this._gatewayUri) {
+  Web3Gateway(this._gatewayUri, {this.useTestingContracts = false}) {
     if (_gatewayUri == null || _gatewayUri == "")
       throw Exception("Invalid Gateway URI");
 
@@ -66,11 +67,13 @@ class Web3Gateway {
     if (_entityResolverAddress is! String ||
         _entityResolverAddress.length == 0) {
       Web3Gateway._entityResolverAddress =
-          await Web3Gateway.resolveEntityResolverDomain(this._gatewayUri);
+          await Web3Gateway.resolveEntityResolverDomain(this._gatewayUri,
+              useTestingContracts: useTestingContracts ?? false);
     }
     if (_processAddress is! String || _processAddress.length == 0) {
-      Web3Gateway._processAddress =
-          await Web3Gateway.resolveProcessDomain(this._gatewayUri);
+      Web3Gateway._processAddress = await Web3Gateway.resolveProcessDomain(
+          this._gatewayUri,
+          useTestingContracts: useTestingContracts ?? false);
     }
 
     // Define contract instances
@@ -161,8 +164,9 @@ class Web3Gateway {
   // HELPERS
 
   static Future<String> resolveEntityResolverDomain(String gatewayUri,
-      {bool testing = false}) {
-    return resolveName(ENS_PUBLIC_RESOLVER_DOMAIN, gatewayUri, testing: testing)
+      {bool useTestingContracts = false}) {
+    return resolveName(ENS_PUBLIC_RESOLVER_DOMAIN, gatewayUri,
+            useTestingContracts: useTestingContracts)
         .then((address) {
       if (address is! String)
         throw Exception(
@@ -173,8 +177,9 @@ class Web3Gateway {
   }
 
   static Future<String> resolveProcessDomain(String gatewayUri,
-      {bool testing = false}) {
-    return resolveName(PROCESS_DOMAIN, gatewayUri, testing: testing)
+      {bool useTestingContracts = false}) {
+    return resolveName(PROCESS_DOMAIN, gatewayUri,
+            useTestingContracts: useTestingContracts)
         .then((address) {
       if (address is! String)
         throw Exception(

@@ -1,3 +1,7 @@
+## 0.17.5
+
+- Extend the staging environment flags to the gateway discovery functions
+
 ## 0.17.4
 
 - Adding support for the xDAI staging environment

@@ -21,14 +21,14 @@ final RegExp addressRegExp = new RegExp(r"^0x[0-9A-Fa-f]{40}$");
 // FUNCTIONS
 
 Future<String> resolveName(String domain, String gatewayUri,
-    {bool testing = false}) async {
+    {bool useTestingContracts = false}) async {
   if (!domainRegExp.hasMatch(domain)) return null;
 
   final nodeHash = hashDomainName(domain);
 
   // Get the resolver from the registry
-  final resolverAddress =
-      await getResolver(domain, gatewayUri, testing: testing);
+  final resolverAddress = await getResolver(domain, gatewayUri,
+      useTestingContracts: useTestingContracts);
   if (resolverAddress == null) return null;
 
   // keccak256('addr(bytes32)')
@@ -46,7 +46,7 @@ Future<String> resolveName(String domain, String gatewayUri,
 
 /// Returns the entity resolver contract that corresponds to the given settings
 Future<String> getResolver(String domain, String gatewayUri,
-    {bool testing = true}) async {
+    {bool useTestingContracts = true}) async {
   if (!domainRegExp.hasMatch(domain)) return null;
 
   final nodeHash = hashDomainName(domain);
@@ -78,7 +78,7 @@ Future<String> getResolver(String domain, String gatewayUri,
           "goerli", 5, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e");
       break;
     case "100":
-      networkInfo = testing
+      networkInfo = useTestingContracts
           ? NetworkInfo(
               "xdai", 100, "0x9e638E90c8CdFaC1297EF261859E25c9d8438F1a")
           : NetworkInfo(

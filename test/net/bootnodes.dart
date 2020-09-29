@@ -6,15 +6,15 @@ const DEV_NETWORK_ID = "sokol";
 
 void bootnodes() {
   test("Boot nodes URI from the blockchain", () async {
-    final result1 =
-        await resolveWellKnownBootnodeUri(MAIN_NETWORK_ID, testing: false);
+    final result1 = await resolveWellKnownBootnodeUri(MAIN_NETWORK_ID,
+        useTestingContracts: false);
     expect(result1 is String, true,
         reason: "The Boot nodes URI should be a String");
     expect(result1.length > 0, true,
         reason: "The Boot nodes URI should not be empty");
 
-    final result2 =
-        await resolveWellKnownBootnodeUri(MAIN_NETWORK_ID, testing: true);
+    final result2 = await resolveWellKnownBootnodeUri(MAIN_NETWORK_ID,
+        useTestingContracts: true);
     expect(result2 is String, true,
         reason: "The Boot nodes URI should be a String");
     expect(result2.length > 0, true,
@@ -28,8 +28,8 @@ void bootnodes() {
   });
   test("Gateway Boot nodes", () async {
     // XDAI
-    final uri1 =
-        await resolveWellKnownBootnodeUri(MAIN_NETWORK_ID, testing: false);
+    final uri1 = await resolveWellKnownBootnodeUri(MAIN_NETWORK_ID,
+        useTestingContracts: false);
     final gws1 = await fetchBootnodeInfo(uri1);
 
     expect(gws1.xdai.dvote.length > 0, true);
@@ -41,8 +41,8 @@ void bootnodes() {
     expect(gws1.xdai.web3[0].uri.length > 0, true);
 
     // Test
-    final uri2 =
-        await resolveWellKnownBootnodeUri(MAIN_NETWORK_ID, testing: true);
+    final uri2 = await resolveWellKnownBootnodeUri(MAIN_NETWORK_ID,
+        useTestingContracts: true);
     final gws2 = await fetchBootnodeInfo(uri2);
 
     expect(gws2.xdai.dvote.length > 0, true);

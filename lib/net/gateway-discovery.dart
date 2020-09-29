@@ -9,20 +9,26 @@ import 'package:dvote/util/dev.dart';
 Future<List<Gateway>> discoverGateways(
     {String bootnodeUri,
     String networkId = "xdai",
-    int maxGatewayCount = 5}) async {
+    int maxGatewayCount = 5,
+    bool useTestingContracts = false}) async {
   if (bootnodeUri is! String || bootnodeUri.length < 1) {
-    bootnodeUri = await resolveWellKnownBootnodeUri(networkId);
+    bootnodeUri = await resolveWellKnownBootnodeUri(networkId,
+        useTestingContracts: useTestingContracts);
   }
 
   final info = await fetchBootnodeInfo(bootnodeUri);
 
   return discoverGatewaysFromBootnodeInfo(info,
-      networkId: networkId, maxGatewayCount: maxGatewayCount);
+      networkId: networkId,
+      maxGatewayCount: maxGatewayCount,
+      useTestingContracts: useTestingContracts);
 }
 
 // Digests the bootnode info into a list of working gateways, featuring web3 and DVote nodes
 Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
-    {String networkId = "xdai", int maxGatewayCount = 5}) async {
+    {String networkId = "xdai",
+    int maxGatewayCount = 5,
+    bool useTestingContracts = false}) async {
   BootNodeGateways_NetworkNodes networkNodes;
 
   switch (networkId) {
@@ -57,7 +63,8 @@ Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
   await Future.wait(web3Candidates.map((candidate) {
     return Web3Gateway.isSyncing(candidate.uri).then((syncing) {
       if (!syncing)
-        web3Nodes.add(Web3Gateway(candidate.uri));
+        web3Nodes.add(Web3Gateway(candidate.uri,
+            useTestingContracts: useTestingContracts));
       else
         devPrint("[Discovery] Web3 node ${candidate.uri} is syncing: Skip");
     }).catchError((err) {

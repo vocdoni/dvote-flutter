@@ -18,7 +18,7 @@ final random = Random.secure();
 /// Retrieve the Content URI of the boot nodes Content URI provided by Vocdoni.
 /// `networkId` should be among "mainnet", "goerli", "xdai" or "sokol"
 Future<String> resolveWellKnownBootnodeUri(String networkId,
-    {bool testing = false}) async {
+    {bool useTestingContracts = false}) async {
   List<String> providerUris;
   String entityId;
 
@@ -33,7 +33,7 @@ Future<String> resolveWellKnownBootnodeUri(String networkId,
       break;
     case "xdai":
       providerUris = [XDAI_PROVIDER_URI];
-      if (testing)
+      if (useTestingContracts)
         entityId = VOCDONI_XDAI_TEST_ENTITY_ID;
       else
         entityId = VOCDONI_XDAI_ENTITY_ID;
@@ -51,7 +51,7 @@ Future<String> resolveWellKnownBootnodeUri(String networkId,
 
   for (var uri in providerUris) {
     try {
-      final gw = Web3Gateway(uri);
+      final gw = Web3Gateway(uri, useTestingContracts: useTestingContracts);
       var result = await gw.callMethod(
           "text",
           [Uint8List.fromList(hexEntityId), TextRecordKeys.VOCDONI_BOOT_NODES],
