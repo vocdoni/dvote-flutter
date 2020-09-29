@@ -13,11 +13,12 @@ import '../util/parsers.dart';
 import 'package:dvote/util/dev.dart';
 // import 'package:flutter/foundation.dart'; // for kReleaseMode
 
-var random = Random.secure();
+final random = Random.secure();
 
 /// Retrieve the Content URI of the boot nodes Content URI provided by Vocdoni.
 /// `networkId` should be among "mainnet", "goerli", "xdai" or "sokol"
-Future<String> resolveWellKnownBootnodeUri(String networkId) async {
+Future<String> resolveWellKnownBootnodeUri(String networkId,
+    {bool testing = false}) async {
   List<String> providerUris;
   String entityId;
 
@@ -31,11 +32,14 @@ Future<String> resolveWellKnownBootnodeUri(String networkId) async {
       entityId = VOCDONI_GOERLI_ENTITY_ID;
       break;
     case "xdai":
-      providerUris = ["https://dai.poa.network"];
-      entityId = VOCDONI_XDAI_ENTITY_ID;
+      providerUris = [XDAI_PROVIDER_URI];
+      if (testing)
+        entityId = VOCDONI_XDAI_TEST_ENTITY_ID;
+      else
+        entityId = VOCDONI_XDAI_ENTITY_ID;
       break;
     case "sokol":
-      providerUris = ["https://sokol.poa.network"];
+      providerUris = [SOKOL_PROVIDER_URI];
       entityId = VOCDONI_SOKOL_ENTITY_ID;
       break;
     default:

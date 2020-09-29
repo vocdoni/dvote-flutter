@@ -15,30 +15,20 @@ class NetworkInfo {
   NetworkInfo(this.name, this.chainId, this.ensAddress);
 }
 
-final _networkList = <NetworkInfo>[
-  NetworkInfo(
-      "mainnet", 1, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"), // alias
-  NetworkInfo("homestead", 1, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
-  NetworkInfo("modern", 2, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
-  NetworkInfo("ropsten", 3, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
-  NetworkInfo("rinkeby", 4, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
-  NetworkInfo("goerli", 5, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
-  NetworkInfo("xdai", 100, "0x00cEBf9E1E81D3CC17fbA0a49306EBA77a8F26cD"),
-  NetworkInfo("sokol", 77, "0x43541c49308bF2956d3893836F5AF866fd78A295"),
-];
-
 final RegExp domainRegExp = new RegExp(r"^[a-zA-Z0-9-\.]+$");
 final RegExp addressRegExp = new RegExp(r"^0x[0-9A-Fa-f]{40}$");
 
 // FUNCTIONS
 
-Future<String> resolveName(String domain, String gatewayUri) async {
+Future<String> resolveName(String domain, String gatewayUri,
+    {bool testing = false}) async {
   if (!domainRegExp.hasMatch(domain)) return null;
 
   final nodeHash = hashDomainName(domain);
 
   // Get the resolver from the registry
-  final resolverAddress = await getResolver(domain, gatewayUri);
+  final resolverAddress =
+      await getResolver(domain, gatewayUri, testing: testing);
   if (resolverAddress == null) return null;
 
   // keccak256('addr(bytes32)')
@@ -54,7 +44,9 @@ Future<String> resolveName(String domain, String gatewayUri) async {
   return result;
 }
 
-Future<String> getResolver(String domain, String gatewayUri) async {
+/// Returns the entity resolver contract that corresponds to the given settings
+Future<String> getResolver(String domain, String gatewayUri,
+    {bool testing = true}) async {
   if (!domainRegExp.hasMatch(domain)) return null;
 
   final nodeHash = hashDomainName(domain);
@@ -62,9 +54,43 @@ Future<String> getResolver(String domain, String gatewayUri) async {
   // Detect the network
   final client = JsonRPC(gatewayUri, Client());
   final response = await client.call("net_version");
-  final networkInfo = _networkList.firstWhere(
-      (item) => item.chainId.toString() == response.result,
-      orElse: () => null);
+
+  NetworkInfo networkInfo;
+  switch (response.result) {
+    case "1":
+      networkInfo = NetworkInfo(
+          "homestead", 1, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e");
+      break;
+    case "2":
+      networkInfo = NetworkInfo(
+          "modern", 2, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e");
+      break;
+    case "3":
+      networkInfo = NetworkInfo(
+          "ropsten", 3, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e");
+      break;
+    case "4":
+      networkInfo = NetworkInfo(
+          "rinkeby", 4, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e");
+      break;
+    case "5":
+      networkInfo = NetworkInfo(
+          "goerli", 5, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e");
+      break;
+    case "100":
+      networkInfo = testing
+          ? NetworkInfo(
+              "xdai", 100, "0x9e638E90c8CdFaC1297EF261859E25c9d8438F1a")
+          : NetworkInfo(
+              "xdai", 100, "0x00cEBf9E1E81D3CC17fbA0a49306EBA77a8F26cD");
+      break;
+    case "77":
+      networkInfo = NetworkInfo(
+          "sokol", 77, "0x43541c49308bF2956d3893836F5AF866fd78A295");
+      break;
+    default:
+      throw Exception("Unsupported network: ${response.result}");
+  }
 
   if (networkInfo == null) return null;
   final ensAddress = networkInfo.ensAddress;
