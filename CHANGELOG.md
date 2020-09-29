@@ -1,3 +1,7 @@
+## 0.17.6
+
+- Allow to reuse the existing metadata of a process in `getResultsDigest`
+
 ## 0.17.5
 
 - Extend the staging environment flags to the gateway discovery functions
