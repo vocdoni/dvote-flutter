@@ -223,7 +223,8 @@ ProcessResultsDigested parseProcessResultsDigested(
         j < processMetadata.details.questions[i].voteOptions.length;
         j++) {
       int votes;
-      if (i >= rawResults.results.length || j >= rawResults.results[i].length) {
+      if ((i >= rawResults.results?.length ?? 0) ||
+          (j >= rawResults.results[i]?.length ?? 0)) {
         votes = 0;
       } else {
         votes = rawResults.results[i][j];
