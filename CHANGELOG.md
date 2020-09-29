@@ -1,3 +1,7 @@
+## 0.17.7
+
+- Minor fix on the results handler
+
 ## 0.17.6
 
 - Allow to reuse the existing metadata of a process in `getResultsDigest`
