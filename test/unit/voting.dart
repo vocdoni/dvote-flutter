@@ -35,7 +35,7 @@ void pollVoting() {
       for (int j = 0;
           j < fakeMetadata.details.questions[i].voteOptions.length;
           j++) {
-        expect(resultsDigested.questions[i].voteResults[j].title,
+        expect(resultsDigested.questions[i].voteResults[j].title["default"],
             fakeMetadata.details.questions[i].voteOptions[j].title["default"]);
         expect(resultsDigested.questions[i].voteResults[j].votes,
             fakeResults.results[i][j]);
@@ -145,7 +145,15 @@ void pollVoting() {
     details.questions.addAll(questions);
     fakeMetadata0.details = details;
 
+    final fakeMetadata1 = fakeMetadata0;
+    final fakeResults1 = fakeResults0;
+    // Test for metadata with no results yet
+    fakeResults1.results.forEach((element) {
+      element = [];
+    });
+
     testProcessResultsDigest(fakeMetadata0, fakeResults0);
+    testProcessResultsDigest(fakeMetadata1, fakeResults1);
   });
 
   // NOTE: Can't test on pure Dart, given that the code below depends on iOS/Android native targets
