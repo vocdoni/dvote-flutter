@@ -49,13 +49,13 @@ class ProcessResultItem {
 }
 
 class VoteResults {
-  String title;
+  Map<String, String> title;
   int votes;
 
   VoteResults(this.title, this.votes);
 
   @override
   toString() {
-    return "$title: $votes votes";
+    return "${title["default"]}: $votes votes";
   }
 }
