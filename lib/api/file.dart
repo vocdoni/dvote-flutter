@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:dvote/net/http.dart';
 import "../net/gateway-pool.dart";
 import "../net/ipfs.dart";
+import "../util/timeout.dart";
 import "../wrappers/content-uri.dart";
+import 'package:http/http.dart' as http;
 
 /// Fetch the given content URI using a Vocdoni Gateway
 /// and return it as a string
@@ -44,7 +45,7 @@ Future<Uint8List> fetchFileBytes(ContentURI cUri,
   // Attempt 2: fetch fallback from IPFS public gateways
   if (cUri.ipfsHash != null) {
     try {
-      var response = await fetchIpfsHash(cUri.ipfsHash);
+      final response = await fetchIpfsHash(cUri.ipfsHash);
       if (response != null) return response;
     } catch (err) {
       // continue
@@ -54,8 +55,8 @@ Future<Uint8List> fetchFileBytes(ContentURI cUri,
   // Attempt 3: fetch from fallback https endpoints
   for (String uri in cUri.httpsItems) {
     try {
-      var response = await httpGetWithTimeout(uri);
-      return response;
+      final response = await http.get(uri).withTimeout(Duration(seconds: 8));
+      return response.bodyBytes;
     } catch (err) {
       // keep trying
       continue;
@@ -65,8 +66,8 @@ Future<Uint8List> fetchFileBytes(ContentURI cUri,
   // Attempt 4: fetch from fallback http endpoints
   for (String uri in cUri.httpItems) {
     try {
-      var response = await httpGetWithTimeout(uri);
-      return response;
+      final response = await http.get(uri).withTimeout(Duration(seconds: 8));
+      return response.bodyBytes;
     } catch (err) {
       // keep trying
       continue;

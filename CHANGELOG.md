@@ -1,3 +1,8 @@
+## 0.17.8
+
+- Dependency upgrades
+- Decoupling the timeout from HTTP requests and turning it into a Dart extension
+
 ## 0.17.7
 
 - Minor fix on the results handler
