@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:dvote/util/parsers.dart';
 import 'package:dvote/dvote.dart';
 

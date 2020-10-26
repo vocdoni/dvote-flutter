@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
-import 'package:dvote/util/dev.dart';
-import 'package:dvote/util/json-signature-native.dart';
+import 'dart:developer';
+import 'package:dvote/util/json-signature.dart';
 import 'package:dvote/util/random.dart';
 import 'package:dvote/util/timestamp.dart';
 import 'package:http/http.dart' as http;
@@ -92,8 +92,7 @@ class DVoteGateway {
     // Sign if needed
     if (privateKey is String && privateKey.length > 0) {
       requestPayload["signature"] =
-          await JSONSignatureNative.signJsonPayloadAsync(
-              requestBody, privateKey);
+          await JSONSignature.signJsonPayloadAsync(requestBody, privateKey);
     }
 
     // Launch the request and report the result if not already completed
@@ -105,7 +104,7 @@ class DVoteGateway {
         )
         .then((response) => this._digestResponse(response, comp, id))
         .catchError((err) {
-          devPrint("[Gateway] Response error from $_gatewayUri: $err");
+          log("[Gateway] Response error from $_gatewayUri: $err");
           if (!comp.isCompleted) comp.completeError(err);
         });
 
@@ -159,7 +158,7 @@ class DVoteGateway {
       throw Exception("The response timestamp is invalid");
     }
 
-    final valid = await JSONSignatureNative.isValidJsonSignatureAsync(
+    final valid = await JSONSignature.isValidJsonSignatureAsync(
         givenSignature, jsonResponse, publicKey);
 
     if (!valid)

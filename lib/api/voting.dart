@@ -1,11 +1,9 @@
-import 'dart:io';
 import 'dart:convert';
-import 'dart:math';
 import 'package:convert/convert.dart';
 import 'package:dvote/net/gateway-web3.dart';
+import 'package:dvote/util/random.dart';
 import 'package:dvote/util/waiters.dart';
 import 'package:dvote/wrappers/process-results.dart';
-import 'package:flutter/foundation.dart';
 import 'package:web3dart/crypto.dart';
 import 'dart:typed_data';
 import 'package:dvote/api/file.dart';
@@ -19,12 +17,8 @@ import '../net/gateway-pool.dart';
 import "./entity.dart";
 import '../models/dart/entity.pb.dart';
 import '../models/dart/process.pb.dart';
-// import '../util/json-signature.dart';
-import '../util/json-signature-native.dart';
+import '../util/json-signature.dart';
 import '../constants.dart';
-import 'package:dvote_native/dvote_native.dart' as dvoteNative;
-
-final _random = Random.secure();
 
 // ENUMS AND WRAPPERS
 
@@ -198,7 +192,7 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
 
       return parseProcessMetadata(strMetadata);
     } catch (err) {
-      if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
+      print("ERROR Fetching Process metadata: $err");
       return null;
     }
   })).then((result) => result.whereType<ProcessMetadata>().toList());
@@ -427,18 +421,12 @@ Future<String> getSignedVoteNullifier(String address, String processId) {
   if (address.length != 40) return Future.value(null);
   if (processId.length != 64) return Future.value(null);
 
-  return wrap2ParamFunc<String, String, String>(
-      _getSignedVoteNullifier, address, processId);
+  return runAsync<String, String Function(String, String)>(
+      _getSignedVoteNullifier, [address, processId]);
 }
 
 // internal wrapped function to run the hash computation out of the UI thread
-String _getSignedVoteNullifier(List<dynamic> args) {
-  assert(args.length == 2);
-  final address = args[0];
-  assert(address is String);
-  final processId = args[1];
-  assert(processId is String);
-
+String _getSignedVoteNullifier(String address, String processId) {
   final addressBytes = hex.decode(address);
   final processIdBytes = hex.decode(processId);
 
@@ -738,7 +726,7 @@ Future<Map<String, dynamic>> packageSignedEnvelope(List<int> votes,
     }
   }
   try {
-    final nonce = _generateRandomNonce(32);
+    final nonce = makeRandomNonce(32);
 
     final packageValues =
         await packageVoteContent(votes, processKeys: processKeys);
@@ -756,42 +744,14 @@ Future<Map<String, dynamic>> packageSignedEnvelope(List<int> votes,
       package["encryptionKeyIndexes"] = packageValues["keyIndexes"];
     }
 
-    final signature = await JSONSignatureNative.signJsonPayloadAsync(
-        package, signingPrivateKey);
+    final signature =
+        await JSONSignature.signJsonPayloadAsync(package, signingPrivateKey);
     package["signature"] = signature;
 
     return package;
   } catch (error) {
     throw Exception("Poll vote Envelope could not be generated");
   }
-}
-
-/// Returns a zero-knowledge proof computed on the given circuit inputs
-/// using the given proving key path. The proving key file needs to be accessible
-/// on the filesystem.
-Future<String> generateZkProof(
-    Map<String, dynamic> circuitInputs, String provingKeyPath) async {
-  final fd = File(provingKeyPath);
-  if (!(await fd.exists())) {
-    throw Exception("The proving key does not exist");
-  }
-
-  return wrap2ParamFunc<String, Map<String, dynamic>, String>(
-      _generateZkProof, circuitInputs, provingKeyPath);
-}
-
-String _generateZkProof(List<dynamic> args) {
-  if (!(args is List) || args.length != 2)
-    throw Exception("The function expects a list of two arguments");
-  else if (!(args[0] is Map))
-    throw Exception(
-        "The first argument has to be a Map with the circuit inputs");
-  else if (!(args[1] is String))
-    throw Exception("The second argument has to be a String with a path");
-
-  final Map<String, dynamic> circuitInputs = args[0];
-  final String provingKeyPath = args[1];
-  return dvoteNative.Snarks.generateZkProof(circuitInputs, provingKeyPath);
 }
 
 // ////////////////////////////////////////////////////////////////////////////
@@ -815,7 +775,7 @@ Future<Map<String, dynamic>> packageVoteContent(List<int> votes,
     }
   }
 
-  final nonce = _generateRandomNonce(16);
+  final nonce = makeRandomNonce(16);
 
   Map<String, dynamic> package = {
     "type": "poll-vote",
@@ -856,32 +816,6 @@ Future<Map<String, dynamic>> packageVoteContent(List<int> votes,
 }
 
 // HELPERS
-
-String _generateRandomNonce(int length) {
-  final digits = [
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    'a',
-    'b',
-    'c',
-    'd',
-    'e',
-    'f'
-  ];
-  var result = "";
-  for (var i = 0; i < length; i++) {
-    result = result + digits[_random.nextInt(digits.length)];
-  }
-  return result;
-}
 
 /// Turns [{idx:1, key: "1234"}, ...] into [ProcessKey(...), ...]
 List<ProcessKey> _parseProcessKeyList(List<dynamic> items) {

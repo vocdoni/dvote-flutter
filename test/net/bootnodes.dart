@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:dvote/net/bootnodes.dart';
 
 const MAIN_NETWORK_ID = "xdai";

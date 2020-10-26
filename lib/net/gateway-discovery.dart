@@ -1,9 +1,9 @@
+import 'dart:developer';
 import 'package:dvote/models/dart/gateway.pb.dart';
 import 'package:dvote/net/bootnodes.dart';
 import 'package:dvote/net/gateway-dvote.dart';
 import 'package:dvote/net/gateway-web3.dart';
 import 'package:dvote/net/gateway.dart';
-import 'package:dvote/util/dev.dart';
 
 /// Retrieve a list of working gateways. If no bootnode URI is provided, the well-known URI is used.
 Future<List<Gateway>> discoverGateways(
@@ -66,9 +66,9 @@ Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
         web3Nodes.add(Web3Gateway(candidate.uri,
             useTestingContracts: useTestingContracts));
       else
-        devPrint("[Discovery] Web3 node ${candidate.uri} is syncing: Skip");
+        log("[Discovery] Web3 node ${candidate.uri} is syncing: Skip");
     }).catchError((err) {
-      devPrint("[Discovery] ${candidate.uri} failed: $err");
+      log("[Discovery] ${candidate.uri} failed: $err");
     });
   }));
 
@@ -85,7 +85,7 @@ Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
       // gw.health and gw.supportedApis are populated
       dvoteNodes.add(gw); // working
     }).catchError((err) {
-      devPrint("[Discovery] ${candidate.uri} failed: $err");
+      log("[Discovery] ${candidate.uri} failed: $err");
     });
   }));
 

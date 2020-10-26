@@ -1,5 +1,6 @@
+import 'dart:developer';
+
 import 'package:dvote/net/gateway-pool.dart';
-import 'package:dvote/util/dev.dart';
 
 /// Fetch the Merkle Proof that proves that the given claim is part
 /// of the Census Merkle Tree with the given Root Hash
@@ -20,7 +21,7 @@ Future<String> generateProof(String censusMerkleRootHash, String base64Claim,
     }
     return (response["siblings"] is String) ? response["siblings"] : null;
   } on Exception catch (err) {
-    devPrint(err);
+    log(err.toString());
     if (err.toString() == "Exception: censusId not valid or not found")
       throw err;
     throw Exception("The claim proof could not be obtained");
@@ -46,7 +47,7 @@ Future<bool> checkProof(String censusMerkleRootHash, String base64Claim,
     }
     return response["validProof"] == true;
   } on Exception catch (err) {
-    devPrint(err);
+    log(err.toString());
     if (err.toString() == "Exception: censusId not valid or not found")
       throw err;
     throw Exception("The claim proof could not be checked");

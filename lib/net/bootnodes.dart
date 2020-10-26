@@ -10,7 +10,6 @@ import 'package:http/http.dart' as http;
 
 import '../models/dart/gateway.pb.dart';
 import '../util/parsers.dart';
-import 'package:dvote/util/dev.dart';
 // import 'package:flutter/foundation.dart'; // for kReleaseMode
 
 final random = Random.secure();
@@ -78,7 +77,7 @@ Future<BootNodeGateways> fetchBootnodeInfo(String bootnodeUri) async {
 
     return parseBootnodeInfo(response.body);
   } catch (err) {
-    devPrint(err);
+    log(err);
     throw err;
   }
 }

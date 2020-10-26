@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:dvote/dvote.dart';
 import 'package:hex/hex.dart';
 
@@ -11,22 +11,22 @@ void _hdWalletSync() {
   test('Generate random mnemonics', () {
     final mnemonicRegExp = new RegExp(r"^[a-z]+( [a-z]+)+$");
 
-    final wallet1 = EthereumDartWallet.random();
+    final wallet1 = EthereumWallet.random();
     expect(mnemonicRegExp.hasMatch(wallet1.mnemonic), true);
     expect(wallet1.mnemonic.split(" ").length, 18);
 
-    final wallet2 = EthereumDartWallet.random();
+    final wallet2 = EthereumWallet.random();
     expect(mnemonicRegExp.hasMatch(wallet2.mnemonic), true);
     expect(wallet1.mnemonic != wallet2.mnemonic, true);
     expect(wallet2.mnemonic.split(" ").length, 18);
 
-    final wallet3 = EthereumDartWallet.random(size: 160);
+    final wallet3 = EthereumWallet.random(size: 160);
     expect(mnemonicRegExp.hasMatch(wallet3.mnemonic), true);
     expect(wallet1.mnemonic != wallet3.mnemonic, true);
     expect(wallet2.mnemonic != wallet3.mnemonic, true);
     expect(wallet3.mnemonic.split(" ").length, 15);
 
-    final wallet4 = EthereumDartWallet.random(size: 128);
+    final wallet4 = EthereumWallet.random(size: 128);
     expect(mnemonicRegExp.hasMatch(wallet4.mnemonic), true);
     expect(wallet1.mnemonic != wallet4.mnemonic, true);
     expect(wallet2.mnemonic != wallet4.mnemonic, true);
@@ -35,7 +35,7 @@ void _hdWalletSync() {
   });
 
   test("Create a wallet for a given mnemonic", () {
-    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
+    EthereumWallet wallet = EthereumWallet.fromMnemonic(
         'coral imitate swim axis note super success public poem frown verify then');
     expect(wallet.privateKey,
         '0x975a999c921f77c1812833d903799cdb7780b07809eb67070ac2598f45e9fb3f');
@@ -45,7 +45,7 @@ void _hdWalletSync() {
         '0x046fbd249af1bf365abd8d0cfc390c87ff32a997746c53dceab3794e2913d4cb26e055c8177faab65b404ea24754d8f56ef5df909a39d99ee0e7ca291a11556b37');
     expect(wallet.address, '0x6AAa00b7c22021F96B09BB52cb9135F0cB865c5D');
 
-    wallet = EthereumDartWallet.fromMnemonic(
+    wallet = EthereumWallet.fromMnemonic(
         'almost slush girl resource piece meadow cable fancy jar barely mother exhibit');
     expect(wallet.privateKey,
         '0x32fa4a65b9cb770235a8f0af497536035a459a98179c2c667972be279fbd1a1a');
@@ -55,7 +55,7 @@ void _hdWalletSync() {
         '0x0425eb0aac23fe343e7ac5c8a792898a4f1d55b3150f3609cde6b7ada2dff029a89430669dd7f39ffe72eb9b8335fef52fd70863d123ba0015e90cbf68b58385eb');
     expect(wallet.address, '0xf0492A8Dc9c84E6c5b66e10D0eC1A46A96FF74D3');
 
-    wallet = EthereumDartWallet.fromMnemonic(
+    wallet = EthereumWallet.fromMnemonic(
         'civil very heart sock decade library moment permit retreat unhappy clown infant');
     expect(wallet.privateKey,
         '0x1b3711c03353ecbbf7b686127e30d6a37a296ed797793498ef24c04504ca5048');
@@ -65,7 +65,7 @@ void _hdWalletSync() {
         '0x04ae5f2ecb63c4b9c71e1b396c8206720c02bddceb01da7c9f590aa028f110c035fa54045f6361fa0c6b5914a33e0d6f2f435818f0268ec8196062d1521ea8451a');
     expect(wallet.address, '0x9612bD0deB9129536267d154D672a7f1281eb468');
 
-    wallet = EthereumDartWallet.fromMnemonic(
+    wallet = EthereumWallet.fromMnemonic(
         'life noble news naive know verb leaf parade brisk chuckle midnight play');
     expect(wallet.privateKey,
         '0x3c21df88530a25979494c4c7789334ba5dd1c8c73d23c4077a7f223c2274830f');
@@ -78,7 +78,7 @@ void _hdWalletSync() {
 
   test("Compute the private key for a given mnemonic and derivation path", () {
     // index 0
-    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
+    EthereumWallet wallet = EthereumWallet.fromMnemonic(
         'civil very heart sock decade library moment permit retreat unhappy clown infant',
         hdPath: "m/44'/60'/0'/0/0");
     expect(wallet.privateKey,
@@ -90,7 +90,7 @@ void _hdWalletSync() {
     expect(wallet.address, '0x9612bD0deB9129536267d154D672a7f1281eb468');
 
     // index 1
-    wallet = EthereumDartWallet.fromMnemonic(
+    wallet = EthereumWallet.fromMnemonic(
         'civil very heart sock decade library moment permit retreat unhappy clown infant',
         hdPath: "m/44'/60'/0'/0/1");
     expect(wallet.privateKey,
@@ -102,7 +102,7 @@ void _hdWalletSync() {
     expect(wallet.address, '0x67b5615fDC5c65Afce9B97bD217804f1dB04bC1b');
 
     // index 2
-    wallet = EthereumDartWallet.fromMnemonic(
+    wallet = EthereumWallet.fromMnemonic(
         'civil very heart sock decade library moment permit retreat unhappy clown infant',
         hdPath: "m/44'/60'/0'/0/2");
     expect(wallet.privateKey,
@@ -120,13 +120,13 @@ void _hdWalletSync() {
 
     // No entity
     final entityAddress1 = null;
-    final wallet1 = EthereumDartWallet.fromMnemonic(mnemonic,
+    final wallet1 = EthereumWallet.fromMnemonic(mnemonic,
         entityAddressHash: entityAddress1);
 
     // Entity with a zero address (should give exactly the same private key)
     final entityAddress2 =
         "0x0000000000000000000000000000000000000000000000000000000000000000";
-    final wallet2 = EthereumDartWallet.fromMnemonic(mnemonic,
+    final wallet2 = EthereumWallet.fromMnemonic(mnemonic,
         entityAddressHash: entityAddress2);
 
     expect(wallet2.privateKey,
@@ -137,7 +137,7 @@ void _hdWalletSync() {
     // Entity 3
     final entityAddress3 =
         "0x1111111111111111111111111111111111111111111111111111111111111111";
-    final wallet3 = EthereumDartWallet.fromMnemonic(mnemonic,
+    final wallet3 = EthereumWallet.fromMnemonic(mnemonic,
         entityAddressHash: entityAddress3);
 
     expect(wallet3.privateKey,
@@ -148,7 +148,7 @@ void _hdWalletSync() {
     // Entity 4
     final entityAddress4 =
         "0x0123456789012345678901234567890123456789012345678901234567890123";
-    final wallet4 = EthereumDartWallet.fromMnemonic(mnemonic,
+    final wallet4 = EthereumWallet.fromMnemonic(mnemonic,
         entityAddressHash: entityAddress4);
 
     expect(wallet4.privateKey,
@@ -160,7 +160,7 @@ void _hdWalletSync() {
     // Entity 5
     final entityAddress5 =
         "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-    final wallet5 = EthereumDartWallet.fromMnemonic(mnemonic,
+    final wallet5 = EthereumWallet.fromMnemonic(mnemonic,
         entityAddressHash: entityAddress5);
 
     expect(wallet5.privateKey,
@@ -188,22 +188,22 @@ void _hdWalletAsync() {
   test('Generate random mnemonics [async]', () async {
     final mnemonicRegExp = RegExp(r"^[a-z]+(:? [a-z]+)+$");
 
-    final wallet1 = await EthereumDartWallet.randomAsync();
+    final wallet1 = await EthereumWallet.randomAsync();
     expect(mnemonicRegExp.hasMatch(wallet1.mnemonic), true);
     expect(wallet1.mnemonic.split(" ").length, 18);
 
-    final wallet2 = await EthereumDartWallet.randomAsync();
+    final wallet2 = await EthereumWallet.randomAsync();
     expect(mnemonicRegExp.hasMatch(wallet2.mnemonic), true);
     expect(wallet1.mnemonic != wallet2.mnemonic, true);
     expect(wallet2.mnemonic.split(" ").length, 18);
 
-    final wallet3 = await EthereumDartWallet.randomAsync(size: 160);
+    final wallet3 = await EthereumWallet.randomAsync(size: 160);
     expect(mnemonicRegExp.hasMatch(wallet3.mnemonic), true);
     expect(wallet1.mnemonic != wallet3.mnemonic, true);
     expect(wallet2.mnemonic != wallet3.mnemonic, true);
     expect(wallet3.mnemonic.split(" ").length, 15);
 
-    final wallet4 = await EthereumDartWallet.randomAsync(size: 128);
+    final wallet4 = await EthereumWallet.randomAsync(size: 128);
     expect(mnemonicRegExp.hasMatch(wallet4.mnemonic), true);
     expect(wallet1.mnemonic != wallet4.mnemonic, true);
     expect(wallet2.mnemonic != wallet4.mnemonic, true);
@@ -212,7 +212,7 @@ void _hdWalletAsync() {
   });
 
   test("Create a wallet for a given mnemonic [async]", () async {
-    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
+    EthereumWallet wallet = EthereumWallet.fromMnemonic(
         'coral imitate swim axis note super success public poem frown verify then');
     expect(await wallet.privateKeyAsync,
         '0x975a999c921f77c1812833d903799cdb7780b07809eb67070ac2598f45e9fb3f');
@@ -223,7 +223,7 @@ void _hdWalletAsync() {
     expect(await wallet.addressAsync,
         '0x6AAa00b7c22021F96B09BB52cb9135F0cB865c5D');
 
-    wallet = EthereumDartWallet.fromMnemonic(
+    wallet = EthereumWallet.fromMnemonic(
         'almost slush girl resource piece meadow cable fancy jar barely mother exhibit');
     expect(await wallet.privateKeyAsync,
         '0x32fa4a65b9cb770235a8f0af497536035a459a98179c2c667972be279fbd1a1a');
@@ -234,7 +234,7 @@ void _hdWalletAsync() {
     expect(await wallet.addressAsync,
         '0xf0492A8Dc9c84E6c5b66e10D0eC1A46A96FF74D3');
 
-    wallet = EthereumDartWallet.fromMnemonic(
+    wallet = EthereumWallet.fromMnemonic(
         'civil very heart sock decade library moment permit retreat unhappy clown infant');
     expect(await wallet.privateKeyAsync,
         '0x1b3711c03353ecbbf7b686127e30d6a37a296ed797793498ef24c04504ca5048');
@@ -245,7 +245,7 @@ void _hdWalletAsync() {
     expect(await wallet.addressAsync,
         '0x9612bD0deB9129536267d154D672a7f1281eb468');
 
-    wallet = EthereumDartWallet.fromMnemonic(
+    wallet = EthereumWallet.fromMnemonic(
         'life noble news naive know verb leaf parade brisk chuckle midnight play');
     expect(await wallet.privateKeyAsync,
         '0x3c21df88530a25979494c4c7789334ba5dd1c8c73d23c4077a7f223c2274830f');
@@ -261,7 +261,7 @@ void _hdWalletAsync() {
       "Compute the private key for a given mnemonic and derivation path [async]",
       () async {
     // index 0
-    EthereumDartWallet wallet = EthereumDartWallet.fromMnemonic(
+    EthereumWallet wallet = EthereumWallet.fromMnemonic(
         'civil very heart sock decade library moment permit retreat unhappy clown infant',
         hdPath: "m/44'/60'/0'/0/0");
     expect(await wallet.privateKeyAsync,
@@ -274,7 +274,7 @@ void _hdWalletAsync() {
         '0x9612bD0deB9129536267d154D672a7f1281eb468');
 
     // index 1
-    wallet = EthereumDartWallet.fromMnemonic(
+    wallet = EthereumWallet.fromMnemonic(
         'civil very heart sock decade library moment permit retreat unhappy clown infant',
         hdPath: "m/44'/60'/0'/0/1");
     expect(await wallet.privateKeyAsync,
@@ -287,7 +287,7 @@ void _hdWalletAsync() {
         '0x67b5615fDC5c65Afce9B97bD217804f1dB04bC1b');
 
     // index 2
-    wallet = EthereumDartWallet.fromMnemonic(
+    wallet = EthereumWallet.fromMnemonic(
         'civil very heart sock decade library moment permit retreat unhappy clown infant',
         hdPath: "m/44'/60'/0'/0/2");
     expect(await wallet.privateKeyAsync,
@@ -307,13 +307,13 @@ void _hdWalletAsync() {
 
     // No entity
     final entityAddress1 = null;
-    final wallet1 = EthereumDartWallet.fromMnemonic(mnemonic,
+    final wallet1 = EthereumWallet.fromMnemonic(mnemonic,
         entityAddressHash: entityAddress1);
 
     // Entity with a zero address (should give exactly the same private key)
     final entityAddress2 =
         "0x0000000000000000000000000000000000000000000000000000000000000000";
-    final wallet2 = EthereumDartWallet.fromMnemonic(mnemonic,
+    final wallet2 = EthereumWallet.fromMnemonic(mnemonic,
         entityAddressHash: entityAddress2);
 
     expect(await wallet2.privateKeyAsync,
@@ -324,7 +324,7 @@ void _hdWalletAsync() {
     // Entity 3
     final entityAddress3 =
         "0x1111111111111111111111111111111111111111111111111111111111111111";
-    final wallet3 = EthereumDartWallet.fromMnemonic(mnemonic,
+    final wallet3 = EthereumWallet.fromMnemonic(mnemonic,
         entityAddressHash: entityAddress3);
 
     expect(await wallet3.privateKeyAsync,
@@ -336,7 +336,7 @@ void _hdWalletAsync() {
     // Entity 4
     final entityAddress4 =
         "0x0123456789012345678901234567890123456789012345678901234567890123";
-    final wallet4 = EthereumDartWallet.fromMnemonic(mnemonic,
+    final wallet4 = EthereumWallet.fromMnemonic(mnemonic,
         entityAddressHash: entityAddress4);
 
     expect(await wallet4.privateKeyAsync,
@@ -350,7 +350,7 @@ void _hdWalletAsync() {
     // Entity 5
     final entityAddress5 =
         "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-    final wallet5 = EthereumDartWallet.fromMnemonic(mnemonic,
+    final wallet5 = EthereumWallet.fromMnemonic(mnemonic,
         entityAddressHash: entityAddress5);
 
     expect(await wallet5.privateKeyAsync,

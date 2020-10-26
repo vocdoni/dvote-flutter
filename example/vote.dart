@@ -11,15 +11,15 @@ Future<void> vote() async {
   DateTime dateAtBlock;
   // bool envelopeSent;
 
-  final wallet = EthereumDartWallet.fromMnemonic(MNEMONIC, hdPath: HD_PATH);
+  final wallet = EthereumWallet.fromMnemonic(MNEMONIC, hdPath: HD_PATH);
   // final wallet = EthereumNativeWallet.fromMnemonic(MNEMONIC, hdPath: HD_PATH);
 
   final String privateKey = wallet.privateKey;
   final entityId = ENTITY_ID;
   final String address = wallet.address;
-  final String pubKey = wallet.publicKey(uncompressed: false);
-  final String pubKeyClaim = Hashing.digestHexClaim(pubKey);
-  // final String pubKeyClaim = CENSUS_PUB_KEY_CLAIM;
+  // final String pubKey = wallet.publicKey(uncompressed: false);
+  // final String pubKeyClaim = Hashing.digestHexClaim(pubKey);
+  final String pubKeyClaim = CENSUS_PUB_KEY_CLAIM;
   // final String censusMerkleRoot = CENSUS_MERKLE_ROOT;
 
   EntityReference entityRef = EntityReference();
@@ -80,10 +80,9 @@ Future<void> vote() async {
 
     // Merkle Proof
     print("\nRequesting Merkle Proof");
-    final isDigested = true;
+    final isDigested = false; // using the raw public key
     merkleProof = await generateProof(
         processMeta.census.merkleRoot, pubKeyClaim, isDigested, gw);
-    // merkleProof = await generateProof(censusMerkleRoot, pubKeyClaim, gw);
     if (!(merkleProof is String))
       throw Exception("The Merkle Proof is not valid");
     print("Merkle Proof:   $merkleProof");

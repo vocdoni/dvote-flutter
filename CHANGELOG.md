@@ -1,3 +1,9 @@
+## 0.18.0
+
+**Breaking changes**
+- The library is now a Dart only repository
+- Flutter speficics and Native bindings now live on separate packages. Check [dvote_native](https://pub.dev/packages/dvote_native) to make use of the native code.
+
 ## 0.17.8
 
 - Dependency upgrades

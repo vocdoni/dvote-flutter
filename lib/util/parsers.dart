@@ -1,10 +1,10 @@
 import "dart:convert";
+import 'dart:developer';
 
 import "package:dvote/models/dart/entity.pb.dart";
 import "package:dvote/models/dart/feed.pb.dart";
 import 'package:dvote/models/dart/process.pb.dart';
 import 'package:dvote/models/dart/gateway.pb.dart';
-import 'package:dvote/util/dev.dart';
 import 'package:dvote/wrappers/process-results.dart';
 
 // ////////////////////////////////////////////////////////////////////////////
@@ -103,7 +103,7 @@ List<EntityMetadata_Action> parseEntityActions(List actions) {
         result.imageSources.addAll(sources);
       }
     } catch (err) {
-      devPrint(err);
+      log(err);
     }
     return result;
   }).toList();

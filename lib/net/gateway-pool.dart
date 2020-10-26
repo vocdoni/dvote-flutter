@@ -1,7 +1,8 @@
+import 'dart:developer';
+
 import 'package:dvote/net/gateway-discovery.dart';
 import 'package:dvote/net/gateway-dvote.dart';
 import 'package:dvote/net/gateway.dart';
-import 'package:dvote/util/dev.dart';
 import 'package:web3dart/credentials.dart';
 
 import 'gateway-web3.dart';
@@ -55,7 +56,7 @@ class GatewayPool {
       this.errorCount = 0;
       return true;
     }).catchError((err) {
-      devPrint("[GW Pool] refresh error: $err");
+      log("[GW Pool] refresh error: $err");
       return false;
     });
   }
@@ -65,7 +66,7 @@ class GatewayPool {
     assert(this.current is Gateway);
 
     if (current.web3 is Web3Gateway) {
-      devPrint("[GW Pool] Disconnecting from ${current.web3.uri}");
+      log("[GW Pool] Disconnecting from ${current.web3.uri}");
       this.current?.dispose();
     }
 

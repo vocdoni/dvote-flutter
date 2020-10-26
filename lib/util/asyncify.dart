@@ -1,36 +1,83 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'dart:isolate';
 
-/// Returns a non UI-blocking function wrapping rawFunc
-Future<R> wrapFunc<R>(FutureOr<dynamic> rawFunc) {
-  return compute(rawFunc, null);
+// /// Returns a non UI-blocking function wrapping rawFunc and passing a list of five parameters to it
+// Future<R> wrap5ParamFunc<R, S, T, U, V, W>(
+//     Function(List<dynamic>) rawFunc, S arg1, T arg2, U arg3, V arg4, W arg5) {
+//   return compute<List<dynamic>, R>(rawFunc, [arg1, arg2, arg3, arg4, arg5]);
+// }
+
+// --------------------
+
+String sing(String str) => "Singing: " + str;
+song() => "lololololo";
+
+main() async {
+  print(await runAsync<String, String Function(String)>(sing, ["lalalala"]));
+  print(await runAsync<String, Function>(song));
 }
 
-/// Returns a non UI-blocking function wrapping rawFunc and passing one parameter to it
-Future<R> wrap1ParamFunc<R, S>(Function(S) rawFunc, S arg1) {
-  return compute<S, R>(rawFunc, arg1);
+Future<R> runAsync<R, F>(F func, [List<dynamic> parameters]) async {
+  final receivePort = ReceivePort();
+  await Isolate.spawn(asyncRunner, receivePort.sendPort);
+
+  // The 'asyncRunner' isolate sends it's SendPort as the first message
+  final sendPort = await receivePort.first;
+
+  final responsePort = ReceivePort();
+  sendPort.send([responsePort.sendPort, func, parameters ?? []]);
+  final res = await responsePort.first;
+  if (res is! R)
+    return Future.error(res);
+  else if (res == null) return null;
+  return res as R;
 }
 
-/// Returns a non UI-blocking function wrapping rawFunc and passing a list of two parameters to it
-Future<R> wrap2ParamFunc<R, S, T>(
-    Function(List<dynamic>) rawFunc, S arg1, T arg2) {
-  return compute<List<dynamic>, R>(rawFunc, [arg1, arg2]);
-}
+// Isolate entry point
+void asyncRunner(SendPort sendPort) async {
+  // Open the ReceivePort for incoming messages
+  final port = ReceivePort();
 
-/// Returns a non UI-blocking function wrapping rawFunc and passing a list of three parameters to it
-Future<R> wrap3ParamFunc<R, S, T, U>(
-    Function(List<dynamic>) rawFunc, S arg1, T arg2, U arg3) {
-  return compute<List<dynamic>, R>(rawFunc, [arg1, arg2, arg3]);
-}
+  // Notify our creator the port we listen to
+  sendPort.send(port.sendPort);
 
-/// Returns a non UI-blocking function wrapping rawFunc and passing a list of four parameters to it
-Future<R> wrap4ParamFunc<R, S, T, U, V>(
-    Function(List<dynamic>) rawFunc, S arg1, T arg2, U arg3, V arg4) {
-  return compute<List<dynamic>, R>(rawFunc, [arg1, arg2, arg3, arg4]);
-}
+  final msg = await port.first;
 
-/// Returns a non UI-blocking function wrapping rawFunc and passing a list of five parameters to it
-Future<R> wrap5ParamFunc<R, S, T, U, V, W>(
-    Function(List<dynamic>) rawFunc, S arg1, T arg2, U arg3, V arg4, W arg5) {
-  return compute<List<dynamic>, R>(rawFunc, [arg1, arg2, arg3, arg4, arg5]);
+  // Execute
+  final SendPort replyTo = msg[0];
+  final Function myFunc = msg[1];
+  final List<dynamic> parameters = msg[2] ?? [];
+
+  try {
+    switch (parameters.length) {
+      case 0:
+        replyTo.send(myFunc());
+        break;
+      case 1:
+        replyTo.send(myFunc(parameters[0]));
+        break;
+      case 2:
+        replyTo.send(myFunc(parameters[0], parameters[1]));
+        break;
+      case 3:
+        replyTo.send(myFunc(parameters[0], parameters[1], parameters[2]));
+        break;
+      case 4:
+        replyTo.send(
+            myFunc(parameters[0], parameters[1], parameters[2], parameters[3]));
+        break;
+      case 5:
+        replyTo.send(myFunc(parameters[0], parameters[1], parameters[2],
+            parameters[3], parameters[4]));
+        break;
+      default:
+        replyTo.send(Exception("Unsupported argument length"));
+    }
+  } catch (err) {
+    replyTo.send(Exception(err.toString()));
+  }
+
+  // Done
+  port.close();
+  Isolate.current.kill();
 }

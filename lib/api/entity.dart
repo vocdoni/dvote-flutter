@@ -1,8 +1,8 @@
 import "dart:async";
+import 'dart:developer';
 import 'dart:typed_data';
 import 'package:dvote/net/gateway-pool.dart';
 import 'package:dvote/net/gateway-web3.dart';
-import 'package:dvote/util/dev.dart';
 import 'package:dvote/wrappers/content-uri.dart';
 import 'package:convert/convert.dart';
 import 'package:dvote/util/parsers.dart';
@@ -34,7 +34,7 @@ Future<EntityMetadata> fetchEntity(
     else if (result[0] is! String || result[0].length == 0)
       throw Exception("The response from the blockchain is invalid");
   } catch (err) {
-    devPrint(err);
+    log(err.toString());
     throw err;
   }
 

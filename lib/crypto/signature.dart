@@ -6,32 +6,32 @@ import 'package:web3dart/crypto.dart' as crypto;
 
 const SIGNATURE_MESSAGE_PREFIX = '\u0019Ethereum Signed Message:\n';
 
-class SignatureDart {
+class Signature {
   /// Sign the given payload using the private key and return a hex signature
   static String signString(String payload, String hexPrivateKey,
       {int chainId}) {
-    return _signString([payload, hexPrivateKey, chainId]);
+    return _signString(payload, hexPrivateKey, chainId);
   }
 
   /// Sign the given payload using the private key and return a hex signature
   static Future<String> signStringAsync(String payload, String hexPrivateKey,
       {int chainId}) {
-    return wrap3ParamFunc<String, String, String, int>(
-        _signString, payload, hexPrivateKey, chainId);
+    return runAsync<String, String Function(String, String, int)>(
+        _signString, [payload, hexPrivateKey, chainId]);
   }
 
   /// Recover the public key that signed the given message into the given signature
   static String recoverSignerPubKey(String hexSignature, String strPayload,
       {int chainId}) {
-    return _recoverSignerPubKey([hexSignature, strPayload, chainId]);
+    return _recoverSignerPubKey(hexSignature, strPayload, chainId);
   }
 
   /// Recover the public key that signed the given message into the given signature
   static Future<String> recoverSignerPubKeyAsync(
       String hexSignature, String strPayload,
       {int chainId}) {
-    return wrap3ParamFunc<String, String, String, int>(
-        _recoverSignerPubKey, hexSignature, strPayload, chainId);
+    return runAsync<String, String Function(String, String, int)>(
+        _recoverSignerPubKey, [hexSignature, strPayload, chainId]);
   }
 
   /// Check whether the given signature is valid and belongs to the given message and
@@ -39,7 +39,7 @@ class SignatureDart {
   static bool isValidSignature(
       String hexSignature, String strPayload, String hexPublicKey,
       {int chainId}) {
-    return _isValidSignature([hexSignature, strPayload, hexPublicKey, chainId]);
+    return _isValidSignature(hexSignature, strPayload, hexPublicKey, chainId);
   }
 
   /// Check whether the given signature is valid and belongs to the given message and
@@ -47,8 +47,8 @@ class SignatureDart {
   static Future<bool> isValidSignatureAsync(
       String hexSignature, String strPayload, String hexPublicKey,
       {int chainId}) {
-    return wrap4ParamFunc<bool, String, String, String, int>(
-        _isValidSignature, hexSignature, strPayload, hexPublicKey, chainId);
+    return runAsync<bool, bool Function(String, String, String, int)>(
+        _isValidSignature, [hexSignature, strPayload, hexPublicKey, chainId]);
   }
 
   // ////////////////////////////////////////////////////////////////////////////
@@ -56,15 +56,7 @@ class SignatureDart {
   // ////////////////////////////////////////////////////////////////////////////
 
   /// Sign the given payload using the private key and return a hex signature
-  static String _signString(List<dynamic> args) {
-    assert(args.length == 2 || args.length == 3);
-    final payload = args[0];
-    assert(payload is String);
-    final hexPrivateKey = args[1];
-    assert(hexPrivateKey is String);
-    final chainId = args[2];
-    assert(chainId is int || chainId == null);
-
+  static String _signString(String payload, String hexPrivateKey, int chainId) {
     if (payload == null)
       throw Exception("The payload is empty");
     else if (hexPrivateKey == null) throw Exception("The privateKey is empty");
@@ -107,22 +99,15 @@ class SignatureDart {
   }
 
   /// Recover the public key that signed the given message into the given signature
-  static String _recoverSignerPubKey(List<dynamic> args) {
-    assert(args.length == 2 || args.length == 3);
-    final hexSignature = args[0];
-    assert(hexSignature is String);
-    final strPayload = args[1];
-    assert(strPayload is String);
-    final chainId = args[2];
-    assert(chainId is int || chainId == null);
-
+  static String _recoverSignerPubKey(
+      String hexSignature, String strPayload, int chainId) {
     if (hexSignature == null ||
         hexSignature.length < 130 ||
         hexSignature.length > 132)
       throw Exception("The hexSignature is invalid");
     else if (strPayload == null) throw Exception("The payload is empty");
 
-    // TODO: CHAIN ID IS NOT USED
+    // TODO: `CHAIN ID` IS NOT USED
 
     try {
       final packedPayload = _packPayloadForSignature(strPayload);
@@ -153,17 +138,8 @@ class SignatureDart {
 
   /// Check whether the given signature is valid and belongs to the given message and
   /// public key
-  static bool _isValidSignature(List<dynamic> args) {
-    assert(args.length == 3 || args.length == 4);
-    var hexSignature = args[0];
-    assert(hexSignature is String);
-    final strPayload = args[1];
-    assert(strPayload is String);
-    var hexPublicKey = args[2];
-    assert(hexPublicKey is String);
-    final chainId = args[3];
-    assert(chainId is int || chainId == null);
-
+  static bool _isValidSignature(String hexSignature, String strPayload,
+      String hexPublicKey, int chainId) {
     if (hexSignature == null ||
         hexSignature.length < 130 ||
         hexSignature.length > 132)
