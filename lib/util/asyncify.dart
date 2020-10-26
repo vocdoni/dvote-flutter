@@ -1,21 +1,17 @@
 import 'dart:async';
 import 'dart:isolate';
 
-// /// Returns a non UI-blocking function wrapping rawFunc and passing a list of five parameters to it
-// Future<R> wrap5ParamFunc<R, S, T, U, V, W>(
-//     Function(List<dynamic>) rawFunc, S arg1, T arg2, U arg3, V arg4, W arg5) {
-//   return compute<List<dynamic>, R>(rawFunc, [arg1, arg2, arg3, arg4, arg5]);
-// }
-
-// --------------------
-
-String sing(String str) => "Singing: " + str;
-song() => "lololololo";
-
-main() async {
-  print(await runAsync<String, String Function(String)>(sing, ["lalalala"]));
-  print(await runAsync<String, Function>(song));
-}
+/// Example
+///
+/// ```
+/// main() async {
+///   print(await runAsync<String, String Function(String)>(sing, ["lalalala"]));
+///   print(await runAsync<String, Function>(song));
+/// }
+/// 
+/// String sing(String str) => "Singing: " + str;
+/// String song() => "lololololo";
+/// ```
 
 Future<R> runAsync<R, F>(F func, [List<dynamic> parameters]) async {
   final receivePort = ReceivePort();
