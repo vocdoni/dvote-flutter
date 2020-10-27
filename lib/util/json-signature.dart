@@ -1,5 +1,5 @@
 import './json-content.dart';
-import '../crypto/signature.dart';
+import 'package:dvote_crypto/dvote_crypto.dart';
 
 class JSONSignature {
   /// Sign the given body using privateKey. Returns an hex-encoded string with the signature.

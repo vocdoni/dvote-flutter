@@ -1,0 +1,22 @@
+PODS:
+  - dvote_crypto (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+
+DEPENDENCIES:
+  - dvote_crypto (from `.symlinks/plugins/dvote_crypto/ios`)
+  - Flutter (from `Flutter`)
+
+EXTERNAL SOURCES:
+  dvote_crypto:
+    :path: ".symlinks/plugins/dvote_crypto/ios"
+  Flutter:
+    :path: Flutter
+
+SPEC CHECKSUMS:
+  dvote_crypto: 7ee34f0ed452ffe78b2905eaa7879a5d77f39c23
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+
+PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
+
+COCOAPODS: 1.9.3

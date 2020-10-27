@@ -1,6 +1,4 @@
-import "./unit/encryption.dart";
-import "./unit/wallet.dart";
-import "./unit/signature.dart";
+
 import "./unit/metadata.dart";
 import "./net/ens.dart";
 import "./net/bootnodes.dart";
@@ -10,9 +8,6 @@ import "./unit/voting.dart";
 
 void main() {
   pollVoting();
-  encryption();
-  hdWallet();
-  signature();
   dataModels();
 
   ens();

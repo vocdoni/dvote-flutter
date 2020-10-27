@@ -1,12 +1,9 @@
-// import 'dart:convert';
-// import 'dart:typed_data';
-
 import 'dart:convert';
-
 import 'package:dvote/util/parsers.dart';
 import 'package:dvote/wrappers/process-results.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:dvote/dvote.dart';
+import 'package:dvote_crypto/dvote_crypto.dart';
 
 void pollVoting() {
   void testProcessResults(String fakeResponse, String state, String type,

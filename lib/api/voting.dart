@@ -11,7 +11,7 @@ import 'package:dvote/util/asyncify.dart';
 import 'package:dvote/util/parsers.dart';
 import 'package:dvote/wrappers/content-uri.dart';
 import 'package:dvote/wrappers/process-keys.dart';
-import 'package:dvote/crypto/encryption.dart';
+import 'package:dvote_crypto/dvote_crypto.dart';
 
 import '../net/gateway-pool.dart';
 import "./entity.dart";

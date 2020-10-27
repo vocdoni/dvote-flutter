@@ -9,17 +9,21 @@ environment:
   sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
+  flutter:
+    sdk: flutter
   http: ^0.12.2
-  hex: ^0.1.2
+  protobuf: ^1.0.1
   web3dart: ^2.0.0-dev.7
   convert: ^2.1.1
-  protobuf: ^1.0.1
-  bip39: ^1.0.3
-  bip32: ^1.0.5
-  crypto: ^2.1.5
-  pinenacl: ^0.1.2
+  dvote_crypto: ^0.10.0
 
 dev_dependencies:
-  test: ^1.9.0
+  flutter_test:
+    sdk: flutter
   # mockito: ^4.0.0
   # coverage: ^0.13.3
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+flutter:
