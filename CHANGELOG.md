@@ -1,3 +1,7 @@
+## 0.18.1
+
+- Temporary dvote-crypto backoff: Using pure Dart until an iOS issue is addressed, failing to bundle native code when packaged for app store distribution
+
 ## 0.18.0
 
 - Using `dvote_crypto` instead of `dvote_native`
