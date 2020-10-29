@@ -167,20 +167,20 @@ void flagsParse() {
 
     test("Parse Process Flags: Should create and decode process envelope types",
         () async {
-      expect(def.hasSerialVoting(), false);
-      expect(all.hasSerialVoting(), true);
-      expect(none.hasSerialVoting(), false);
-      expect(some.hasSerialVoting(), false);
+      expect(def.hasSerialVoting, false);
+      expect(all.hasSerialVoting, true);
+      expect(none.hasSerialVoting, false);
+      expect(some.hasSerialVoting, false);
 
-      expect(def.hasAnonymousVoters(), false);
-      expect(all.hasAnonymousVoters(), true);
-      expect(none.hasAnonymousVoters(), false);
-      expect(some.hasAnonymousVoters(), true);
+      expect(def.hasAnonymousVoters, false);
+      expect(all.hasAnonymousVoters, true);
+      expect(none.hasAnonymousVoters, false);
+      expect(some.hasAnonymousVoters, true);
 
-      expect(def.hasEncryptedVotes(), false);
-      expect(all.hasEncryptedVotes(), true);
-      expect(none.hasEncryptedVotes(), false);
-      expect(some.hasEncryptedVotes(), false);
+      expect(def.hasEncryptedVotes, false);
+      expect(all.hasEncryptedVotes, true);
+      expect(none.hasEncryptedVotes, false);
+      expect(some.hasEncryptedVotes, false);
     });
   }
 
@@ -203,30 +203,30 @@ void flagsParse() {
 
     test("Parse Process Flags: Should create and decode process modes",
         () async {
-      expect(def.isAutoStart(), false);
-      expect(all.isAutoStart(), true);
-      expect(none.isAutoStart(), false);
-      expect(some.isAutoStart(), true);
+      expect(def.isAutoStart, false);
+      expect(all.isAutoStart, true);
+      expect(none.isAutoStart, false);
+      expect(some.isAutoStart, true);
 
-      expect(def.isInterruptible(), false);
-      expect(all.isInterruptible(), true);
-      expect(none.isInterruptible(), false);
-      expect(some.isInterruptible(), false);
+      expect(def.isInterruptible, false);
+      expect(all.isInterruptible, true);
+      expect(none.isInterruptible, false);
+      expect(some.isInterruptible, false);
 
-      expect(def.hasDynamicCensus(), false);
-      expect(all.hasDynamicCensus(), true);
-      expect(none.hasDynamicCensus(), false);
-      expect(some.hasDynamicCensus(), true);
+      expect(def.hasDynamicCensus, false);
+      expect(all.hasDynamicCensus, true);
+      expect(none.hasDynamicCensus, false);
+      expect(some.hasDynamicCensus, true);
 
-      expect(def.allowsVoteOverwrite(), false);
-      expect(all.allowsVoteOverwrite(), true);
-      expect(none.allowsVoteOverwrite(), false);
-      expect(some.allowsVoteOverwrite(), false);
+      expect(def.allowsVoteOverwrite, false);
+      expect(all.allowsVoteOverwrite, true);
+      expect(none.allowsVoteOverwrite, false);
+      expect(some.allowsVoteOverwrite, false);
 
-      expect(def.hasEncryptedMetadata(), false);
-      expect(all.hasEncryptedMetadata(), true);
-      expect(none.hasEncryptedMetadata(), false);
-      expect(some.hasEncryptedMetadata(), true);
+      expect(def.hasEncryptedMetadata, false);
+      expect(all.hasEncryptedMetadata, true);
+      expect(none.hasEncryptedMetadata, false);
+      expect(some.hasEncryptedMetadata, true);
     });
   }
 
@@ -234,18 +234,18 @@ void flagsParse() {
     test("Parse Process Flags: Should create and decode process statuses",
         () async {
       // Positive cases
-      expect(ProcessStatus(ProcessStatus.READY).isReady(), true);
-      expect(ProcessStatus(ProcessStatus.ENDED).isEnded(), true);
-      expect(ProcessStatus(ProcessStatus.CANCELED).isCanceled(), true);
-      expect(ProcessStatus(ProcessStatus.PAUSED).isPaused(), true);
-      expect(ProcessStatus(ProcessStatus.RESULTS).hasResults(), true);
+      expect(ProcessStatus(ProcessStatus.READY).isReady, true);
+      expect(ProcessStatus(ProcessStatus.ENDED).isEnded, true);
+      expect(ProcessStatus(ProcessStatus.CANCELED).isCanceled, true);
+      expect(ProcessStatus(ProcessStatus.PAUSED).isPaused, true);
+      expect(ProcessStatus(ProcessStatus.RESULTS).hasResults, true);
 
       // Negative cases
-      expect(ProcessStatus(ProcessStatus.RESULTS).isReady(), false);
-      expect(ProcessStatus(ProcessStatus.READY).isEnded(), false);
-      expect(ProcessStatus(ProcessStatus.ENDED).isCanceled(), false);
-      expect(ProcessStatus(ProcessStatus.CANCELED).isPaused(), false);
-      expect(ProcessStatus(ProcessStatus.PAUSED).hasResults(), false);
+      expect(ProcessStatus(ProcessStatus.RESULTS).isReady, false);
+      expect(ProcessStatus(ProcessStatus.READY).isEnded, false);
+      expect(ProcessStatus(ProcessStatus.ENDED).isCanceled, false);
+      expect(ProcessStatus(ProcessStatus.CANCELED).isPaused, false);
+      expect(ProcessStatus(ProcessStatus.PAUSED).hasResults, false);
     });
   }
 
@@ -279,24 +279,24 @@ void flagsParse() {
       uniqueValues,
       [maxTotalCost, costExponent, namespace]
     ]);
-    expect(testData.getMode().value(), mode);
-    expect(testData.getEnvelopeType().value(), envelopeType);
-    expect(testData.getEntityAddress(), entityAddress);
-    expect(testData.getMetadata(), metadata);
-    expect(testData.getCensusMerkleRoot(), censusMerkleRoot);
-    expect(testData.getCensusMerkleTree(), censusMerkleTree);
-    expect(testData.getStartBlock(), startBlock);
-    expect(testData.getBlockCount(), blockCount);
-    expect(testData.getStatus().value(), status);
-    expect(testData.getQuestionIndex(), questionIndex);
-    expect(testData.getQuestionCount(), questionCount);
-    expect(testData.getMaxCount(), maxCount);
-    expect(testData.getMaxValue(), maxValue);
-    expect(testData.getMaxVoteOverwrites(), maxVoteOverwrites);
-    expect(testData.getUniqueValues(), uniqueValues);
-    expect(testData.getMaxTotalCost(), maxTotalCost);
-    expect(testData.getCostExponent(), costExponent);
-    expect(testData.getNamespace(), namespace);
+    expect(testData.getMode.value, mode);
+    expect(testData.getEnvelopeType.value, envelopeType);
+    expect(testData.getEntityAddress, entityAddress);
+    expect(testData.getMetadata, metadata);
+    expect(testData.getCensusMerkleRoot, censusMerkleRoot);
+    expect(testData.getCensusMerkleTree, censusMerkleTree);
+    expect(testData.getStartBlock, startBlock);
+    expect(testData.getBlockCount, blockCount);
+    expect(testData.getStatus.value, status);
+    expect(testData.getQuestionIndex, questionIndex);
+    expect(testData.getQuestionCount, questionCount);
+    expect(testData.getMaxCount, maxCount);
+    expect(testData.getMaxValue, maxValue);
+    expect(testData.getMaxVoteOverwrites, maxVoteOverwrites);
+    expect(testData.getUniqueValues, uniqueValues);
+    expect(testData.getMaxTotalCost, maxTotalCost);
+    expect(testData.getCostExponent, costExponent);
+    expect(testData.getNamespace, namespace);
   }
 
   void testProcessData() {
@@ -305,8 +305,8 @@ void flagsParse() {
       testSingleProcessData(
           mode: ProcessMode.make(
                   autoStart: true, interruptible: true, dynamicCensus: true)
-              .value(),
-          envelopeType: ProcessEnvelopeType.make(serial: true).value(),
+              .value,
+          envelopeType: ProcessEnvelopeType.make(serial: true).value,
           metadata: "metadata :)",
           censusMerkleRoot: "R00t",
           censusMerkleTree: "merkle treeee",

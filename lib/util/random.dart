@@ -35,8 +35,3 @@ String makeRandomNonce(int length) {
   }
   return result;
 }
-
-// Checks if the bits of a given flag are active in mode
-bool flagIsSet(int mode, flag) {
-  return mode & flag != 0;
-}
