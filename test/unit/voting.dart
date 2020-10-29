@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dvote/dvote.dart';
 import 'package:dvote_crypto/dvote_crypto.dart';
 
-void pollVoting() {
+// import '../../lib/dvote.dart';
+
+void resultsParse() {
   void testProcessResults(String fakeResponse, String state, String type,
       List<List<int>> expectedResults) {
     final Map<String, dynamic> decodedMessage = jsonDecode(fakeResponse);
@@ -40,7 +42,7 @@ void pollVoting() {
     }
   }
 
-  test("Simple poll nullifier", () async {
+  test("Process Results: Simple poll nullifier", () async {
     String address = "424797Ed6d902E17b9180BFcEF452658e148e0Ab";
 
     String processId =
@@ -52,7 +54,7 @@ void pollVoting() {
   });
 
   // test("Should retrieve a valid merkle proof if the user is eligible to vote in an election");
-  test("Should compute valid poll nullifiers", () async {
+  test("Process Results: Should compute valid poll nullifiers", () async {
     final processId =
         "0x8b35e10045faa886bd2e18636cd3cb72e80203a04e568c47205bf0313a0f60d1";
     var wallet = EthereumWallet.fromMnemonic(
@@ -87,7 +89,7 @@ void pollVoting() {
         "0x419761e28c5103fa4ddac3d575a940c683aa647c31a8ac1073c8780f4664efcb");
   });
 
-  test("Should parse valid process results", () {
+  test("Process Results: Should parse valid process results", () {
     final fakeResponse0 =
         '{"height":2,"ok":true,"request":"ZH61xq6LE3NAe73Ds5KB9A==","results":[[2]],"state":"canceled","timestamp":1600785127,"type":"poll-vote"}';
     final fakeResponse1 =
@@ -112,7 +114,7 @@ void pollVoting() {
         fakeResponse2, "ended", "encrypted-poll", expectedResults2);
   });
 
-  test("Should parse valid process results digest", () async {
+  test("Process Results: Should parse valid process results digest", () async {
     final fakeMetadata0 = ProcessMetadata();
     final fakeResults0 = ProcessResults.empty();
     ProcessMetadata_Details details = ProcessMetadata_Details();
@@ -152,11 +154,188 @@ void pollVoting() {
     testProcessResultsDigest(fakeMetadata0, fakeResults0);
     testProcessResultsDigest(fakeMetadata1, fakeResults1);
   });
+}
 
+void flagsParse() {
+  void testProcessEnvelopeType() {
+    final def = ProcessEnvelopeType(0);
+    final all = ProcessEnvelopeType.make(
+        serial: true, anonymous: true, encrypted: true);
+    final none = ProcessEnvelopeType.make(
+        serial: false, anonymous: false, encrypted: false);
+    final some = ProcessEnvelopeType.make(anonymous: true, encrypted: false);
+
+    test("Parse Process Flags: Should create and decode process envelope types",
+        () async {
+      expect(def.hasSerialVoting(), false);
+      expect(all.hasSerialVoting(), true);
+      expect(none.hasSerialVoting(), false);
+      expect(some.hasSerialVoting(), false);
+
+      expect(def.hasAnonymousVoters(), false);
+      expect(all.hasAnonymousVoters(), true);
+      expect(none.hasAnonymousVoters(), false);
+      expect(some.hasAnonymousVoters(), true);
+
+      expect(def.hasEncryptedVotes(), false);
+      expect(all.hasEncryptedVotes(), true);
+      expect(none.hasEncryptedVotes(), false);
+      expect(some.hasEncryptedVotes(), false);
+    });
+  }
+
+  void testProcessMode() {
+    final def = ProcessMode(0);
+    final all = ProcessMode.make(
+        autoStart: true,
+        interruptible: true,
+        dynamicCensus: true,
+        allowVoteOverwrite: true,
+        encryptedMetadata: true);
+    final none = ProcessMode.make(
+        autoStart: false,
+        interruptible: false,
+        dynamicCensus: false,
+        allowVoteOverwrite: false,
+        encryptedMetadata: false);
+    final some = ProcessMode.make(
+        autoStart: true, dynamicCensus: true, encryptedMetadata: true);
+
+    test("Parse Process Flags: Should create and decode process modes",
+        () async {
+      expect(def.isAutoStart(), false);
+      expect(all.isAutoStart(), true);
+      expect(none.isAutoStart(), false);
+      expect(some.isAutoStart(), true);
+
+      expect(def.isInterruptible(), false);
+      expect(all.isInterruptible(), true);
+      expect(none.isInterruptible(), false);
+      expect(some.isInterruptible(), false);
+
+      expect(def.hasDynamicCensus(), false);
+      expect(all.hasDynamicCensus(), true);
+      expect(none.hasDynamicCensus(), false);
+      expect(some.hasDynamicCensus(), true);
+
+      expect(def.allowsVoteOverwrite(), false);
+      expect(all.allowsVoteOverwrite(), true);
+      expect(none.allowsVoteOverwrite(), false);
+      expect(some.allowsVoteOverwrite(), false);
+
+      expect(def.hasEncryptedMetadata(), false);
+      expect(all.hasEncryptedMetadata(), true);
+      expect(none.hasEncryptedMetadata(), false);
+      expect(some.hasEncryptedMetadata(), true);
+    });
+  }
+
+  void testProcessStatus() {
+    test("Parse Process Flags: Should create and decode process statuses",
+        () async {
+      // Positive cases
+      expect(ProcessStatus(ProcessStatus.READY).isReady(), true);
+      expect(ProcessStatus(ProcessStatus.ENDED).isEnded(), true);
+      expect(ProcessStatus(ProcessStatus.CANCELED).isCanceled(), true);
+      expect(ProcessStatus(ProcessStatus.PAUSED).isPaused(), true);
+      expect(ProcessStatus(ProcessStatus.RESULTS).hasResults(), true);
+
+      // Negative cases
+      expect(ProcessStatus(ProcessStatus.RESULTS).isReady(), false);
+      expect(ProcessStatus(ProcessStatus.READY).isEnded(), false);
+      expect(ProcessStatus(ProcessStatus.ENDED).isCanceled(), false);
+      expect(ProcessStatus(ProcessStatus.CANCELED).isPaused(), false);
+      expect(ProcessStatus(ProcessStatus.PAUSED).hasResults(), false);
+    });
+  }
+
+  void testSingleProcessData(
+      {int mode = 0,
+      int envelopeType = 0,
+      String entityAddress = "",
+      String metadata = "",
+      String censusMerkleRoot = "",
+      String censusMerkleTree = "",
+      int startBlock = 0,
+      int blockCount = 0,
+      int status = 0,
+      int questionIndex = 0,
+      int questionCount = 0,
+      int maxCount = 0,
+      int maxValue = 0,
+      int maxVoteOverwrites = 0,
+      bool uniqueValues = false,
+      int maxTotalCost = 0,
+      int costExponent = 0,
+      int namespace = 0}) {
+    final testData = ProcessData([
+      [mode, envelopeType],
+      entityAddress,
+      [metadata, censusMerkleRoot, censusMerkleTree],
+      startBlock,
+      blockCount,
+      status,
+      [questionIndex, questionCount, maxCount, maxValue, maxVoteOverwrites],
+      uniqueValues,
+      [maxTotalCost, costExponent, namespace]
+    ]);
+    expect(testData.getMode().value(), mode);
+    expect(testData.getEnvelopeType().value(), envelopeType);
+    expect(testData.getEntityAddress(), entityAddress);
+    expect(testData.getMetadata(), metadata);
+    expect(testData.getCensusMerkleRoot(), censusMerkleRoot);
+    expect(testData.getCensusMerkleTree(), censusMerkleTree);
+    expect(testData.getStartBlock(), startBlock);
+    expect(testData.getBlockCount(), blockCount);
+    expect(testData.getStatus().value(), status);
+    expect(testData.getQuestionIndex(), questionIndex);
+    expect(testData.getQuestionCount(), questionCount);
+    expect(testData.getMaxCount(), maxCount);
+    expect(testData.getMaxValue(), maxValue);
+    expect(testData.getMaxVoteOverwrites(), maxVoteOverwrites);
+    expect(testData.getUniqueValues(), uniqueValues);
+    expect(testData.getMaxTotalCost(), maxTotalCost);
+    expect(testData.getCostExponent(), costExponent);
+    expect(testData.getNamespace(), namespace);
+  }
+
+  void testProcessData() {
+    test("Process Data: Should correctly parse a processData array", () async {
+      testSingleProcessData();
+      testSingleProcessData(
+          mode: ProcessMode.make(
+                  autoStart: true, interruptible: true, dynamicCensus: true)
+              .value(),
+          envelopeType: ProcessEnvelopeType.make(serial: true).value(),
+          metadata: "metadata :)",
+          censusMerkleRoot: "R00t",
+          censusMerkleTree: "merkle treeee",
+          startBlock: 15000,
+          blockCount: 200,
+          status: ProcessStatus.READY,
+          questionIndex: 24,
+          questionCount: 30,
+          maxCount: 3,
+          maxValue: 1,
+          maxVoteOverwrites: 1,
+          uniqueValues: true,
+          maxTotalCost: 30,
+          costExponent: 1,
+          namespace: 234239);
+    });
+  }
+
+  testProcessEnvelopeType();
+  testProcessMode();
+  testProcessStatus();
+  testProcessData();
+}
+
+void pollVoting() {
   // NOTE: Can't test on pure Dart, given that the code below depends on iOS/Android native targets
   // TODO: Move this code to the Example app
 
-  // test("Should bundle a Vote Package into a valid Vote Envelope", () async {
+  // test("Poll Voting: Should bundle a Vote Package into a valid Vote Envelope", () async {
   //   final wallet = EthereumWallet.fromMnemonic(
   //       "seven family better journey display approve crack burden run pattern filter topple");
 
@@ -200,7 +379,7 @@ void pollVoting() {
   // NOTE: Can't test on pure Dart, given that the code below depends on iOS/Android native targets
   // TODO: Move this code to the Example app
 
-  // test("Should bundle an encrypted Vote Package into a valid Vote Envelope",
+  // test("Poll Voting: Should bundle an encrypted Vote Package into a valid Vote Envelope",
   //     () async {
   //   final wallet = EthereumWallet.fromMnemonic(
   //       "seven family better journey display approve crack burden run pattern filter topple");
@@ -265,7 +444,7 @@ void pollVoting() {
   // NOTE: Can't test on pure Dart, given that the code below depends on iOS/Android native targets
   // TODO: Move this code to the Example app
 
-  // test("Should bundle a Vote Package encrypted with N keys in the right order",
+  // test("Poll Voting: Should bundle a Vote Package encrypted with N keys in the right order",
   //     () async {
   //   final wallet = EthereumWallet.fromMnemonic(
   //       "seven family better journey display approve crack burden run pattern filter topple");

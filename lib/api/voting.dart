@@ -15,6 +15,7 @@ import 'package:dvote/wrappers/process-keys.dart';
 import 'package:dvote_crypto/dvote_crypto.dart';
 
 import '../net/gateway-pool.dart';
+import '../util/random.dart';
 import "./entity.dart";
 import '../models/build/dart/metadata/entity.pb.dart';
 import '../models/build/dart/metadata/process.pb.dart';
@@ -23,86 +24,337 @@ import '../constants.dart';
 
 // ENUMS AND WRAPPERS
 
-// class ProcessEnvelopeType {
-//   final int type;
-//   ProcessEnvelopeType(this.type);
+class ProcessEnvelopeType {
+  final int type;
+  ProcessEnvelopeType(this.type) {
+    final allFlags = ProcessEnvelopeType.SERIAL |
+        ProcessEnvelopeType.ANONYMOUS |
+        ProcessEnvelopeType.ENCRYPTED;
+    if (this.type > allFlags) {
+      throw Exception("ProcessEnvelopeType ${this.type} is invalid");
+    }
+  }
 
-//   static const REALTIME_POLL = 0;
-//   static const PETITION_SIGNING = 1;
-//   static const ENCRYPTED_POLL = 4;
-//   static const ENCRYPTED_PRIVATE_POLL = 6;
-//   static const REALTIME_ELECTION = 8;
-//   static const PRIVATE_ELECTION = 10;
-//   static const ELECTION = 12;
-//   static const REALTIME_PRIVATE_ELECTION = 14;
+  ProcessEnvelopeType.make(
+      {bool serial = false, anonymous = false, encrypted = false})
+      : type = 0 |
+            (serial ? ProcessEnvelopeType.SERIAL : 0) |
+            (anonymous ? ProcessEnvelopeType.ANONYMOUS : 0) |
+            (encrypted ? ProcessEnvelopeType.ENCRYPTED : 0);
 
-//   bool isRealtimePoll() => type == ProcessEnvelopeType.REALTIME_POLL;
-//   bool isPetitionSigning() => type == ProcessEnvelopeType.PETITION_SIGNING;
-//   bool isEncryptedPoll() => type == ProcessEnvelopeType.ENCRYPTED_POLL;
-//   bool isEncryptedPrivatePoll() =>
-//       type == ProcessEnvelopeType.ENCRYPTED_PRIVATE_POLL;
-//   bool isRealtimeElection() => type == ProcessEnvelopeType.REALTIME_ELECTION;
-//   bool isPrivateElection() => type == ProcessEnvelopeType.PRIVATE_ELECTION;
-//   bool isElection() => type == ProcessEnvelopeType.ELECTION;
-//   bool isRealtimePrivateElection() =>
-//       type == ProcessEnvelopeType.REALTIME_PRIVATE_ELECTION;
+  int value() {
+    return this.type;
+  }
 
-//   bool isRealtime() =>
-//       type == ProcessEnvelopeType.REALTIME_POLL ||
-//       type == ProcessEnvelopeType.REALTIME_ELECTION ||
-//       type == ProcessEnvelopeType.REALTIME_PRIVATE_ELECTION;
-// }
+  //  By default, all votes are sent within a single envelope. When set, the process questions are voted one by one (enables `questionIndex`).
+  static const SERIAL = 1 << 0;
+  //  By default, the franchise proof relies on an ECDSA signature (this could reveal the voter's identity). When set, the franchise proof will use ZK-Snarks.
+  static const ANONYMOUS = 1 << 1;
+  //  By default, votes are sent unencrypted. When the flag is set, votes are sent encrypted and become public when the process ends.
+  static const ENCRYPTED = 1 << 2;
 
-// class ProcessMode {
-//   final int mode;
-//   ProcessMode(this.mode);
+  // Returns true if the process expects one envelope to be sent for each question.
+  bool hasSerialVoting() => flagIsSet(type, ProcessEnvelopeType.SERIAL);
+  //  Returns true if franchise proofs use ZK-Snarks.
+  bool hasAnonymousVoters() => flagIsSet(type, ProcessEnvelopeType.ANONYMOUS);
+  //  Returns true if envelopes are to be sent encrypted.
+  bool hasEncryptedVotes() => flagIsSet(type, ProcessEnvelopeType.ENCRYPTED);
+}
 
-//   static const SCHEDULED_SINGLE_ENVELOPE = 0;
-//   static const ON_DEMAND_SINGLE_ENVELOPE = 1;
+class ProcessMode {
+  final int mode;
+  ProcessMode(this.mode) {
+    final allFlags = ProcessMode.AUTO_START |
+        ProcessMode.INTERRUPTIBLE |
+        ProcessMode.DYNAMIC_CENSUS |
+        ProcessMode.ALLOW_VOTE_OVERWRITE |
+        ProcessMode.ENCRYPTED_METADATA;
+    if (this.mode > allFlags) {
+      throw Exception("ProcessMode ${this.mode} is invalid");
+    }
+  }
 
-//   bool isScheduled() => mode == ProcessMode.SCHEDULED_SINGLE_ENVELOPE;
-//   bool isOnDemand() => mode == ProcessMode.ON_DEMAND_SINGLE_ENVELOPE;
-//   bool isSingleEnvelope() =>
-//       mode == ProcessMode.SCHEDULED_SINGLE_ENVELOPE ||
-//       mode == ProcessMode.ON_DEMAND_SINGLE_ENVELOPE;
-// }
+  ProcessMode.make(
+      {bool autoStart = false,
+      interruptible = false,
+      dynamicCensus = false,
+      allowVoteOverwrite = false,
+      encryptedMetadata = false})
+      : mode = 0 |
+            (autoStart ? ProcessMode.AUTO_START : 0) |
+            (interruptible ? ProcessMode.INTERRUPTIBLE : 0) |
+            (dynamicCensus ? ProcessMode.DYNAMIC_CENSUS : 0) |
+            (allowVoteOverwrite ? ProcessMode.ALLOW_VOTE_OVERWRITE : 0) |
+            (encryptedMetadata ? ProcessMode.ENCRYPTED_METADATA : 0);
 
-// class ProcessStatus {
-//   final int status;
-//   ProcessStatus(this.status);
+  int value() {
+    return this.mode;
+  }
 
-//   static const OPEN = 0;
-//   static const ENDED = 1;
-//   static const CANCELED = 2;
-//   static const PAUSED = 3;
+  //  By default, the process is started on demand (PAUSED). If set, the process will sIf set, the process will work like `status=PAUSED` before `startBlock` and like `status=ENDED` after `startBlock + blockCount`. The process works on demand, by default.tart as READY and the Vochain will allow incoming votes after `startBlock`
+  static const AUTO_START = 1 << 0;
+  //  By default, the process can't be paused, ended or canceled. If set, the process can be paused, ended or canceled by the creator.
+  static const INTERRUPTIBLE = 1 << 1;
+  //  By default, the census is immutable. When set, the creator can update the census while the process remains `READY` or `PAUSED`.
+  static const DYNAMIC_CENSUS = 1 << 2;
+  // By default, the first valid vote is final. If set, users will be allowed to vote up to `maxVoteOverwrites` times and the last valid vote will be counted.
+  static const ALLOW_VOTE_OVERWRITE = 1 << 3;
+  //  By default, the metadata is not encrypted. If set, clients should fetch the decryption key before trying to display the metadata.
+  static const ENCRYPTED_METADATA = 1 << 4;
+  //  Returns true if the Vochain will not allow votes until `startBlock`.
+  bool isAutoStart() => flagIsSet(mode, ProcessMode.AUTO_START);
+  //  Returns true if the process can be paused, ended and canceled by the creator.
+  bool isInterruptible() => flagIsSet(mode, ProcessMode.INTERRUPTIBLE);
+  //  Returns true if the census can be updated by the creator.
+  bool hasDynamicCensus() => flagIsSet(mode, ProcessMode.DYNAMIC_CENSUS);
+  /** Returns true if voters can overwrite their last vote. */
+  bool allowsVoteOverwrite() =>
+      flagIsSet(mode, ProcessMode.ALLOW_VOTE_OVERWRITE);
+  //  Returns true if the process metadata is expected to be encrypted.
+  bool hasEncryptedMetadata() =>
+      flagIsSet(mode, ProcessMode.ENCRYPTED_METADATA);
+}
 
-//   bool isOpen() => status == ProcessStatus.OPEN;
-//   bool isEnded() => status == ProcessStatus.ENDED;
-//   bool isCanceled() => status == ProcessStatus.CANCELED;
-//   bool isPaused() => status == ProcessStatus.PAUSED;
-// }
+class ProcessStatus {
+  final int status;
+  ProcessStatus(this.status) {
+    if (!processStatusValues.contains(this.status)) {
+      throw Exception("ProcessStatus ${this.status} is invalid");
+    }
+  }
 
-class ProcessContractGetResultIdx {
-  // static const ENVELOPE_TYPE = 0; // See EnvelopeTypes above
-  // static const PROCESS_MODE = 1; // See ProcessModes above
-  // static const ENTITY_ADDRESS = 2;
-  // static const START_BLOCK = 3;
-  // static const NUMBER_OF_BLOCKS = 4;
-  // static const METADATA_CONTENT_URI = 5;
-  // static const MERKLE_ROOT = 6;
-  // static const MERKLE_TREE_CONTENT_URI = 7;
-  // static const PROCESS_STATUS = 8; // See ProcessStatus above
+  int value() {
+    return this.status;
+  }
 
-  // TODO: Use the fields above
-  static const PROCESS_TYPE = 0;
+  // The process is ready to accept votes, according to `AUTO_START`, `startBlock` and `blockCount`.
+  static const READY = 0;
+  // The creator has ended the process and the results will be available soon.
+  static const ENDED = 1;
+  // The process has been canceled. Results will not be available anytime.
+  static const CANCELED = 2;
+  // The process is temporarily paused and votes are not accepted at the time. It might be resumed in the future.
+  static const PAUSED = 3;
+  // The process is ended and its results are available.
+  static const RESULTS = 4;
+
+  static const processStatusValues = [
+    ProcessStatus.READY,
+    ProcessStatus.ENDED,
+    ProcessStatus.CANCELED,
+    ProcessStatus.PAUSED,
+    ProcessStatus.RESULTS,
+  ];
+
+  bool isReady() => status == ProcessStatus.READY;
+  bool isEnded() => status == ProcessStatus.ENDED;
+  bool isCanceled() => status == ProcessStatus.CANCELED;
+  bool isPaused() => status == ProcessStatus.PAUSED;
+  bool hasResults() => status == ProcessStatus.RESULTS;
+}
+
+class ProcessContractGetIdx {
+  // First-level array indexes
+  // MODE, ENVELOPE_TYPE [2]uint8
+  static const MODE_ENVELOPE_TYPE = 0;
+  // ENTITY_ADDRESS address
   static const ENTITY_ADDRESS = 1;
-  static const START_BLOCK = 2;
-  static const NUMBER_OF_BLOCKS = 3;
-  static const METADATA_CONTENT_URI = 4;
-  static const MERKLE_ROOT = 5;
-  static const MERKLE_TREE_CONTENT_URI = 6;
-  static const ENCRYPTION_PRIVATE_KEY = 7;
-  static const CANCELED = 8;
+  //METADATA, CENSUS_MERKLE_ROOT, CENSUS_MERKLE_TREE [3]string
+  static const METADATA_CENSUS_MERKLE_ROOT_CENSUS_MERKLE_TREE = 2;
+// START_BLOCK uint64
+  static const START_BLOCK = 3;
+// BLOCK_COUNT uint32
+  static const BLOCK_COUNT = 4;
+// STATUS ProcessStatus
+  static const STATUS = 5;
+// QUESTION_INDEX, QUESTION_COUNT, MAX_COUNT, MAX_VALUE, MAX_VOTE_OVERWRITES [5]uint8
+  static const QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES =
+      6;
+  // UNIQUE_VALUES: bool
+  static const UNIQUE_VALUES = 7;
+  // MAX_TOTAL_COST, COST_EXPONENT, NAMESPACE [3]uint16
+  static const MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE = 8;
+
+  // Second-level array indexes
+
+  // MODE, ENVELOPE_TYPE [2]uint8
+  static const MODE = 0;
+  static const ENVELOPE_TYPE = 1;
+
+  //METADATA, CENSUS_MERKLE_ROOT, CENSUS_MERKLE_TREE [3]string
+  static const METADATA = 0;
+  static const CENSUS_MERKLE_ROOT = 1;
+  static const CENSUS_MERKLE_TREE = 2;
+
+// QUESTION_INDEX, QUESTION_COUNT, MAX_COUNT, MAX_VALUE, MAX_VOTE_OVERWRITES [5]uint8
+  static const QUESTION_INDEX = 0;
+  static const QUESTION_COUNT = 1;
+  static const MAX_COUNT = 2;
+  static const MAX_VALUE = 3;
+  static const MAX_VOTE_OVERWRITES = 4;
+
+  // MAX_TOTAL_COST, COST_EXPONENT, NAMESPACE [3]uint16
+  static const MAX_TOTAL_COST = 0;
+  static const COST_EXPONENT = 1;
+  static const NAMESPACE = 2;
+}
+
+class ProcessData {
+  List<dynamic> data;
+
+  ProcessData(this.data) {
+    if (!(this.data is List)) this.data = null;
+  }
+
+  // First-level array indexes:
+  List getModeEnvelopeType() {
+    if (data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE] is! List) return null;
+    return data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE];
+  }
+
+//TODO should this be an address type?
+  String getEntityAddress() {
+    if (data[ProcessContractGetIdx.ENTITY_ADDRESS] is! String) return null;
+    return data[ProcessContractGetIdx.ENTITY_ADDRESS];
+  }
+
+  List getMetadataCensusMerkleRootCensusMerkleTree() {
+    if (data[ProcessContractGetIdx
+        .METADATA_CENSUS_MERKLE_ROOT_CENSUS_MERKLE_TREE] is! List) return null;
+    return data[
+        ProcessContractGetIdx.METADATA_CENSUS_MERKLE_ROOT_CENSUS_MERKLE_TREE];
+  }
+
+// TODO should this be a BigInt?
+  int getStartBlock() {
+    if (data[ProcessContractGetIdx.START_BLOCK] is! int) return null;
+    return data[ProcessContractGetIdx.START_BLOCK];
+  }
+
+  int getBlockCount() {
+    if (data[ProcessContractGetIdx.BLOCK_COUNT] is! int) return null;
+    return data[ProcessContractGetIdx.BLOCK_COUNT];
+  }
+
+  ProcessStatus getStatus() {
+    if (data[ProcessContractGetIdx.STATUS] is! int) return null;
+    return ProcessStatus(data[ProcessContractGetIdx.STATUS]);
+  }
+
+  List getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites() {
+    if (data[ProcessContractGetIdx
+            .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES]
+        is! List) return null;
+    return data[ProcessContractGetIdx
+        .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES];
+  }
+
+  bool getUniqueValues() {
+    if (data[ProcessContractGetIdx.UNIQUE_VALUES] is! bool) return null;
+    return data[ProcessContractGetIdx.UNIQUE_VALUES];
+  }
+
+  List getMaxTotalCostCostExponentNamespace() {
+    if (data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE]
+        is! List) return null;
+    return data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE];
+  }
+
+  // Second-level array indexes
+  ProcessMode getMode() {
+    final list = getModeEnvelopeType();
+    if (list == null || list[ProcessContractGetIdx.MODE] is! int) return null;
+    return ProcessMode(list[ProcessContractGetIdx.MODE]);
+  }
+
+  ProcessEnvelopeType getEnvelopeType() {
+    final list = getModeEnvelopeType();
+    if (list == null || list[ProcessContractGetIdx.ENVELOPE_TYPE] is! int)
+      return null;
+    return ProcessEnvelopeType(list[ProcessContractGetIdx.ENVELOPE_TYPE]);
+  }
+
+  String getMetadata() {
+    final list = getMetadataCensusMerkleRootCensusMerkleTree();
+    if (list == null || list[ProcessContractGetIdx.METADATA] is! String)
+      return null;
+    return list[ProcessContractGetIdx.METADATA];
+  }
+
+  String getCensusMerkleRoot() {
+    final list = getMetadataCensusMerkleRootCensusMerkleTree();
+    if (list == null ||
+        list[ProcessContractGetIdx.CENSUS_MERKLE_ROOT] is! String) return null;
+    return list[ProcessContractGetIdx.CENSUS_MERKLE_ROOT];
+  }
+
+  String getCensusMerkleTree() {
+    final list = getMetadataCensusMerkleRootCensusMerkleTree();
+    if (list == null ||
+        list[ProcessContractGetIdx.CENSUS_MERKLE_TREE] is! String) return null;
+    return list[ProcessContractGetIdx.CENSUS_MERKLE_TREE];
+  }
+
+  int getQuestionIndex() {
+    final list =
+        getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites();
+    if (list == null || list[ProcessContractGetIdx.QUESTION_INDEX] is! int)
+      return null;
+    return list[ProcessContractGetIdx.QUESTION_INDEX];
+  }
+
+  int getQuestionCount() {
+    final list =
+        getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites();
+    if (list == null || list[ProcessContractGetIdx.QUESTION_COUNT] is! int)
+      return null;
+    return list[ProcessContractGetIdx.QUESTION_COUNT];
+  }
+
+  int getMaxCount() {
+    final list =
+        getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites();
+    if (list == null || list[ProcessContractGetIdx.MAX_COUNT] is! int)
+      return null;
+    return list[ProcessContractGetIdx.MAX_COUNT];
+  }
+
+  int getMaxValue() {
+    final list =
+        getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites();
+    if (list == null || list[ProcessContractGetIdx.MAX_VALUE] is! int)
+      return null;
+    return list[ProcessContractGetIdx.MAX_VALUE];
+  }
+
+  int getMaxVoteOverwrites() {
+    final list =
+        getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites();
+    if (list == null || list[ProcessContractGetIdx.MAX_VOTE_OVERWRITES] is! int)
+      return null;
+    return list[ProcessContractGetIdx.MAX_VOTE_OVERWRITES];
+  }
+
+  int getMaxTotalCost() {
+    final list = getMaxTotalCostCostExponentNamespace();
+    if (list == null || list[ProcessContractGetIdx.MAX_TOTAL_COST] is! int)
+      return null;
+    return list[ProcessContractGetIdx.MAX_TOTAL_COST];
+  }
+
+  int getCostExponent() {
+    final list = getMaxTotalCostCostExponentNamespace();
+    if (list == null || list[ProcessContractGetIdx.COST_EXPONENT] is! int)
+      return null;
+    return list[ProcessContractGetIdx.COST_EXPONENT];
+  }
+
+  int getNamespace() {
+    final list = getMaxTotalCostCostExponentNamespace();
+    if (list == null || list[ProcessContractGetIdx.NAMESPACE] is! int)
+      return null;
+    return list[ProcessContractGetIdx.NAMESPACE];
+  }
 }
 
 class BlockStatus {
@@ -173,22 +425,17 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
   return Future.wait(processIds.map((strProcessId) async {
     try {
       final processId = hex.decode(strProcessId.substring(2));
-      final processData =
-          await gw.callMethod("get", [processId], ContractEnum.Process);
+      final processData = ProcessData(
+          await gw.callMethod("get", [processId], ContractEnum.Process));
 
-      if (!(processData is List) ||
-          !(processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI]
-              is String)) return null;
-      // // TODO: USE PROCESS_STATUS INSTEAD OF CANCELED
-      // else if (processData[ProcessContractGetResultIdx.CANCELED] is bool &&
-      //     processData[ProcessContractGetResultIdx.CANCELED] == true)
-      //   return null;
-      // else if (processData[ProcessContractGetResultIdx.PROCESS_STATUS] is int &&
-      //     processData[ProcessContractGetResultIdx.PROCESS_STATUS] ==
+      if (processData.getMetadata() is! String) return null;
+
+      //TODO this functionality was in the code, commented-out. But why would we want to return no metadata just because a process is cancelled?
+      // if (processData[ProcessContractGetResultIdx.STATUS] is int &&
+      //     processData[ProcessContractGetResultIdx.STATUS] ==
       //         ProcessStatus.CANCELED) return null;
 
-      final metadataUri = ContentURI(
-          processData[ProcessContractGetResultIdx.METADATA_CONTENT_URI]);
+      final metadataUri = ContentURI(processData.getMetadata());
       final String strMetadata = await fetchFileString(metadataUri, gw);
 
       return parseProcessMetadata(strMetadata);
@@ -199,60 +446,53 @@ Future<List<ProcessMetadata>> getProcessesMetadata(
   })).then((result) => result.whereType<ProcessMetadata>().toList());
 }
 
-// TODO: UNCOMMENT
-// /// Fetch the envelope type defined for the given Process ID
-// Future<ProcessEnvelopeType> getProcessEnvelopeType(
-//     String processId, GatewayPool gw) async {
-//   try {
-//     final pid = hex.decode(processId.substring(2));
-//     final processData =
-//         await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+// Fetch the envelope type defined for the given Process ID
+Future<ProcessEnvelopeType> getProcessEnvelopeType(
+    String processId, GatewayPool gw) async {
+  try {
+    final pid = hex.decode(processId.substring(2));
+    final processData =
+        ProcessData(await gw.callMethod("get", [pid], ContractEnum.Process));
 
-//     if (processData[ProcessContractGetResultIdx.ENVELOPE_TYPE] is int)
-//       return ProcessEnvelopeType(
-//           processData[ProcessContractGetResultIdx.ENVELOPE_TYPE]);
-//     return null;
-//   } catch (err) {
-//     if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
-//     return null;
-//   }
-// }
+    if (processData.getEnvelopeType is ProcessEnvelopeType)
+      return processData.getEnvelopeType();
+    return null;
+  } catch (err) {
+    print("ERROR Fetching Process metadata: $err");
+    return null;
+  }
+}
 
-// TODO: UNCOMMENT
-// /// Fetch the mode defined for the given Process ID
-// Future<ProcessMode> getProcessMode(String processId, GatewayPool gw) async {
-//   try {
-//     final pid = hex.decode(processId.substring(2));
-//     final processData =
-//         await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+// Fetch the mode defined for the given Process ID
+Future<ProcessMode> getProcessMode(String processId, GatewayPool gw) async {
+  try {
+    final pid = hex.decode(processId.substring(2));
+    final processData =
+        ProcessData(await gw.callMethod("get", [pid], ContractEnum.Process));
 
-//     if (processData[ProcessContractGetResultIdx.PROCESS_MODE] is int)
-//       return ProcessMode(processData[ProcessContractGetResultIdx.PROCESS_MODE]);
-//     return null;
-//   } catch (err) {
-//     if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
-//     return null;
-//   }
-// }
+    if (processData.getMode() is ProcessMode) return processData.getMode();
+    return null;
+  } catch (err) {
+    print("ERROR Fetching Process metadata: $err");
+    return null;
+  }
+}
 
-// TODO: UNCOMMENT
-// /// Fetch the status for the given Process ID
-// Future<ProcessStatus> getProcessStatus(
-//     String processId, GatewayPool gw) async {
-//   try {
-//     final pid = hex.decode(processId.substring(2));
-//     final processData =
-//         await callVotingProcessMethod(web3Gw.rpcUri, "get", [pid]);
+// Fetch the status for the given Process ID
+Future<ProcessStatus> getProcessStatus(String processId, GatewayPool gw) async {
+  try {
+    final pid = hex.decode(processId.substring(2));
+    final processData =
+        ProcessData(await gw.callMethod("get", [pid], ContractEnum.Process));
 
-//     if (processData[ProcessContractGetResultIdx.PROCESS_STATUS] is int)
-//       return ProcessStatus(
-//           processData[ProcessContractGetResultIdx.PROCESS_STATUS]);
-//     return null;
-//   } catch (err) {
-//     if (kReleaseMode) print("ERROR Fetching Process metadata: $err");
-//     return null;
-//   }
-// }
+    if (processData.getStatus() is ProcessStatus)
+      return processData.getStatus();
+    return null;
+  } catch (err) {
+    print("ERROR Fetching Process metadata: $err");
+    return null;
+  }
+}
 
 /// Returns number of existing blocks in the blockchain
 Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {

@@ -1,4 +1,3 @@
-
 import "./unit/metadata.dart";
 import "./net/ens.dart";
 import "./net/bootnodes.dart";
@@ -8,6 +7,8 @@ import "./unit/voting.dart";
 
 void main() {
   pollVoting();
+  resultsParse();
+  flagsParse();
   dataModels();
 
   ens();
