@@ -10,7 +10,6 @@ import 'package:http/http.dart' as http;
 
 import '../models/dart/gateway.pb.dart';
 import '../util/parsers.dart';
-// import 'package:flutter/foundation.dart'; // for kReleaseMode
 
 final random = Random.secure();
 
