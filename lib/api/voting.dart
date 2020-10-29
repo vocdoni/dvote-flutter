@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:dvote/net/gateway-web3.dart';
+import 'package:dvote/util/json-content.dart';
 import 'package:dvote/util/random.dart';
 import 'package:dvote/util/waiters.dart';
 import 'package:dvote/wrappers/process-results.dart';
@@ -744,6 +745,10 @@ Future<Map<String, dynamic>> packageSignedEnvelope(List<int> votes,
       package["encryptionKeyIndexes"] = packageValues["keyIndexes"];
     }
 
+    // Important: Sorting the JSON data itself, the same way that it will be signed later on
+    package = sortJsonFields(package);
+
+    // Sign the vote package
     final signature =
         await JSONSignature.signJsonPayloadAsync(package, signingPrivateKey);
     package["signature"] = signature;

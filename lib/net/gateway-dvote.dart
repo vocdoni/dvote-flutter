@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:developer';
+import 'package:dvote/util/json-content.dart';
 import 'package:dvote/util/json-signature.dart';
 import 'package:dvote/util/random.dart';
 import 'package:dvote/util/timestamp.dart';
@@ -85,7 +86,8 @@ class DVoteGateway {
 
     Map<String, dynamic> requestPayload = {
       "id": id,
-      "request": requestBody,
+      // Important: Sorting the JSON data itself, the same way that it will be signed later on
+      "request": sortJsonFields(requestBody),
       "signature": ""
     };
 

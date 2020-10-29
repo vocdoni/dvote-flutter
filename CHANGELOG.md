@@ -1,3 +1,7 @@
+## 0.18.2
+
+- Ensure that signed messages are sorted the same way that they are signed
+
 ## 0.18.1
 
 - Temporary dvote-crypto backoff: Using pure Dart until an iOS issue is addressed, failing to bundle native code when packaged for app store distribution
