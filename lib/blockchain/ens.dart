@@ -4,6 +4,8 @@ import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 import 'package:web3dart/crypto.dart';
 
+import '../constants.dart';
+
 // Adapted from https://github.com/ethers-io/ethers.js/blob/b0bd9ee162f27fb2bc51ab6a0c0694c3b48dc95f/src.ts/providers/base-provider.ts
 
 // CONSTANTS
@@ -58,35 +60,27 @@ Future<String> getResolver(String domain, String gatewayUri,
   NetworkInfo networkInfo;
   switch (response.result) {
     case "1":
-      networkInfo = NetworkInfo(
-          "homestead", 1, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e");
+      networkInfo = NetworkInfo("homestead", 1, WELL_KNOWN_ENS_REGISTRY);
       break;
     case "2":
-      networkInfo = NetworkInfo(
-          "modern", 2, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e");
+      networkInfo = NetworkInfo("modern", 2, WELL_KNOWN_ENS_REGISTRY);
       break;
     case "3":
-      networkInfo = NetworkInfo(
-          "ropsten", 3, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e");
+      networkInfo = NetworkInfo("ropsten", 3, WELL_KNOWN_ENS_REGISTRY);
       break;
     case "4":
-      networkInfo = NetworkInfo(
-          "rinkeby", 4, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e");
+      networkInfo = NetworkInfo("rinkeby", 4, WELL_KNOWN_ENS_REGISTRY);
       break;
     case "5":
-      networkInfo = NetworkInfo(
-          "goerli", 5, "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e");
+      networkInfo = NetworkInfo("goerli", 5, WELL_KNOWN_ENS_REGISTRY);
       break;
     case "100":
       networkInfo = useTestingContracts
-          ? NetworkInfo(
-              "xdai", 100, "0x9e638E90c8CdFaC1297EF261859E25c9d8438F1a")
-          : NetworkInfo(
-              "xdai", 100, "0x00cEBf9E1E81D3CC17fbA0a49306EBA77a8F26cD");
+          ? NetworkInfo("xdai", 100, XDAI_TESTING_ENS_REGISTRY)
+          : NetworkInfo("xdai", 100, XDAI_ENS_REGISTRY);
       break;
     case "77":
-      networkInfo = NetworkInfo(
-          "sokol", 77, "0x43541c49308bF2956d3893836F5AF866fd78A295");
+      networkInfo = NetworkInfo("sokol", 77, SOKOL_ENS_REGISTRY);
       break;
     default:
       throw Exception("Unsupported network: ${response.result}");
