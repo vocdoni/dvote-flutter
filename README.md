@@ -1,6 +1,6 @@
 # DVote Flutter
 
-A Flutter plugin that provides cryptographic and communication capabilities to interact with decentralized governance processes running on the Vocdoni platform.
+A Flutter plugin that provides communication capabilities to interact with decentralized governance processes running on the Vocdoni platform.
 
 It provides Dart libraries as well as native modules written in Go.
 
@@ -8,59 +8,23 @@ More details: https://pub.dev/packages/dvote
 
 # DVote example
 
-* [Getting Started](#getting-started)
-* [HD Wallet management](#hd-wallet-management)
-* [Signing](#signing)
-* [Encryption](#encryption)
-* [Entity API](#entity-api)
-* [File API](#file-api)
-* [Data models](#data-models)
+- [DVote Flutter](#dvote-flutter)
+- [DVote example](#dvote-example)
+  - [Getting Started](#getting-started)
+  - [Entity API](#entity-api)
+  - [Process API](#process-api)
+  - [File API](#file-api)
+  - [Data models and storage](#data-models-and-storage)
+    - [Classes](#classes)
+    - [Parsers](#parsers)
+  - [Example](#example)
+  - [Development](#development)
 
 ## Getting Started
 Import the Dart library on your project and use the static functions available on the `Dvote` class
 
 ```dart
 import 'package:dvote/dvote.dart';
-```
-
-## HD Wallet management
-Generating mnemonics and computing private/public keys
-
-```dart
-final wallet = EthereumWallet.random(hdPath: "m/44'/60'/0'/0/5");
-final mnemonic = wallet.mnemonic;
-final privKey = wallet.privateKey;
-final pubKey = wallet.publicKey;
-final addr = wallet.address;
-```
-
-## Signing
-Computing signatures using ECDSA cryptography
-
-```dart
-// Signing plain text
-final hexSignature = signString(messageToSign, privateKey);
-final recoveredPubKey = recoverSignerPubKey(hexSignature, messageToSign);
-final valid = isValidSignature(hexSignature, messageToSign, publicKey);
-
-// Signing reproduceable JSON data
-final hexSignature2 = signJsonPayload({"hello": 1234}, privateKey);
-final recoveredPubKey = recoverJsonSignerPubKey(hexSignature2, {"hello": 1234});
-final valid2 = isValidJsonSignature(hexSignature2, {"hello": 1234}, publicKey);
-```
-
-Also available as async non-UI blocking functions:
-
-```dart
-// Signing plain text
-final hexSignature = await signStringAsync(messageToSign, privateKey);
-final recoveredPubKey = await recoverSignerPubKeyAsync(hexSignature, messageToSign);
-final valid = await isValidSignatureAsync(hexSignature, messageToSign, publicKey);
-
-// Signing reproduceable JSON data
-final hexSignature2 = await signJsonPayloadAsync({"hello": 1234}, privateKey);
-final recoveredPubKey = await recoverJsonSignerPubKeyAsync(hexSignature2, {"hello": 1234});
-final valid2 = await isValidJsonSignatureAsync(hexSignature2, {"hello": 1234}, publicKey);
 ```
 
 ## Entity API
@@ -152,43 +116,52 @@ await file2.writeAsBytes(store.writeToBuffer());
 The following classes are exported:
 
 - Entity
-  - EntityStore
-  - Entity_VotingProcesses
-  - Entity_Media
-  - Entity_Action_ImageSource
-  - Entity_Action
-  - Entity_GatewayBootNode
-  - Entity_GatewyUpdate
-  - Entity_Relay
-  - Entity_EntityReference
-  - EntitySummary
+  - EntityMetadataStore
+  - EntityMetadata
+  - EntityMetadata_VotingProcesses
+  - EntityMetadata_Media
+  - EntityMetadata_Action
+  - EntityMetadata_Action_ImageSource
+  - EntityMetadata_EntityReference
 - Process
-  - Process_Census
-  - Process_Details
-  - Process_Details_Question
-  - Process_Details_Question_VoteOption
+  - ProcessMetadataStore
+  - ProcessMetadata
+  - ProcessMetadata_Census
+  - ProcessMetadata_Details
+  - ProcessMetadata_Details_Question
+  - ProcessMetadata_Details_Question_VoteOption
 - Feed
   - FeedsStore
-  - FeedPost_Author
+  - Feed
   - FeedPost
+  - FeedPost_Author
 - Gateway
-  - GatewaysStore
+  - BootNodeGateways
+  - BootNodeGateways_NetworkNodes
+  - BootNodeGateways_NetworkNodes_DVote
+  - BootNodeGateways_NetworkNodes_Web3
 - Identity
   - IdentitiesStore
+  - Identity
+  - Identity_Peers
   - Identity_Claim
+  - PeerIdentity
 - Key
 
 ### Parsers
 
 Raw JSON data can't be directly serialized into a Protobuf object. For this reason, several parsers are provided:
 
-- `Entity parseEntityMetadata(String json)`
+- `EntityMetadata parseEntityMetadata(String json)`
   - `List<Entity_Action> parseEntityActions(List actions)`
-  - `List<Entity_GatewayBootNode> parseBootNodes(List bootNodes)`
   - `List<Entity_EntityReference> parseEntityReferences(List entities)`
-- `Process parseProcessMetadata(String json)`
-  - `List<Process_Details_Question> parseQuestions(List items)`
+- `ProcessMetadata parseProcessMetadata(String json)`
+  - `List<Process_Details_Question> _parseQuestions(List items)`
+- `ProcessResults parseProcessResults(Map<String, dynamic> response)`
+- `ProcessResultsDigested parseProcessResultsDigested(ProcessResults rawResults, ProcessMetadata processMetadata)`
 - `Feed parseFeed(String json)`
+- `BootNodeGateways parseBootnodeInfo(String json)`
+  - `BootNodeGateways_NetworkNodes _parseBootnodeNetworkItems(Map item)` 
 
 ## Example
 
@@ -198,8 +171,4 @@ Raw JSON data can't be directly serialized into a Protobuf object. For this reas
 
 - Clone the git repo
 - Run `flutter pub get`
-- Run `submodule update --init --recursive` to fetch the protobuf subrepo
-
-## TO DO
-
-- [ ] Document examples of Poseidon hash, generate Merkle Proofs and ZK proofs
+- Run `git submodule update --init --recursive` to fetch the protobuf subrepo
