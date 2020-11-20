@@ -77,7 +77,6 @@ Future<BootNodeGateways> fetchBootnodeInfo(String bootnodeUri) async {
 
     return parseBootnodeInfo(response.body);
   } catch (err) {
-    log(err);
     throw err;
   }
 }
