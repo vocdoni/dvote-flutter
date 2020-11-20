@@ -1,3 +1,6 @@
+## 0.18.3
+
+- Remove buggy log statement in bootnodes.dart
 ## 0.18.2
 
 - Ensure that signed messages are sorted the same way that they are signed
