@@ -98,7 +98,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.18.2"
+    version: "0.18.4"
   dvote_crypto:
     dependency: transitive
     description:

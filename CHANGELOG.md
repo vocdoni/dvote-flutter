@@ -1,6 +1,11 @@
+## 0.18.4
+
+- Setting the base block time to 12 seconds
+
 ## 0.18.3
 
 - Remove buggy log statement in bootnodes.dart
+
 ## 0.18.2
 
 - Ensure that signed messages are sorted the same way that they are signed

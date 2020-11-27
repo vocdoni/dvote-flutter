@@ -491,7 +491,15 @@ Future<int> estimateBlockAtDateTime(DateTime targetDate, GatewayPool gw) async {
     // status.blockTime => [1m, 10m, 1h, 6h, 24h]
 
     if (dateDiff >= 1000 * 60 * 60 * 24) {
-      if (blockTimes[4] > 0) averageBlockTime = blockTimes[4].toDouble();
+      if (blockTimes[4] > 0)
+        averageBlockTime = blockTimes[4].toDouble();
+      else if (blockTimes[3] > 0)
+        averageBlockTime = blockTimes[3].toDouble();
+      else if (blockTimes[2] > 0)
+        averageBlockTime = blockTimes[2].toDouble();
+      else if (blockTimes[1] > 0)
+        averageBlockTime = blockTimes[1].toDouble();
+      else if (blockTimes[0] > 0) averageBlockTime = blockTimes[0].toDouble();
     } else if (dateDiff >= 1000 * 60 * 60 * 6) {
       // 1000 * 60 * 60 * 6 <= dateDiff < 1000 * 60 * 60 * 24
       final pivot = (dateDiff - 1000 * 60 * 60 * 6) / (1000 * 60 * 60);
@@ -500,13 +508,13 @@ Future<int> estimateBlockAtDateTime(DateTime targetDate, GatewayPool gw) async {
 
       if (blockTimes[4] > 0 && blockTimes[3] > 0) {
         averageBlockTime = weightA * blockTimes[3] + weightB * blockTimes[4];
-      } else if (blockTimes[4] > 0) {
-        averageBlockTime =
-            weightA * VOCHAIN_BLOCK_TIME * 1000 + weightB * blockTimes[4];
-      } else if (blockTimes[3] > 0) {
-        averageBlockTime =
-            weightA * blockTimes[3] + weightB * VOCHAIN_BLOCK_TIME * 1000;
-      }
+      } else if (blockTimes[3] > 0)
+        averageBlockTime = blockTimes[3].toDouble();
+      else if (blockTimes[2] > 0)
+        averageBlockTime = blockTimes[2].toDouble();
+      else if (blockTimes[1] > 0)
+        averageBlockTime = blockTimes[1].toDouble();
+      else if (blockTimes[0] > 0) averageBlockTime = blockTimes[0].toDouble();
     } else if (dateDiff >= 1000 * 60 * 60) {
       // 1000 * 60 * 60 <= dateDiff < 1000 * 60 * 60 * 6
       final pivot = (dateDiff - 1000 * 60 * 60) / (1000 * 60 * 60);
@@ -515,13 +523,11 @@ Future<int> estimateBlockAtDateTime(DateTime targetDate, GatewayPool gw) async {
 
       if (blockTimes[3] > 0 && blockTimes[2] > 0) {
         averageBlockTime = weightA * blockTimes[2] + weightB * blockTimes[3];
-      } else if (blockTimes[3] > 0) {
-        averageBlockTime =
-            weightA * VOCHAIN_BLOCK_TIME * 1000 + weightB * blockTimes[3];
-      } else if (blockTimes[2] > 0) {
-        averageBlockTime =
-            weightA * blockTimes[2] + weightB * VOCHAIN_BLOCK_TIME * 1000;
-      }
+      } else if (blockTimes[2] > 0)
+        averageBlockTime = blockTimes[2].toDouble();
+      else if (blockTimes[1] > 0)
+        averageBlockTime = blockTimes[1].toDouble();
+      else if (blockTimes[0] > 0) averageBlockTime = blockTimes[0].toDouble();
     } else if (dateDiff >= 1000 * 60 * 10) {
       // 1000 * 60 * 10 <= dateDiff < 1000 * 60 * 60
       final pivot = (dateDiff - 1000 * 60 * 10) / (1000 * 60);
@@ -530,13 +536,9 @@ Future<int> estimateBlockAtDateTime(DateTime targetDate, GatewayPool gw) async {
 
       if (blockTimes[2] > 0 && blockTimes[1] > 0) {
         averageBlockTime = weightA * blockTimes[1] + weightB * blockTimes[2];
-      } else if (blockTimes[2] > 0) {
-        averageBlockTime =
-            weightA * VOCHAIN_BLOCK_TIME * 1000 + weightB * blockTimes[2];
-      } else if (blockTimes[1] > 0) {
-        averageBlockTime =
-            weightA * blockTimes[1] + weightB * VOCHAIN_BLOCK_TIME * 1000;
-      }
+      } else if (blockTimes[1] > 0)
+        averageBlockTime = blockTimes[1].toDouble();
+      else if (blockTimes[0] > 0) averageBlockTime = blockTimes[0].toDouble();
     } else if (dateDiff >= 1000 * 60) {
       // 1000 * 60 <= dateDiff < 1000 * 60 * 6
       final pivot = (dateDiff - 1000 * 60) / (1000 * 60);
@@ -545,28 +547,22 @@ Future<int> estimateBlockAtDateTime(DateTime targetDate, GatewayPool gw) async {
 
       if (blockTimes[1] > 0 && blockTimes[0] > 0) {
         averageBlockTime = weightA * blockTimes[0] + weightB * blockTimes[1];
-      } else if (blockTimes[1] > 0) {
-        averageBlockTime =
-            weightA * VOCHAIN_BLOCK_TIME * 1000 + weightB * blockTimes[1];
-      } else if (blockTimes[0] > 0) {
-        averageBlockTime =
-            weightA * blockTimes[0] + weightB * VOCHAIN_BLOCK_TIME * 1000;
-      }
+      } else if (blockTimes[0] > 0) averageBlockTime = blockTimes[0].toDouble();
     } else {
       if (blockTimes[0] > 0) averageBlockTime = blockTimes[0].toDouble();
     }
 
     final estimatedBlockDiff = dateDiff / averageBlockTime;
     final estimatedBlock = targetTimestamp < blockTimestamp
-        ? status.blockNumber - estimatedBlockDiff
-        : status.blockNumber + estimatedBlockDiff;
+        ? status.blockNumber - estimatedBlockDiff.ceil()
+        : status.blockNumber + estimatedBlockDiff.floor();
 
     if (estimatedBlock < 0) return 0;
-    return estimatedBlock.floor();
+    return estimatedBlock;
   });
 }
 
-const blocksPerM = 6; // x 10s
+const blocksPerM = 60.0 / VOCHAIN_BLOCK_TIME;
 const blocksPer10m = 10 * blocksPerM;
 const blocksPerH = blocksPerM * 60;
 const blocksPer6h = 6 * blocksPerH;
@@ -588,70 +584,79 @@ Future<DateTime> estimateDateAtBlock(int blockNumber, GatewayPool gw) {
     if (blockDiff > blocksPerDay) {
       if (status.averageBlockTimes[4] > 0)
         averageBlockTime = status.averageBlockTimes[4].toDouble();
+      // Falbacks
+      else if (status.averageBlockTimes[3] > 0)
+        averageBlockTime = status.averageBlockTimes[3].toDouble();
+      else if (status.averageBlockTimes[2] > 0)
+        averageBlockTime = status.averageBlockTimes[2].toDouble();
+      else if (status.averageBlockTimes[1] > 0)
+        averageBlockTime = status.averageBlockTimes[1].toDouble();
+      else if (status.averageBlockTimes[0] > 0)
+        averageBlockTime = status.averageBlockTimes[0].toDouble();
     } else if (blockDiff > blocksPer6h) {
       // blocksPer6h <= blockDiff < blocksPerDay
-      final pivot = (blockDiff - blocksPer6h) / (blocksPerH);
-      weightB = pivot / (24 - 6); // 0..1
-      weightA = 1 - weightB;
-
       if (status.averageBlockTimes[4] > 0 && status.averageBlockTimes[3] > 0) {
+        final pivot = (blockDiff - blocksPer6h) / (blocksPerH);
+        weightB = pivot / (24 - 6); // 0..1
+        weightA = 1 - weightB;
+
         averageBlockTime = weightA * status.averageBlockTimes[3] +
             weightB * status.averageBlockTimes[4];
-      } else if (status.averageBlockTimes[4] > 0) {
-        averageBlockTime = weightA * VOCHAIN_BLOCK_TIME * 1000 +
-            weightB * status.averageBlockTimes[4];
-      } else if (status.averageBlockTimes[3] > 0) {
-        averageBlockTime = weightA * status.averageBlockTimes[3] +
-            weightB * VOCHAIN_BLOCK_TIME * 1000;
       }
+      // Falbacks
+      else if (status.averageBlockTimes[3] > 0)
+        averageBlockTime = status.averageBlockTimes[3].toDouble();
+      else if (status.averageBlockTimes[2] > 0)
+        averageBlockTime = status.averageBlockTimes[2].toDouble();
+      else if (status.averageBlockTimes[1] > 0)
+        averageBlockTime = status.averageBlockTimes[1].toDouble();
+      else if (status.averageBlockTimes[0] > 0)
+        averageBlockTime = status.averageBlockTimes[0].toDouble();
     } else if (blockDiff > blocksPerH) {
       // blocksPerH <= blockDiff < blocksPer6h
-      final pivot = (blockDiff - blocksPerH) / (blocksPerH);
-      weightB = pivot / (6 - 1); // 0..1
-      weightA = 1 - weightB;
-
       if (status.averageBlockTimes[3] > 0 && status.averageBlockTimes[2] > 0) {
+        final pivot = (blockDiff - blocksPerH) / (blocksPerH);
+        weightB = pivot / (6 - 1); // 0..1
+        weightA = 1 - weightB;
+
         averageBlockTime = weightA * status.averageBlockTimes[2] +
             weightB * status.averageBlockTimes[3];
-      } else if (status.averageBlockTimes[3] > 0) {
-        averageBlockTime = weightA * VOCHAIN_BLOCK_TIME * 1000 +
-            weightB * status.averageBlockTimes[3];
-      } else if (status.averageBlockTimes[2] > 0) {
-        averageBlockTime = weightA * status.averageBlockTimes[2] +
-            weightB * VOCHAIN_BLOCK_TIME * 1000;
       }
+      // Falbacks
+      else if (status.averageBlockTimes[2] > 0)
+        averageBlockTime = status.averageBlockTimes[2].toDouble();
+      else if (status.averageBlockTimes[1] > 0)
+        averageBlockTime = status.averageBlockTimes[1].toDouble();
+      else if (status.averageBlockTimes[0] > 0)
+        averageBlockTime = status.averageBlockTimes[0].toDouble();
     } else if (blockDiff > blocksPer10m) {
       // blocksPer10m <= blockDiff < blocksPerH
-      final pivot = (blockDiff - blocksPer10m) / (blocksPerM);
-      weightB = pivot / (60 - 10); // 0..1
-      weightA = 1 - weightB;
-
       if (status.averageBlockTimes[2] > 0 && status.averageBlockTimes[1] > 0) {
+        final pivot = (blockDiff - blocksPer10m) / (blocksPerM);
+        weightB = pivot / (60 - 10); // 0..1
+        weightA = 1 - weightB;
+
         averageBlockTime = weightA * status.averageBlockTimes[1] +
             weightB * status.averageBlockTimes[2];
-      } else if (status.averageBlockTimes[2] > 0) {
-        averageBlockTime = weightA * VOCHAIN_BLOCK_TIME * 1000 +
-            weightB * status.averageBlockTimes[2];
-      } else if (status.averageBlockTimes[1] > 0) {
-        averageBlockTime = weightA * status.averageBlockTimes[1] +
-            weightB * VOCHAIN_BLOCK_TIME * 1000;
       }
+      // Falbacks
+      else if (status.averageBlockTimes[1] > 0)
+        averageBlockTime = status.averageBlockTimes[1].toDouble();
+      else if (status.averageBlockTimes[0] > 0)
+        averageBlockTime = status.averageBlockTimes[0].toDouble();
     } else if (blockDiff > blocksPerM) {
       // blocksPerM <= blockDiff < blocksPer10m
-      final pivot = (blockDiff - blocksPerM) / (blocksPerM);
-      weightB = pivot / (10 - 1); // 0..1
-      weightA = 1 - weightB;
-
       if (status.averageBlockTimes[1] > 0 && status.averageBlockTimes[0] > 0) {
+        final pivot = (blockDiff - blocksPerM) / (blocksPerM);
+        weightB = pivot / (10 - 1); // 0..1
+        weightA = 1 - weightB;
+
         averageBlockTime = weightA * status.averageBlockTimes[0] +
             weightB * status.averageBlockTimes[1];
-      } else if (status.averageBlockTimes[1] > 0) {
-        averageBlockTime = weightA * VOCHAIN_BLOCK_TIME * 1000 +
-            weightB * status.averageBlockTimes[1];
-      } else if (status.averageBlockTimes[0] > 0) {
-        averageBlockTime = weightA * status.averageBlockTimes[0] +
-            weightB * VOCHAIN_BLOCK_TIME * 1000;
       }
+      // Falbacks
+      else if (status.averageBlockTimes[0] > 0)
+        averageBlockTime = status.averageBlockTimes[0].toDouble();
     } else {
       if (status.averageBlockTimes[0] > 0)
         averageBlockTime = status.averageBlockTimes[0].toDouble();
