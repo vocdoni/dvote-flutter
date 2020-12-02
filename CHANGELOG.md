@@ -1,3 +1,7 @@
+## 0.18.5
+
+- Allow client to use cached BlockStatus to estimate date
+
 ## 0.18.4
 
 - Setting the base block time to 12 seconds
