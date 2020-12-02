@@ -571,10 +571,14 @@ const blocksPerDay = 24 * blocksPerH;
 /// Returns the DateTime at which the given block number is expected to be mined
 /// @param blockNumber
 /// @param gateway
-Future<DateTime> estimateDateAtBlock(int blockNumber, GatewayPool gw) {
+Future<DateTime> estimateDateAtBlock(int blockNumber, GatewayPool gw,
+    {BlockStatus status}) async {
   if (!(blockNumber is int)) return null;
 
-  return getBlockStatus(gw).then((status) {
+  if (status == null) {
+    status = await getBlockStatus(gw);
+  }
+
     // Diff between the last mined block and the given one
     final blockDiff = (blockNumber - status.blockNumber).abs();
     double averageBlockTime = VOCHAIN_BLOCK_TIME * 1000.0;
