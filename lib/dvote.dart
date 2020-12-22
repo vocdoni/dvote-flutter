@@ -16,9 +16,9 @@ export './net/bootnodes.dart';
 export './wrappers/content-uri.dart';
 export './wrappers/content-hashed-uri.dart';
 
-export './models/dart/identity.pb.dart';
-export './models/dart/key.pb.dart';
-export './models/dart/entity.pb.dart';
-export './models/dart/process.pb.dart';
-export './models/dart/feed.pb.dart';
-export './models/dart/gateway.pb.dart';
+export './models/build/dart/client-store/identity.pb.dart';
+export './models/build/dart/client-store/key.pb.dart';
+export './models/build/dart/metadata/entity.pb.dart';
+export './models/build/dart/metadata/process.pb.dart';
+export './models/build/dart/metadata/feed.pb.dart';
+export './models/build/dart/client-store/gateway.pb.dart';

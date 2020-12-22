@@ -8,7 +8,7 @@ import 'package:dvote/wrappers/entities.dart';
 import "../constants.dart";
 import 'package:http/http.dart' as http;
 
-import '../models/dart/gateway.pb.dart';
+import '../models/build/dart/client-store/gateway.pb.dart';
 import '../util/parsers.dart';
 // import 'package:flutter/foundation.dart'; // for kReleaseMode
 

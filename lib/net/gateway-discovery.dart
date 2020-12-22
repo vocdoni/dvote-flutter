@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'package:dvote/models/dart/gateway.pb.dart';
+import 'package:dvote/models/build/dart/client-store/gateway.pb.dart';
 import 'package:dvote/net/bootnodes.dart';
 import 'package:dvote/net/gateway-dvote.dart';
 import 'package:dvote/net/gateway-web3.dart';

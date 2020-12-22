@@ -8,7 +8,7 @@ import 'package:convert/convert.dart';
 import 'package:dvote/util/parsers.dart';
 import 'package:dvote/wrappers/entities.dart';
 
-import '../models/dart/entity.pb.dart';
+import '../models/build/dart/metadata/entity.pb.dart';
 import './file.dart';
 
 Future<EntityMetadata> fetchEntity(
@@ -27,8 +27,7 @@ Future<EntityMetadata> fetchEntity(
       Uint8List.fromList(hexEntityId),
       TextRecordKeys.JSON_METADATA_CONTENT_URI
     ];
-    result =
-        await gw.callMethod("text", params, ContractEnum.EntityResolver);
+    result = await gw.callMethod("text", params, ContractEnum.EntityResolver);
     if (result == null || result.length == 0 || result.first == null)
       throw Exception("The metadata of the entity can't be found");
     else if (result[0] is! String || result[0].length == 0)

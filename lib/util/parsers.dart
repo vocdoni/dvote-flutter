@@ -1,10 +1,10 @@
-import "dart:convert";
+import 'dart:convert';
 import 'dart:developer';
 
-import "package:dvote/models/dart/entity.pb.dart";
-import "package:dvote/models/dart/feed.pb.dart";
-import 'package:dvote/models/dart/process.pb.dart';
-import 'package:dvote/models/dart/gateway.pb.dart';
+import 'package:dvote/models/build/dart/metadata/entity.pb.dart';
+import 'package:dvote/models/build/dart/metadata/feed.pb.dart';
+import 'package:dvote/models/build/dart/metadata/process.pb.dart';
+import 'package:dvote/models/build/dart/client-store/gateway.pb.dart';
 import 'package:dvote/wrappers/process-results.dart';
 
 // ////////////////////////////////////////////////////////////////////////////

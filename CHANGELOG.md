@@ -1,3 +1,7 @@
+## 0.18.6
+
+- Update dvote-protobuf
+  
 ## 0.18.5
 
 - Allow client to use cached BlockStatus to estimate date
