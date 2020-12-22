@@ -16,8 +16,8 @@ import 'package:dvote_crypto/dvote_crypto.dart';
 
 import '../net/gateway-pool.dart';
 import "./entity.dart";
-import '../models/dart/entity.pb.dart';
-import '../models/dart/process.pb.dart';
+import '../models/build/dart/metadata/entity.pb.dart';
+import '../models/build/dart/metadata/process.pb.dart';
 import '../util/json-signature.dart';
 import '../constants.dart';
 
