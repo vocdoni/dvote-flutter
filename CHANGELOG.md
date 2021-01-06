@@ -1,3 +1,6 @@
+## 0.18.7
+
+- Update dvote-protobuf
 ## 0.18.6
 
 - Update dvote-protobuf
