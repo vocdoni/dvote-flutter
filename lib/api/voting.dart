@@ -571,6 +571,7 @@ const blocksPerDay = 24 * blocksPerH;
 /// Returns the DateTime at which the given block number is expected to be mined
 /// @param blockNumber
 /// @param gateway
+/// @param status
 Future<DateTime> estimateDateAtBlock(int blockNumber, GatewayPool gw,
     {BlockStatus status}) async {
   if (!(blockNumber is int)) return null;
@@ -578,6 +579,15 @@ Future<DateTime> estimateDateAtBlock(int blockNumber, GatewayPool gw,
   if (status == null) {
     status = await getBlockStatus(gw);
   }
+
+  return estimateDateAtBlockSync(blockNumber, status);
+}
+
+/// Returns the DateTime at which the given block number is expected to be mined, given a BlockStatus.
+/// @param blockNumber
+/// @param status
+DateTime estimateDateAtBlockSync(int blockNumber, BlockStatus status) {
+  if (!(blockNumber is int)) return null;
 
   // Diff between the last mined block and the given one
   final blockDiff = (blockNumber - status.blockNumber).abs();

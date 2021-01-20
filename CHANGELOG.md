@@ -1,3 +1,7 @@
+## 0.18.9
+
+- Enable synchronous date estimation
+  
 ## 0.18.8
 
 - Update dvote-protobuf
