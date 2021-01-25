@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:convert/convert.dart';
+import 'package:dvote/models/build/dart/common/vote.pb.dart';
 import 'package:dvote/net/gateway-web3.dart';
+import 'package:dvote/util/bytes-signature.dart';
 import 'package:dvote/util/json-content.dart';
 import 'package:dvote/util/random.dart';
 import 'package:dvote/util/waiters.dart';
@@ -23,6 +25,44 @@ import '../util/json-signature.dart';
 import '../constants.dart';
 
 // ENUMS AND WRAPPERS
+
+enum ProcessCensusOrigin {
+  // ignore: unused_field
+  _,
+  // ignore: unused_field
+  OFF_CHAIN_TREE,
+  OFF_CHAIN_TREE_WEIGHTED,
+  OFF_CHAIN_CA,
+  __4,
+  __5,
+  __6,
+  __7,
+  __8,
+  __9,
+  // ignore: unused_field
+  __10,
+  ERC20,
+  ERC721,
+  ERC1155,
+  ERC777,
+  MINI_ME,
+}
+
+class VotePackage {
+  String nonce;
+  List<int> votes;
+
+  Map<String, dynamic> toEncodable() {
+    return {"nonce": nonce, "votes": votes};
+  }
+}
+
+class EnvelopePackage {
+  List<int> envelope;
+  String signature;
+
+  EnvelopePackage(this.envelope, this.signature);
+}
 
 class ProcessEnvelopeType {
   final int type;
@@ -850,22 +890,16 @@ DateTime estimateDateAtBlockSync(int blockNumber, BlockStatus status) {
 }
 
 /// Submit vote Envelope to the gateway
-Future<void> submitEnvelope(
-    Map<String, dynamic> voteEnvelope, GatewayPool gw) async {
-  if (!(voteEnvelope is Map) || gw is! GatewayPool) {
-    throw Exception("Invalid parameters");
-  } else if (!(voteEnvelope["processId"] is String) ||
-      !(voteEnvelope["proof"] is String) ||
-      !(voteEnvelope["nonce"] is String) ||
-      !(voteEnvelope["votePackage"] is String) ||
-      !(voteEnvelope["signature"] is String)) {
-    throw Exception("Invalid parameters");
-  }
+Future<void> submitEnvelope(List<int> package, GatewayPool gw,
+    {String hexSignature = ""}) async {
+  if (gw is! GatewayPool) throw Exception("Invalid parameters");
+  if ((package.length ?? 0) == 0) throw Exception("Invalid parameters");
 
   try {
     Map<String, dynamic> reqParams = {
       "method": "submitEnvelope",
-      "payload": voteEnvelope
+      "payload": base64.encode(package),
+      "signature": hexSignature ?? "",
     };
     Map<String, dynamic> response = await gw.sendRequest(reqParams);
     if (!(response is Map)) {
@@ -893,8 +927,12 @@ Future<String> packageAnonymousEnvelope(
   */
 }
 
-Future<Map<String, dynamic>> packageSignedEnvelope(List<int> votes,
-    String merkleProof, String processId, String signingPrivateKey,
+Future<EnvelopePackage> packageSignedEnvelope(
+    List<int> votes,
+    String merkleProof,
+    String processId,
+    String signingPrivateKey,
+    ProcessCensusOrigin censusOrigin,
     {ProcessKeys processKeys}) async {
   if (!(votes is List) ||
       !(processId is String) ||
@@ -912,35 +950,46 @@ Future<Map<String, dynamic>> packageSignedEnvelope(List<int> votes,
     }
   }
   try {
-    final nonce = makeRandomNonce(32);
+    final envelope = VoteEnvelope.create();
+    final proof = Proof();
+    if (censusOrigin != ProcessCensusOrigin.OFF_CHAIN_TREE &&
+        censusOrigin != ProcessCensusOrigin.OFF_CHAIN_TREE_WEIGHTED) {
+      throw UnimplementedError(
+          "On-chain and CA voting not supported yet in-app");
+    } else {
+      // Off-chain census origin:
+      final gravitron = ProofGraviton();
+      // set proof
+      gravitron.siblings = utf8.encode(merkleProof.replaceFirst("0x", ""));
+      proof.graviton = gravitron;
+    }
+
+    // All census origins
+    final nonce = utf8.encode(makeRandomNonce(32));
+
+    envelope.proof = proof;
+    envelope.processId = utf8.encode(processId);
+    envelope.nonce = nonce;
 
     final packageValues =
         await packageVoteContent(votes, processKeys: processKeys);
 
-    Map<String, dynamic> package = {
-      "processId": processId,
-      "proof": merkleProof,
-      "nonce":
-          nonce, // Unique number per vote attempt, so that replay attacks can't reuse this payload
-      "votePackage": packageValues["votePackage"]
-      //singature:  Must be unset because the body must be singed without the  signature
-    };
+    envelope.votePackage = packageValues["votePackage"];
+
     if (packageValues["keyIndexes"] is List &&
         packageValues["keyIndexes"].length > 0) {
-      package["encryptionKeyIndexes"] = packageValues["keyIndexes"];
+      envelope.encryptionKeyIndexes.insertAll(0, packageValues["keyIndexes"]);
     }
 
-    // Important: Sorting the JSON data itself, the same way that it will be signed later on
-    package = sortJsonFields(package);
+    final envelopeBytes = envelope.writeToBuffer();
 
     // Sign the vote package
-    final signature =
-        await JSONSignature.signJsonPayloadAsync(package, signingPrivateKey);
-    package["signature"] = signature;
+    final signature = await BytesSignature.signBytesPayloadAsync(
+        envelopeBytes, signingPrivateKey);
 
-    return package;
+    return EnvelopePackage(envelopeBytes, signature);
   } catch (error) {
-    throw Exception("Poll vote Envelope could not be generated");
+    throw Exception("Poll vote Envelope could not be generated: $error");
   }
 }
 
@@ -967,13 +1016,11 @@ Future<Map<String, dynamic>> packageVoteContent(List<int> votes,
 
   final nonce = makeRandomNonce(16);
 
-  Map<String, dynamic> package = {
-    "type": "poll-vote",
-    "nonce":
-        nonce, // (encrypted payload only) random number to prevent guessing the encrypted payload before the key is revealed
-    "votes": votes // Directly mapped to the `questions` field of the metadata
-  };
-  final strPayload = jsonEncode(package);
+  VotePackage package = VotePackage();
+  package.nonce = nonce;
+  package.votes = votes;
+
+  final strPayload = jsonEncode(package.toEncodable());
 
   if (processKeys is ProcessKeys &&
       processKeys.encryptionPubKeys is List &&
@@ -999,9 +1046,9 @@ Future<Map<String, dynamic>> packageVoteContent(List<int> votes,
         result = await Asymmetric.encryptRawAsync(
             utf8.encode(strPayload), publicKeys[i]); // encrypt the first round
     }
-    return {"votePackage": base64.encode(result), "keyIndexes": publicKeysIdx};
+    return {"votePackage": result, "keyIndexes": publicKeysIdx};
   } else {
-    return {"votePackage": base64.encode(utf8.encode(strPayload))};
+    return {"votePackage": utf8.encode(strPayload)};
   }
 }
 

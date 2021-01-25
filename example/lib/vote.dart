@@ -1,4 +1,5 @@
 import 'package:dvote/dvote.dart';
+import 'package:dvote/models/build/dart/common/vote.pb.dart';
 import './constants.dart';
 import 'package:dvote_crypto/dvote_crypto.dart';
 
@@ -6,7 +7,7 @@ Future<void> vote() async {
   GatewayPool gw;
   EntityMetadata entityMeta;
   ProcessMetadata processMeta;
-  Map<String, dynamic> pollVoteEnvelope;
+  EnvelopePackage pollVoteEnvelope;
   String merkleProof;
   int blockHeight, censusSize, envelopeHeight;
   DateTime dateAtBlock;
@@ -92,13 +93,14 @@ Future<void> vote() async {
     // Generate Envelope
     print("\nGenerating the Vote Envelope");
     final voteValues = [1, 2, 1];
-    pollVoteEnvelope = await packageSignedEnvelope(
-        voteValues, merkleProof, processMeta.meta["id"], privateKey);
+    pollVoteEnvelope = await packageSignedEnvelope(voteValues, merkleProof,
+        processMeta.meta["id"], privateKey, ProcessCensusOrigin.OFF_CHAIN_TREE);
     print("Poll vote envelope:  $pollVoteEnvelope");
 
     // Submit Envelope
     print("\nSubmitting the vote");
-    await submitEnvelope(pollVoteEnvelope, gw);
+    await submitEnvelope(pollVoteEnvelope.envelope, gw,
+        hexSignature: pollVoteEnvelope.signature);
 
     // Get envelope status
     final nullifier =
