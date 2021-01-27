@@ -1,3 +1,10 @@
+## 0.19.0
+- Update process contract wrappers to smart contracts v2
+- Use ProcessCensusOrigin wrapper
+- Update generateProof
+- parseRawResults uses String for result values
+- parseProcessResultsDigested uses BigInt for result values
+
 ## 0.18.9
 
 - Enable synchronous date estimation

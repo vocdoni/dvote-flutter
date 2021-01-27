@@ -2,18 +2,21 @@ import 'dart:developer';
 
 import 'package:dvote/net/gateway-pool.dart';
 
-/// Fetch the Merkle Proof that proves that the given claim is part
-/// of the Census Merkle Tree with the given Root Hash
-Future<String> generateProof(String censusMerkleRootHash, String base64Claim,
-    bool isDigested, GatewayPool gw) async {
-  if (!(censusMerkleRootHash is String) || !(base64Claim is String))
+/// Fetch the Proof that proves that the given claim is part
+/// of the Census Tree with the given Root Hash
+Future<String> generateProof(
+    String censusRoot, String censusKey, bool isDigested, GatewayPool gw,
+    {BigInt censusValue}) async {
+  if (!(censusRoot is String) || !(censusKey is String))
     throw Exception('Invalid parameters');
+  if (censusValue == null) censusValue = BigInt.zero;
   try {
     Map<String, dynamic> reqParams = {
       "method": "genProof",
-      "censusId": censusMerkleRootHash,
+      "censusId": censusRoot,
       "digested": isDigested,
-      "claimData": base64Claim,
+      "censuskey": censusKey,
+      "censusValue": censusValue.toRadixString(8),
     };
     final response = await gw.sendRequest(reqParams, timeout: 20);
     if (!(response is Map)) {

@@ -93,8 +93,12 @@ Future<void> vote() async {
     // Generate Envelope
     print("\nGenerating the Vote Envelope");
     final voteValues = [1, 2, 1];
-    pollVoteEnvelope = await packageSignedEnvelope(voteValues, merkleProof,
-        processMeta.meta["id"], privateKey, ProcessCensusOrigin.OFF_CHAIN_TREE);
+    pollVoteEnvelope = await packageSignedEnvelope(
+        voteValues,
+        merkleProof,
+        processMeta.meta["id"],
+        privateKey,
+        ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE));
     print("Poll vote envelope:  $pollVoteEnvelope");
 
     // Submit Envelope

@@ -12,7 +12,7 @@ import 'package:dvote_crypto/dvote_crypto.dart';
 
 void resultsParse() {
   void testProcessResults(String fakeResponse, String state, String type,
-      List<List<int>> expectedResults) {
+      List<List<String>> expectedResults) {
     final Map<String, dynamic> decodedMessage = jsonDecode(fakeResponse);
     final results = parseProcessResults(decodedMessage);
     expect(results.type, type);
@@ -39,7 +39,7 @@ void resultsParse() {
           j++) {
         expect(resultsDigested.questions[i].voteResults[j].title["default"],
             fakeMetadata.details.questions[i].voteOptions[j].title["default"]);
-        expect(resultsDigested.questions[i].voteResults[j].votes,
+        expect(resultsDigested.questions[i].voteResults[j].votes.toString(),
             fakeResults.results[i][j]);
       }
     }
@@ -94,21 +94,21 @@ void resultsParse() {
 
   test("Process Results: Should parse valid process results", () {
     final fakeResponse0 =
-        '{"height":2,"ok":true,"request":"ZH61xq6LE3NAe73Ds5KB9A==","results":[[2]],"state":"canceled","timestamp":1600785127,"type":"poll-vote"}';
+        '{"height":2,"ok":true,"request":"ZH61xq6LE3NAe73Ds5KB9A==","results":[["2"]],"state":"canceled","timestamp":1600785127,"type":"poll-vote"}';
     final fakeResponse1 =
-        '{"height":200,"ok":true,"request":"abcdefghijk==","results":[[0, 1, 2, 3], [22], [342, 0, 1]],"state":"active","timestamp":1600785127,"type":"poll-vote"}';
+        '{"height":200,"ok":true,"request":"abcdefghijk==","results":[["0", "1", "2", "3"], ["22"], ["342", "0", "1"]],"state":"active","timestamp":1600785127,"type":"poll-vote"}';
     final fakeResponse2 =
-        '{"height":1,"ok":true,"request":"33333333333==","results":[[2, 1, 3, 4, 5, 6, 45, 4, 3, 2, 2, 3, 3]],"state":"ended","timestamp":1600785127,"type":"encrypted-poll"}';
-    final List<List<int>> expectedResults0 = [
-      [2]
+        '{"height":1,"ok":true,"request":"33333333333==","results":[["2", "1", "3", "4", "5", "6", "45", "4", "3", "2", "2", "3", "3"]],"state":"ended","timestamp":1600785127,"type":"encrypted-poll"}';
+    final List<List<String>> expectedResults0 = [
+      ["2"]
     ];
-    final List<List<int>> expectedResults1 = [
-      [0, 1, 2, 3],
-      [22],
-      [342, 0, 1],
+    final List<List<String>> expectedResults1 = [
+      ["0", "1", "2", "3"],
+      ["22"],
+      ["342", "0", "1"],
     ];
-    final List<List<int>> expectedResults2 = [
-      [2, 1, 3, 4, 5, 6, 45, 4, 3, 2, 2, 3, 3]
+    final List<List<String>> expectedResults2 = [
+      ["2", "1", "3", "4", "5", "6", "45", "4", "3", "2", "2", "3", "3"]
     ];
     testProcessResults(
         fakeResponse0, "canceled", "poll-vote", expectedResults0);
@@ -125,7 +125,7 @@ void resultsParse() {
         List<ProcessMetadata_Details_Question>();
     fakeResults0.type = "poll-vote";
     fakeResults0.state = "ended";
-    fakeResults0.results = List<List<int>>();
+    fakeResults0.results = List<List<String>>();
     for (int i = 0; i < 10; i++) {
       final question = ProcessMetadata_Details_Question();
       question.type = "Type " + i.toString();
@@ -139,7 +139,7 @@ void resultsParse() {
         option.title.addAll({"default": "No" + i.toString()});
         option.value = i;
         options.add(option);
-        fakeResults0.results[i].add(j);
+        fakeResults0.results[i].add(j.toString());
       }
       question.voteOptions.addAll(options);
       questions.add(question);

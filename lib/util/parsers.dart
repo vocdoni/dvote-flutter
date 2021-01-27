@@ -181,7 +181,7 @@ ProcessResults parseProcessResults(Map<String, dynamic> response) {
     if (response["results"] is List) {
       processResults.results = (response["results"] as List)
           .whereType<List>()
-          .map((list) => list.whereType<int>().toList())
+          .map((list) => list.whereType<String>().toList())
           .toList();
     }
     if (response["state"] is String) {
@@ -222,15 +222,23 @@ ProcessResultsDigested parseProcessResultsDigested(
     for (int j = 0;
         j < processMetadata.details.questions[i].voteOptions.length;
         j++) {
-      int votes;
+      String votes;
       if ((i >= (rawResults.results?.length ?? 0)) ||
           (j >= (rawResults.results[i]?.length ?? 0))) {
-        votes = 0;
+        votes = "0";
       } else {
         votes = rawResults.results[i][j];
       }
+      BigInt numberVotes;
+      try {
+        numberVotes = BigInt.parse(votes);
+      } catch (err) {
+        log("Could not parse results: $err");
+        numberVotes = BigInt.zero;
+      }
       resultsDigest.questions[i].voteResults.add(VoteResults(
-          processMetadata.details.questions[i].voteOptions[j].title, votes));
+          processMetadata.details.questions[i].voteOptions[j].title,
+          numberVotes));
     }
   }
   return resultsDigest;

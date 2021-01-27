@@ -1,5 +1,5 @@
 class ProcessResults {
-  List<List<int>> results;
+  List<List<String>> results;
   String state;
   String type;
 
@@ -50,7 +50,7 @@ class ProcessResultItem {
 
 class VoteResults {
   Map<String, String> title;
-  int votes;
+  BigInt votes;
 
   VoteResults(this.title, this.votes);
 
