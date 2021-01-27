@@ -163,10 +163,11 @@ void flagsParse() {
   void testProcessEnvelopeType() {
     final def = ProcessEnvelopeType(0);
     final all = ProcessEnvelopeType.make(
-        serial: true, anonymous: true, encrypted: true);
+        serial: true, anonymous: true, encrypted: true, uniqueValues: true);
     final none = ProcessEnvelopeType.make(
-        serial: false, anonymous: false, encrypted: false);
-    final some = ProcessEnvelopeType.make(anonymous: true, encrypted: false);
+        serial: false, anonymous: false, encrypted: false, uniqueValues: false);
+    final some = ProcessEnvelopeType.make(
+        anonymous: true, encrypted: false, uniqueValues: true);
 
     test("Parse Process Flags: Should create and decode process envelope types",
         () async {
@@ -184,6 +185,11 @@ void flagsParse() {
       expect(all.hasEncryptedVotes, true);
       expect(none.hasEncryptedVotes, false);
       expect(some.hasEncryptedVotes, false);
+
+      expect(def.hasUniqueValues, false);
+      expect(all.hasUniqueValues, true);
+      expect(none.hasUniqueValues, false);
+      expect(some.hasUniqueValues, true);
     });
   }
 
@@ -193,13 +199,11 @@ void flagsParse() {
         autoStart: true,
         interruptible: true,
         dynamicCensus: true,
-        allowVoteOverwrite: true,
         encryptedMetadata: true);
     final none = ProcessMode.make(
         autoStart: false,
         interruptible: false,
         dynamicCensus: false,
-        allowVoteOverwrite: false,
         encryptedMetadata: false);
     final some = ProcessMode.make(
         autoStart: true, dynamicCensus: true, encryptedMetadata: true);
@@ -220,11 +224,6 @@ void flagsParse() {
       expect(all.hasDynamicCensus, true);
       expect(none.hasDynamicCensus, false);
       expect(some.hasDynamicCensus, true);
-
-      expect(def.allowsVoteOverwrite, false);
-      expect(all.allowsVoteOverwrite, true);
-      expect(none.allowsVoteOverwrite, false);
-      expect(some.allowsVoteOverwrite, false);
 
       expect(def.hasEncryptedMetadata, false);
       expect(all.hasEncryptedMetadata, true);
@@ -255,10 +254,11 @@ void flagsParse() {
   void testSingleProcessData(
       {int mode = 0,
       int envelopeType = 0,
+      int censusOrigin = 1,
       String entityAddress = "",
       String metadata = "",
-      String censusMerkleRoot = "",
-      String censusMerkleTree = "",
+      String censusRoot = "",
+      String censusUri = "",
       int startBlock = 0,
       int blockCount = 0,
       int status = 0,
@@ -267,27 +267,27 @@ void flagsParse() {
       int maxCount = 0,
       int maxValue = 0,
       int maxVoteOverwrites = 0,
-      bool uniqueValues = false,
       int maxTotalCost = 0,
       int costExponent = 0,
-      int namespace = 0}) {
+      int namespace = 0,
+      int evmBlockHeight = 0}) {
     final testData = ProcessData([
-      [mode, envelopeType],
+      [mode, envelopeType, censusOrigin],
       entityAddress,
-      [metadata, censusMerkleRoot, censusMerkleTree],
-      startBlock,
-      blockCount,
+      [metadata, censusRoot, censusUri],
+      [startBlock, blockCount],
       status,
       [questionIndex, questionCount, maxCount, maxValue, maxVoteOverwrites],
-      uniqueValues,
-      [maxTotalCost, costExponent, namespace]
+      [maxTotalCost, costExponent, namespace],
+      evmBlockHeight,
     ]);
     expect(testData.getMode.value, mode);
     expect(testData.getEnvelopeType.value, envelopeType);
+    expect(testData.getCensusOrigin.value, censusOrigin);
     expect(testData.getEntityAddress, entityAddress);
     expect(testData.getMetadata, metadata);
-    expect(testData.getCensusMerkleRoot, censusMerkleRoot);
-    expect(testData.getCensusMerkleTree, censusMerkleTree);
+    expect(testData.getCensusRoot, censusRoot);
+    expect(testData.getCensusUri, censusUri);
     expect(testData.getStartBlock, startBlock);
     expect(testData.getBlockCount, blockCount);
     expect(testData.getStatus.value, status);
@@ -296,10 +296,10 @@ void flagsParse() {
     expect(testData.getMaxCount, maxCount);
     expect(testData.getMaxValue, maxValue);
     expect(testData.getMaxVoteOverwrites, maxVoteOverwrites);
-    expect(testData.getUniqueValues, uniqueValues);
     expect(testData.getMaxTotalCost, maxTotalCost);
     expect(testData.getCostExponent, costExponent);
     expect(testData.getNamespace, namespace);
+    expect(testData.getEvmBlockHeight.compareTo(evmBlockHeight), 0);
   }
 
   void testProcessData() {
@@ -310,9 +310,10 @@ void flagsParse() {
                   autoStart: true, interruptible: true, dynamicCensus: true)
               .value,
           envelopeType: ProcessEnvelopeType.make(serial: true).value,
+          censusOrigin: 3,
           metadata: "metadata :)",
-          censusMerkleRoot: "R00t",
-          censusMerkleTree: "merkle treeee",
+          censusRoot: "R00t",
+          censusUri: "merkle treeee",
           startBlock: 15000,
           blockCount: 200,
           status: ProcessStatus.READY,
@@ -321,7 +322,6 @@ void flagsParse() {
           maxCount: 3,
           maxValue: 1,
           maxVoteOverwrites: 1,
-          uniqueValues: true,
           maxTotalCost: 30,
           costExponent: 1,
           namespace: 234239);
@@ -348,8 +348,12 @@ void pollVoting() {
     String siblings =
         "0x0003000000000000000000000000000000000000000000000000000000000006f0d72fbd8b3a637488107b0d8055410180ec017a4d76dbb97bee1c3086a25e25b1a6134dbd323c420d6fc2ac3aaf8fff5f9ac5bc0be5949be64b7cfd1bcc5f1f";
 
-    final envelope1 = await packageSignedEnvelope([1, 2, 3], siblings,
-        processId, wallet.privateKey, ProcessCensusOrigin.OFF_CHAIN_TREE);
+    final envelope1 = await packageSignedEnvelope(
+        [1, 2, 3],
+        siblings,
+        processId,
+        wallet.privateKey,
+        ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE));
     final decodedEnvelope1 = VoteEnvelope.fromBuffer(envelope1.envelope);
     expect(utf8.decode(decodedEnvelope1.processId), processId);
     expect(utf8.decode(decodedEnvelope1.proof.graviton.siblings),
@@ -369,8 +373,12 @@ void pollVoting() {
     siblings =
         "0x0003000000100000000002000000000300000000000400000000000050000006f0d72fbd8b3a637488107b0d8055410180ec017a4d76dbb97bee1c3086a25e25b1a6134dbd323c420d6fc2ac3aaf8fff5f9ac5bc0be5949be64b7cfd1bcc5f1f";
 
-    final envelope2 = await packageSignedEnvelope([4, 5, 6], siblings,
-        processId, wallet.privateKey, ProcessCensusOrigin.OFF_CHAIN_TREE);
+    final envelope2 = await packageSignedEnvelope(
+        [4, 5, 6],
+        siblings,
+        processId,
+        wallet.privateKey,
+        ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE));
     final decodedEnvelope2 = VoteEnvelope.fromBuffer(envelope2.envelope);
     expect(utf8.decode(decodedEnvelope2.processId), processId);
     expect(utf8.decode(decodedEnvelope2.proof.graviton.siblings),
@@ -433,7 +441,7 @@ void pollVoting() {
           item["siblings"],
           item["processId"],
           wallet.privateKey,
-          ProcessCensusOrigin.OFF_CHAIN_TREE,
+          ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE),
           processKeys: processKeys);
 
       final decodedEnvelope = VoteEnvelope.fromBuffer(envelope.envelope);
@@ -531,7 +539,7 @@ void pollVoting() {
           item["siblings"],
           item["processId"],
           wallet.privateKey,
-          ProcessCensusOrigin.OFF_CHAIN_TREE,
+          ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE),
           processKeys: processKeys);
 
       final decodedEnvelope = VoteEnvelope.fromBuffer(envelope.envelope);

@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:convert/convert.dart';
+import 'package:dvote/dvote.dart';
 import 'package:dvote/models/build/dart/common/vote.pb.dart';
 import 'package:dvote/net/gateway-web3.dart';
 import 'package:dvote/util/bytes-signature.dart';
-import 'package:dvote/util/json-content.dart';
 import 'package:dvote/util/random.dart';
 import 'package:dvote/util/waiters.dart';
 import 'package:dvote/wrappers/process-results.dart';
@@ -18,41 +18,23 @@ import 'package:dvote_crypto/dvote_crypto.dart';
 
 import '../net/gateway-pool.dart';
 import '../util/random.dart';
-import "./entity.dart";
-import '../models/build/dart/metadata/entity.pb.dart';
 import '../models/build/dart/metadata/process.pb.dart';
-import '../util/json-signature.dart';
 import '../constants.dart';
 
 // ENUMS AND WRAPPERS
 
-enum ProcessCensusOrigin {
-  // ignore: unused_field
-  _,
-  // ignore: unused_field
-  OFF_CHAIN_TREE,
-  OFF_CHAIN_TREE_WEIGHTED,
-  OFF_CHAIN_CA,
-  __4,
-  __5,
-  __6,
-  __7,
-  __8,
-  __9,
-  // ignore: unused_field
-  __10,
-  ERC20,
-  ERC721,
-  ERC1155,
-  ERC777,
-  MINI_ME,
+class BlockStatus {
+  int blockNumber;
+  int blockTimestamp;
+  List<int> averageBlockTimes;
+  BlockStatus(this.blockNumber, this.blockTimestamp, this.averageBlockTimes);
 }
 
 class VotePackage {
   String nonce;
   List<int> votes;
 
-  Map<String, dynamic> toEncodable() {
+  Map<String, dynamic> toJSON() {
     return {"nonce": nonce, "votes": votes};
   }
 }
@@ -64,48 +46,12 @@ class EnvelopePackage {
   EnvelopePackage(this.envelope, this.signature);
 }
 
-class ProcessEnvelopeType {
-  final int type;
-  ProcessEnvelopeType(this.type) {
-    final allFlags = ProcessEnvelopeType.SERIAL |
-        ProcessEnvelopeType.ANONYMOUS |
-        ProcessEnvelopeType.ENCRYPTED;
-    if (this.type > allFlags || this.type < 0) {
-      throw Exception("ProcessEnvelopeType ${this.type} is invalid");
-    }
-  }
-
-  ProcessEnvelopeType.make(
-      {bool serial = false, anonymous = false, encrypted = false})
-      : type = 0 |
-            (serial ? ProcessEnvelopeType.SERIAL : 0) |
-            (anonymous ? ProcessEnvelopeType.ANONYMOUS : 0) |
-            (encrypted ? ProcessEnvelopeType.ENCRYPTED : 0);
-
-  //  By default, all votes are sent within a single envelope. When set, the process questions are voted one by one (enables `questionIndex`).
-  static const SERIAL = 1 << 0;
-  //  By default, the franchise proof relies on an ECDSA signature (this could reveal the voter's identity). When set, the franchise proof will use ZK-Snarks.
-  static const ANONYMOUS = 1 << 1;
-  //  By default, votes are sent unencrypted. When the flag is set, votes are sent encrypted and become public when the process ends.
-  static const ENCRYPTED = 1 << 2;
-
-  int get value => this.type;
-
-  // Returns true if the process expects one envelope to be sent for each question.
-  bool get hasSerialVoting => type & ProcessEnvelopeType.SERIAL != 0;
-  //  Returns true if franchise proofs use ZK-Snarks.
-  bool get hasAnonymousVoters => type & ProcessEnvelopeType.ANONYMOUS != 0;
-  //  Returns true if envelopes are to be sent encrypted.
-  bool get hasEncryptedVotes => type & ProcessEnvelopeType.ENCRYPTED != 0;
-}
-
 class ProcessMode {
   final int mode;
   ProcessMode(this.mode) {
     final allFlags = ProcessMode.AUTO_START |
         ProcessMode.INTERRUPTIBLE |
         ProcessMode.DYNAMIC_CENSUS |
-        ProcessMode.ALLOW_VOTE_OVERWRITE |
         ProcessMode.ENCRYPTED_METADATA;
     if (this.mode > allFlags || this.mode < 0) {
       throw Exception("ProcessMode ${this.mode} is invalid");
@@ -116,13 +62,11 @@ class ProcessMode {
       {bool autoStart = false,
       interruptible = false,
       dynamicCensus = false,
-      allowVoteOverwrite = false,
       encryptedMetadata = false})
       : mode = 0 |
             (autoStart ? ProcessMode.AUTO_START : 0) |
             (interruptible ? ProcessMode.INTERRUPTIBLE : 0) |
             (dynamicCensus ? ProcessMode.DYNAMIC_CENSUS : 0) |
-            (allowVoteOverwrite ? ProcessMode.ALLOW_VOTE_OVERWRITE : 0) |
             (encryptedMetadata ? ProcessMode.ENCRYPTED_METADATA : 0);
 
   //  By default, the process is started on demand (PAUSED). If set, the process will sIf set, the process will work like `status=PAUSED` before `startBlock` and like `status=ENDED` after `startBlock + blockCount`. The process works on demand, by default.tart as READY and the Vochain will allow incoming votes after `startBlock`
@@ -131,10 +75,8 @@ class ProcessMode {
   static const INTERRUPTIBLE = 1 << 1;
   //  By default, the census is immutable. When set, the creator can update the census while the process remains `READY` or `PAUSED`.
   static const DYNAMIC_CENSUS = 1 << 2;
-  // By default, the first valid vote is final. If set, users will be allowed to vote up to `maxVoteOverwrites` times and the last valid vote will be counted.
-  static const ALLOW_VOTE_OVERWRITE = 1 << 3;
   //  By default, the metadata is not encrypted. If set, clients should fetch the decryption key before trying to display the metadata.
-  static const ENCRYPTED_METADATA = 1 << 4;
+  static const ENCRYPTED_METADATA = 1 << 3;
 
   int get value => this.mode;
 
@@ -144,10 +86,93 @@ class ProcessMode {
   bool get isInterruptible => mode & ProcessMode.INTERRUPTIBLE != 0;
   //  Returns true if the census can be updated by the creator.
   bool get hasDynamicCensus => mode & ProcessMode.DYNAMIC_CENSUS != 0;
-  //  Returns true if voters can overwrite their last vote.
-  bool get allowsVoteOverwrite => mode & ProcessMode.ALLOW_VOTE_OVERWRITE != 0;
   //  Returns true if the process metadata is expected to be encrypted.
   bool get hasEncryptedMetadata => mode & ProcessMode.ENCRYPTED_METADATA != 0;
+}
+
+class ProcessEnvelopeType {
+  final int type;
+  ProcessEnvelopeType(this.type) {
+    final allFlags = ProcessEnvelopeType.SERIAL |
+        ProcessEnvelopeType.ANONYMOUS |
+        ProcessEnvelopeType.ENCRYPTED |
+        ProcessEnvelopeType.UNIQUE_VALUES;
+    if (this.type > allFlags || this.type < 0) {
+      throw Exception("ProcessEnvelopeType ${this.type} is invalid");
+    }
+  }
+
+  ProcessEnvelopeType.make(
+      {bool serial = false,
+      anonymous = false,
+      encrypted = false,
+      uniqueValues = false})
+      : type = 0 |
+            (serial ? ProcessEnvelopeType.SERIAL : 0) |
+            (anonymous ? ProcessEnvelopeType.ANONYMOUS : 0) |
+            (encrypted ? ProcessEnvelopeType.ENCRYPTED : 0) |
+            (uniqueValues ? ProcessEnvelopeType.UNIQUE_VALUES : 0);
+
+  //  By default, all votes are sent within a single envelope. When set, the process questions are voted one by one (enables `questionIndex`).
+  static const SERIAL = 1 << 0;
+  //  By default, the franchise proof relies on an ECDSA signature (this could reveal the voter's identity). When set, the franchise proof will use ZK-Snarks.
+  static const ANONYMOUS = 1 << 1;
+  //  By default, votes are sent unencrypted. When the flag is set, votes are sent encrypted and become public when the process ends.
+  static const ENCRYPTED = 1 << 2;
+  // Whether choices for a question can only appear once or not.
+  static const UNIQUE_VALUES = 1 << 3;
+
+  int get value => this.type;
+
+  // Returns true if the process expects one envelope to be sent for each question.
+  bool get hasSerialVoting => type & ProcessEnvelopeType.SERIAL != 0;
+  //  Returns true if franchise proofs use ZK-Snarks.
+  bool get hasAnonymousVoters => type & ProcessEnvelopeType.ANONYMOUS != 0;
+  //  Returns true if envelopes are to be sent encrypted.
+  bool get hasEncryptedVotes => type & ProcessEnvelopeType.ENCRYPTED != 0;
+  bool get hasUniqueValues => type & ProcessEnvelopeType.UNIQUE_VALUES != 0;
+}
+
+class ProcessCensusOrigin {
+  final int origin;
+
+  ProcessCensusOrigin(this.origin) {
+    if (!processCensusOriginValues.contains(this.origin)) {
+      throw Exception("Process census origin ${this.origin} is invalid");
+    }
+  }
+
+  static const OFF_CHAIN_TREE = 1;
+  static const OFF_CHAIN_TREE_WEIGHTED = 2;
+  static const OFF_CHAIN_CA = 3;
+  static const ERC20 = 11;
+  static const ERC721 = 12;
+  static const ERC1155 = 13;
+  static const ERC777 = 14;
+  static const MINI_ME = 15;
+
+  static const processCensusOriginValues = [
+    ProcessCensusOrigin.OFF_CHAIN_TREE,
+    ProcessCensusOrigin.OFF_CHAIN_TREE_WEIGHTED,
+    ProcessCensusOrigin.OFF_CHAIN_CA,
+    ProcessCensusOrigin.ERC20,
+    ProcessCensusOrigin.ERC721,
+    ProcessCensusOrigin.ERC1155,
+    ProcessCensusOrigin.ERC777,
+    ProcessCensusOrigin.MINI_ME,
+  ];
+
+  int get value => this.origin;
+
+  bool get isOffChain => origin == ProcessCensusOrigin.OFF_CHAIN_TREE;
+  bool get isOffChainWeighted =>
+      origin == ProcessCensusOrigin.OFF_CHAIN_TREE_WEIGHTED;
+  bool get isOffChainCA => origin == ProcessCensusOrigin.OFF_CHAIN_CA;
+  bool get isERC20 => origin == ProcessCensusOrigin.ERC20;
+  bool get isERC721 => origin == ProcessCensusOrigin.ERC721;
+  bool get isERC1155 => origin == ProcessCensusOrigin.ERC1155;
+  bool get isERC777 => origin == ProcessCensusOrigin.ERC777;
+  bool get isMiniMe => origin == ProcessCensusOrigin.MINI_ME;
 }
 
 class ProcessStatus {
@@ -188,39 +213,43 @@ class ProcessStatus {
 
 class ProcessContractGetIdx {
   // First-level array indexes
-  // MODE, ENVELOPE_TYPE [2]uint8
-  static const MODE_ENVELOPE_TYPE = 0;
+  // MODE, ENVELOPE_TYPE, CENSUS_ORIGIN [3]uint8
+  static const MODE_ENVELOPE_TYPE_CENSUS_ORIGIN = 0;
   // ENTITY_ADDRESS address
   static const ENTITY_ADDRESS = 1;
-  //METADATA, CENSUS_MERKLE_ROOT, CENSUS_MERKLE_TREE [3]string
-  static const METADATA_CENSUS_MERKLE_ROOT_CENSUS_MERKLE_TREE = 2;
-  // START_BLOCK uint64
-  static const START_BLOCK = 3;
-  // BLOCK_COUNT uint32
-  static const BLOCK_COUNT = 4;
+  //METADATA, CENSUS_ROOT, CENSUS_URI [3]string
+  static const METADATA_CENSUS_ROOT_CENSUS_URI = 2;
+  // START_BLOCK, BLOCK_COUNT [2]uint32
+  static const START_BLOCK_BLOCK_COUNT = 3;
   // STATUS ProcessStatus
-  static const STATUS = 5;
+  static const STATUS = 4;
   // QUESTION_INDEX, QUESTION_COUNT, MAX_COUNT, MAX_VALUE, MAX_VOTE_OVERWRITES [5]uint8
   static const QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES =
-      6;
-  // UNIQUE_VALUES: bool
-  static const UNIQUE_VALUES = 7;
+      5;
   // MAX_TOTAL_COST, COST_EXPONENT, NAMESPACE [3]uint16
-  static const MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE = 8;
+  static const MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE = 6;
+
+  // EVM_BLOCK_HEIGHT int
+  static const EVM_BLOCK_HEIGHT = 7;
 
   // the length of the process contract list
-  static const PROCESS_CONTRACT_LENGTH = 9;
+  static const PROCESS_CONTRACT_LENGTH = 8;
 
   // Second-level array indexes
 
-  // MODE, ENVELOPE_TYPE [2]uint8
+  // MODE, ENVELOPE_TYPE, CENSUS_ORIGIN [3]uint8
   static const SUB_INDEX_MODE = 0;
   static const SUB_INDEX_ENVELOPE_TYPE = 1;
+  static const SUB_INDEX_CENSUS_ORIGIN = 2;
 
-  //METADATA, CENSUS_MERKLE_ROOT, CENSUS_MERKLE_TREE [3]string
+  //METADATA, CENSUS_ROOT, CENSUS_URI [3]string
   static const SUB_INDEX_METADATA = 0;
-  static const SUB_INDEX_CENSUS_MERKLE_ROOT = 1;
-  static const SUB_INDEX_CENSUS_MERKLE_TREE = 2;
+  static const SUB_INDEX_CENSUS_ROOT = 1;
+  static const SUB_INDEX_CENSUS_URI = 2;
+
+  // START_BLOCK, BLOCK_COUNT [2]uint32
+  static const SUB_INDEX_START_BLOCK = 0;
+  static const SUB_INDEX_BLOCK_COUNT = 1;
 
   // QUESTION_INDEX, QUESTION_COUNT, MAX_COUNT, MAX_VALUE, MAX_VOTE_OVERWRITES [5]uint8
   static const SUB_INDEX_QUESTION_INDEX = 0;
@@ -240,29 +269,46 @@ class ProcessData {
   List<dynamic> data;
 
   ProcessData(this.data) {
-    if (this.data is! List ||
-        this.data.length != ProcessContractGetIdx.PROCESS_CONTRACT_LENGTH ||
-        this.data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE] is! List ||
-        this.data[ProcessContractGetIdx.ENTITY_ADDRESS] is! String ||
-        this.data[ProcessContractGetIdx
-            .METADATA_CENSUS_MERKLE_ROOT_CENSUS_MERKLE_TREE] is! List ||
-        this.data[ProcessContractGetIdx.START_BLOCK] is! int ||
-        this.data[ProcessContractGetIdx.BLOCK_COUNT] is! int ||
-        this.data[ProcessContractGetIdx.STATUS] is! int ||
-        this.data[ProcessContractGetIdx
-                .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES]
-            is! List ||
-        this.data[ProcessContractGetIdx.UNIQUE_VALUES] is! bool ||
-        this.data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE]
-            is! List) {
-      throw Exception("Process data is invalid");
-    }
+    if (this.data is! List)
+      throw Exception("Process data is invalid: data should be a list");
+    if (this.data.length != ProcessContractGetIdx.PROCESS_CONTRACT_LENGTH)
+      throw Exception(
+          "Process data is invalid: data should contain ${ProcessContractGetIdx.PROCESS_CONTRACT_LENGTH} elements");
+    if (this.data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN]
+        is! List)
+      throw Exception(
+          "Process data is invalid: mode/envelopeType/censusOrigin should be a list");
+    if (this.data[ProcessContractGetIdx.ENTITY_ADDRESS] is! String)
+      throw Exception(
+          "Process data is invalid: entity address should be a string");
+    if (this.data[ProcessContractGetIdx.METADATA_CENSUS_ROOT_CENSUS_URI]
+        is! List)
+      throw Exception(
+          "Process data is invalid: metadata/censusRoot/censusUri should be a list");
+    if (this.data[ProcessContractGetIdx.START_BLOCK_BLOCK_COUNT] is! List)
+      throw Exception(
+          "Process data is invalid: startBlock/blockCount should be a list");
+    if (this.data[ProcessContractGetIdx.STATUS] is! int)
+      throw Exception("Process data is invalid: status should be an int");
+    if (this.data[ProcessContractGetIdx
+            .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES]
+        is! List)
+      throw Exception(
+          "Process data is invalid: questionIndex/questionCount/maxCount/maxValue/maxVoteOverwrites should be a list");
+    if (this.data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE]
+        is! List)
+      throw Exception(
+          "Process data is invalid: maxTotalCost/costExponent/namespace should be a list");
+    if (this.data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT] is! int)
+      throw Exception(
+          "Process data is invalid: evmBlockHeight should be an int");
   }
 
   // First-level array indexes:
-  List get _getModeEnvelopeType {
-    if (data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE] is! List) return null;
-    return data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE];
+  List get _getModeEnvelopeTypeCensusOrigin {
+    if (data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN] is! List)
+      return null;
+    return data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN];
   }
 
   String get getEntityAddress {
@@ -270,21 +316,16 @@ class ProcessData {
     return data[ProcessContractGetIdx.ENTITY_ADDRESS];
   }
 
-  List get _getMetadataCensusMerkleRootCensusMerkleTree {
-    if (data[ProcessContractGetIdx
-        .METADATA_CENSUS_MERKLE_ROOT_CENSUS_MERKLE_TREE] is! List) return null;
-    return data[
-        ProcessContractGetIdx.METADATA_CENSUS_MERKLE_ROOT_CENSUS_MERKLE_TREE];
+  List get _getMetadataCensusRootCensusUri {
+    if (data[ProcessContractGetIdx.METADATA_CENSUS_ROOT_CENSUS_URI] is! List)
+      return null;
+    return data[ProcessContractGetIdx.METADATA_CENSUS_ROOT_CENSUS_URI];
   }
 
-  int get getStartBlock {
-    if (data[ProcessContractGetIdx.START_BLOCK] is! int) return null;
-    return data[ProcessContractGetIdx.START_BLOCK];
-  }
-
-  int get getBlockCount {
-    if (data[ProcessContractGetIdx.BLOCK_COUNT] is! int) return null;
-    return data[ProcessContractGetIdx.BLOCK_COUNT];
+  List get _getStartBlockBlockCount {
+    if (data[ProcessContractGetIdx.START_BLOCK_BLOCK_COUNT] is! List)
+      return null;
+    return data[ProcessContractGetIdx.START_BLOCK_BLOCK_COUNT];
   }
 
   ProcessStatus get getStatus {
@@ -300,27 +341,27 @@ class ProcessData {
         .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES];
   }
 
-  bool get getUniqueValues {
-    if (data[ProcessContractGetIdx.UNIQUE_VALUES] is! bool) return null;
-    return data[ProcessContractGetIdx.UNIQUE_VALUES];
-  }
-
   List get _getMaxTotalCostCostExponentNamespace {
     if (data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE]
         is! List) return null;
     return data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE];
   }
 
+  int get getEvmBlockHeight {
+    if (data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT] is! int) return null;
+    return data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT];
+  }
+
   // Second-level array indexes
   ProcessMode get getMode {
-    final list = _getModeEnvelopeType;
+    final list = _getModeEnvelopeTypeCensusOrigin;
     if (list == null || list[ProcessContractGetIdx.SUB_INDEX_MODE] is! int)
       return null;
     return ProcessMode(list[ProcessContractGetIdx.SUB_INDEX_MODE]);
   }
 
   ProcessEnvelopeType get getEnvelopeType {
-    final list = _getModeEnvelopeType;
+    final list = _getModeEnvelopeTypeCensusOrigin;
     if (list == null ||
         list[ProcessContractGetIdx.SUB_INDEX_ENVELOPE_TYPE] is! int)
       return null;
@@ -328,27 +369,50 @@ class ProcessData {
         list[ProcessContractGetIdx.SUB_INDEX_ENVELOPE_TYPE]);
   }
 
+  ProcessCensusOrigin get getCensusOrigin {
+    final list = _getModeEnvelopeTypeCensusOrigin;
+    if (list == null ||
+        list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ORIGIN] is! int)
+      return null;
+    return ProcessCensusOrigin(
+        list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ORIGIN]);
+  }
+
   String get getMetadata {
-    final list = _getMetadataCensusMerkleRootCensusMerkleTree;
+    final list = _getMetadataCensusRootCensusUri;
     if (list == null ||
         list[ProcessContractGetIdx.SUB_INDEX_METADATA] is! String) return null;
     return list[ProcessContractGetIdx.SUB_INDEX_METADATA];
   }
 
-  String get getCensusMerkleRoot {
-    final list = _getMetadataCensusMerkleRootCensusMerkleTree;
+  String get getCensusRoot {
+    final list = _getMetadataCensusRootCensusUri;
     if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_CENSUS_MERKLE_ROOT] is! String)
+        list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ROOT] is! String)
       return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_CENSUS_MERKLE_ROOT];
+    return list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ROOT];
   }
 
-  String get getCensusMerkleTree {
-    final list = _getMetadataCensusMerkleRootCensusMerkleTree;
+  String get getCensusUri {
+    final list = _getMetadataCensusRootCensusUri;
     if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_CENSUS_MERKLE_TREE] is! String)
+        list[ProcessContractGetIdx.SUB_INDEX_CENSUS_URI] is! String)
       return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_CENSUS_MERKLE_TREE];
+    return list[ProcessContractGetIdx.SUB_INDEX_CENSUS_URI];
+  }
+
+  int get getStartBlock {
+    final list = _getStartBlockBlockCount;
+    if (list == null ||
+        list[ProcessContractGetIdx.SUB_INDEX_START_BLOCK] is! int) return null;
+    return list[ProcessContractGetIdx.SUB_INDEX_START_BLOCK];
+  }
+
+  int get getBlockCount {
+    final list = _getStartBlockBlockCount;
+    if (list == null ||
+        list[ProcessContractGetIdx.SUB_INDEX_BLOCK_COUNT] is! int) return null;
+    return list[ProcessContractGetIdx.SUB_INDEX_BLOCK_COUNT];
   }
 
   int get getQuestionIndex {
@@ -416,13 +480,6 @@ class ProcessData {
       return null;
     return list[ProcessContractGetIdx.SUB_INDEX_NAMESPACE];
   }
-}
-
-class BlockStatus {
-  int blockNumber;
-  int blockTimestamp;
-  List<int> averageBlockTimes;
-  BlockStatus(this.blockNumber, this.blockTimestamp, this.averageBlockTimes);
 }
 
 // HANDLERS
@@ -952,8 +1009,7 @@ Future<EnvelopePackage> packageSignedEnvelope(
   try {
     final envelope = VoteEnvelope.create();
     final proof = Proof();
-    if (censusOrigin != ProcessCensusOrigin.OFF_CHAIN_TREE &&
-        censusOrigin != ProcessCensusOrigin.OFF_CHAIN_TREE_WEIGHTED) {
+    if (!censusOrigin.isOffChain && !censusOrigin.isOffChainWeighted) {
       throw UnimplementedError(
           "On-chain and CA voting not supported yet in-app");
     } else {
@@ -1020,7 +1076,7 @@ Future<Map<String, dynamic>> packageVoteContent(List<int> votes,
   package.nonce = nonce;
   package.votes = votes;
 
-  final strPayload = jsonEncode(package.toEncodable());
+  final strPayload = jsonEncode(package.toJSON());
 
   if (processKeys is ProcessKeys &&
       processKeys.encryptionPubKeys is List &&
