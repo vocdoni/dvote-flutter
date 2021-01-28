@@ -229,7 +229,7 @@ class ProcessContractGetIdx {
   // MAX_TOTAL_COST, COST_EXPONENT, NAMESPACE [3]uint16
   static const MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE = 6;
 
-  // EVM_BLOCK_HEIGHT int
+  // EVM_BLOCK_HEIGHT List<int>
   static const EVM_BLOCK_HEIGHT = 7;
 
   // the length of the process contract list
@@ -299,9 +299,9 @@ class ProcessData {
         is! List)
       throw Exception(
           "Process data is invalid: maxTotalCost/costExponent/namespace should be a list");
-    if (this.data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT] is! int)
+    if (this.data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT] is! List)
       throw Exception(
-          "Process data is invalid: evmBlockHeight should be an int");
+          "Process data is invalid: evmBlockHeight should be a List<int>");
   }
 
   // First-level array indexes:
@@ -347,9 +347,9 @@ class ProcessData {
     return data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE];
   }
 
-  int get getEvmBlockHeight {
-    if (data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT] is! int) return null;
-    return data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT];
+  BigInt get getEvmBlockHeight {
+    if (data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT] is! List<int>) return null;
+    return bytesToInt(data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT]);
   }
 
   // Second-level array indexes

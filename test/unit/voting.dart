@@ -7,6 +7,7 @@ import 'package:dvote/wrappers/process-results.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dvote/dvote.dart';
 import 'package:dvote_crypto/dvote_crypto.dart';
+import 'package:web3dart/crypto.dart';
 
 // import '../../lib/dvote.dart';
 
@@ -279,7 +280,7 @@ void flagsParse() {
       status,
       [questionIndex, questionCount, maxCount, maxValue, maxVoteOverwrites],
       [maxTotalCost, costExponent, namespace],
-      evmBlockHeight,
+      intToBytes(BigInt.from(evmBlockHeight)),
     ]);
     expect(testData.getMode.value, mode);
     expect(testData.getEnvelopeType.value, envelopeType);
@@ -299,12 +300,14 @@ void flagsParse() {
     expect(testData.getMaxTotalCost, maxTotalCost);
     expect(testData.getCostExponent, costExponent);
     expect(testData.getNamespace, namespace);
-    expect(testData.getEvmBlockHeight.compareTo(evmBlockHeight), 0);
+    expect(
+        testData.getEvmBlockHeight.compareTo(BigInt.from(evmBlockHeight)), 0);
   }
 
   void testProcessData() {
     test("Process Data: Should correctly parse a processData array", () async {
       testSingleProcessData();
+      testSingleProcessData(evmBlockHeight: 1);
       testSingleProcessData(
           mode: ProcessMode.make(
                   autoStart: true, interruptible: true, dynamicCensus: true)
@@ -324,7 +327,8 @@ void flagsParse() {
           maxVoteOverwrites: 1,
           maxTotalCost: 30,
           costExponent: 1,
-          namespace: 234239);
+          namespace: 234239,
+          evmBlockHeight: 999999);
     });
   }
 
