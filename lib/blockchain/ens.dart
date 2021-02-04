@@ -22,6 +22,10 @@ final RegExp addressRegExp = new RegExp(r"^0x[0-9A-Fa-f]{40}$");
 
 // FUNCTIONS
 
+Uint8List ensHashAddress(Uint8List address) {
+  return keccak256(address);
+}
+
 Future<String> resolveName(String domain, String gatewayUri,
     {bool useTestingContracts = false}) async {
   if (!domainRegExp.hasMatch(domain)) return null;

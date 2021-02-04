@@ -88,9 +88,9 @@ packages:
   dvote_crypto:
     dependency: "direct main"
     description:
-      name: dvote_crypto
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../dvote-flutter-crypto"
+      relative: true
+    source: path
     version: "0.10.1"
   fake_async:
     dependency: transitive

@@ -1,3 +1,8 @@
+- Update `getGatewayInfo` to `getInfo`
+- Update Ens public resolver
+- Update Process contract artifacts
+- Hash entity address for ENS call
+
 ## 0.19.0
 - Update process contract wrappers to smart contracts v2
 - Use ProcessCensusOrigin wrapper

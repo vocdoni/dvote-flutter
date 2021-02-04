@@ -15,7 +15,9 @@ dependencies:
   protobuf: ^1.0.1
   web3dart: ^2.0.0-dev.7
   convert: ^2.1.1
-  dvote_crypto: ^0.10.1
+  # dvote_crypto: ^0.10.1
+  dvote_crypto: 
+    path: ../dvote-flutter-crypto
 
 dev_dependencies:
   flutter_test:

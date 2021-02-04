@@ -179,7 +179,7 @@ class DVoteGateway {
     comp.complete(jsonResponse);
   }
 
-  /// Calls `getGatewayInfo` on the current node and updates the internal state.
+  /// Calls `getInfo` on the current node and updates the internal state.
   Future<void> updateStatus({int timeout = 6}) {
     return DVoteGateway.getStatus(this._gatewayUri, timeout: timeout)
         .then((result) {
@@ -190,16 +190,13 @@ class DVoteGateway {
     });
   }
 
-  /// Calls `getGatewayInfo` on the current node.
+  /// Calls `getInfo` on the current node.
   static Future<DVoteGatewayStatus> getStatus(String gatewayUri,
       {int timeout = 6}) async {
     final pingOk = await DVoteGateway._checkPing(gatewayUri, timeout: timeout);
     if (!pingOk) return DVoteGatewayStatus(false, 0, <String>[]);
 
-    final req = {
-      "method": "getGatewayInfo",
-      "timestamp": getTimestampForGateway()
-    };
+    final req = {"method": "getInfo", "timestamp": getTimestampForGateway()};
     return DVoteGateway(gatewayUri)
         .sendRequest(req, timeout: timeout)
         .then((result) {
