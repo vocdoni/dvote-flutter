@@ -111,7 +111,6 @@ class Web3Gateway {
     if (methodFunc == null) throw Exception("Method not found");
 
     final Completer<List<dynamic>> completer = Completer<List<dynamic>>();
-
     // Launch the request
     _client
         .call(

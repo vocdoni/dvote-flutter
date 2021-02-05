@@ -29,11 +29,5 @@ const SIGNATURE_TIMESTAMP_TOLERANCE_GW = 60 * 60 * 2; // 2h
 const VOCHAIN_BLOCK_TIME = 10;
 
 // ENS
-const ENS_PUBLIC_RESOLVER_DOMAIN = "entity-resolver.vocdoni.eth";
-const PROCESS_DOMAIN = "voting-process.vocdoni.eth";
-
-// const ENTITY_RESOLVER_DOMAIN = "entities.vocdoni.eth";
-// const PROCESS_DOMAIN = "process.vocdoni.eth";
-
-// const ENTITY_RESOLVER_DOMAIN_DEV = "entities.dev.vocdoni.eth";
-// const PROCESS_DOMAIN_DEV = "process.dev.vocdoni.eth";
+const ENS_PUBLIC_RESOLVER_DOMAIN = "entities.vocdoni.eth";
+const PROCESS_DOMAIN = "processes.vocdoni.eth";

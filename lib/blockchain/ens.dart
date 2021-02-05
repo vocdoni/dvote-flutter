@@ -54,7 +54,6 @@ Future<String> resolveName(String domain, String gatewayUri,
 Future<String> getResolver(String domain, String gatewayUri,
     {bool useTestingContracts = true}) async {
   if (!domainRegExp.hasMatch(domain)) return null;
-
   final nodeHash = hashDomainName(domain);
 
   // Detect the network

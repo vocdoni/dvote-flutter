@@ -485,8 +485,11 @@ class ProcessData {
 // HANDLERS
 
 /// Fetch the metadata for the given Process ID
-Future<ProcessMetadata> getProcessMetadata(String processId, GatewayPool gw) {
-  return getProcess(processId, gw).then((processData) {
+Future<ProcessMetadata> getProcessMetadata(String processId, GatewayPool gw,
+    {ProcessData data}) {
+  // If data param exists, start with future of this value. Otherwise get ProcessData
+  return (data == null ? getProcess(processId, gw) : Future.value(data)).then(
+      (processData) {
     if (processData.getMetadata is! String) return null;
     final metadataUri = ContentURI(processData.getMetadata);
     return fetchFileString(metadataUri, gw);
@@ -539,13 +542,16 @@ Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
 
 Future<ProcessResultsDigested> getResultsDigest(
     String processId, GatewayPool gw,
-    {ProcessMetadata meta}) async {
+    {ProcessMetadata meta, ProcessData data}) async {
   if (gw == null || processId == "") throw Exception("Invalid parameters");
   final pid = processId.startsWith("0x") ? processId : "0x" + processId;
   try {
+    if (data == null) {
+      data = await getProcess(processId, gw);
+    }
     // Enable option to pass-in metadata, otherwise call metadata api
     if (meta == null) {
-      meta = await getProcessMetadata(pid, gw);
+      meta = await getProcessMetadata(pid, gw, data: data);
     }
     final processMetadata = meta;
     final currentBlock = await getBlockHeight(gw);
@@ -561,6 +567,8 @@ Future<ProcessResultsDigested> getResultsDigest(
     if (processMetadata == null) {
       throw Exception("Process Metadata is empty");
     }
+
+    // TODO here get process, use ProcessData instead of "type"
 
     if (processMetadata.type == "encrypted-poll") {
       final endBlock = processMetadata.startBlock + processMetadata.blockCount;
