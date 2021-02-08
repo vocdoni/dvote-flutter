@@ -1,3 +1,5 @@
+import 'package:dvote/dvote.dart';
+
 class ProcessResults {
   List<List<String>> results;
   String state;
@@ -35,8 +37,8 @@ class ProcessResultsDigested {
 }
 
 class ProcessResultItem {
-  String type;
-  Map<String, String> question;
+  ProcessEnvelopeType type;
+  ProcessMetadata_Question question;
   Map<String, String> description;
   List<VoteResults> voteResults;
 
@@ -44,7 +46,7 @@ class ProcessResultItem {
 
   @override
   toString() {
-    return "Question: $type, question: ${question["default"]}, description: ${description["default"]}, results: $voteResults";
+    return "Question: ${type.toString()}, question: ${question.toString()}, description: ${description["default"]}, results: $voteResults";
   }
 }
 

@@ -1,5 +1,4 @@
 import "dart:async";
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:typed_data';
 import 'package:dvote/blockchain/ens.dart';
@@ -8,9 +7,7 @@ import 'package:dvote/net/gateway-web3.dart';
 import 'package:dvote/wrappers/content-uri.dart';
 import 'package:convert/convert.dart';
 import 'package:dvote/util/parsers.dart';
-import 'package:hex/hex.dart';
 import 'package:dvote/wrappers/entities.dart';
-import 'package:web3dart/crypto.dart';
 
 import '../models/build/dart/metadata/entity.pb.dart';
 import './file.dart';

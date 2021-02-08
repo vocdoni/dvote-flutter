@@ -15,6 +15,7 @@ import 'package:dvote/util/parsers.dart';
 import 'package:dvote/wrappers/content-uri.dart';
 import 'package:dvote/wrappers/process-keys.dart';
 import 'package:dvote_crypto/dvote_crypto.dart';
+import 'package:web3dart/web3dart.dart';
 
 import '../net/gateway-pool.dart';
 import '../util/random.dart';
@@ -229,7 +230,7 @@ class ProcessContractGetIdx {
   // MAX_TOTAL_COST, COST_EXPONENT, NAMESPACE [3]uint16
   static const MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE = 6;
 
-  // EVM_BLOCK_HEIGHT List<int>
+  // EVM_BLOCK_HEIGHT BigInt
   static const EVM_BLOCK_HEIGHT = 7;
 
   // the length of the process contract list
@@ -266,7 +267,7 @@ class ProcessContractGetIdx {
 
 /// Wraps the Process contract response and provides getters to the response's fields
 class ProcessData {
-  List<dynamic> data;
+  final List<dynamic> data;
 
   ProcessData(this.data) {
     if (this.data is! List)
@@ -274,212 +275,336 @@ class ProcessData {
     if (this.data.length != ProcessContractGetIdx.PROCESS_CONTRACT_LENGTH)
       throw Exception(
           "Process data is invalid: data should contain ${ProcessContractGetIdx.PROCESS_CONTRACT_LENGTH} elements");
-    if (this.data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN]
-        is! List)
-      throw Exception(
-          "Process data is invalid: mode/envelopeType/censusOrigin should be a list");
-    if (this.data[ProcessContractGetIdx.ENTITY_ADDRESS] is! String)
-      throw Exception(
-          "Process data is invalid: entity address should be a string");
-    if (this.data[ProcessContractGetIdx.METADATA_CENSUS_ROOT_CENSUS_URI]
-        is! List)
-      throw Exception(
-          "Process data is invalid: metadata/censusRoot/censusUri should be a list");
-    if (this.data[ProcessContractGetIdx.START_BLOCK_BLOCK_COUNT] is! List)
-      throw Exception(
-          "Process data is invalid: startBlock/blockCount should be a list");
-    if (this.data[ProcessContractGetIdx.STATUS] is! int)
-      throw Exception("Process data is invalid: status should be an int");
-    if (this.data[ProcessContractGetIdx
-            .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES]
-        is! List)
-      throw Exception(
-          "Process data is invalid: questionIndex/questionCount/maxCount/maxValue/maxVoteOverwrites should be a list");
-    if (this.data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE]
-        is! List)
-      throw Exception(
-          "Process data is invalid: maxTotalCost/costExponent/namespace should be a list");
-    if (this.data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT] is! List)
-      throw Exception(
-          "Process data is invalid: evmBlockHeight should be a List<int>");
+    try {
+      // Use all getters to ensure data is parsed correctly
+      this.getMode;
+      this.getEnvelopeType;
+      this.getCensusOrigin;
+      this.getEntityAddress;
+      this.getMetadata;
+      this.getCensusRoot;
+      this.getCensusUri;
+      this.getStartBlock;
+      this.getBlockCount;
+      this.getStatus;
+      this.getQuestionIndex;
+      this.getQuestionCount;
+      this.getMaxCount;
+      this.getMaxValue;
+      this.getMaxVoteOverwrites;
+      this.getMaxTotalCost;
+      this.getCostExponent;
+      this.getNamespace;
+      this.getEvmBlockHeight;
+    } catch (err) {
+      throw Exception("ProcessData could not be initialized: $err");
+    }
+  }
+
+  ProcessData.fromJsonString(String jsonString)
+      : this(parseJsonFields(jsonString));
+
+  String toJsonString() {
+    try {
+      return json.encode(data, toEncodable: (object) {
+        try {
+          return object.toJson();
+        } catch (_) {
+          // EthereumAddress or BigInt
+          return object.toString();
+        }
+      });
+    } catch (err) {
+      throw Exception("Could not encode ProcessData to json: $err");
+    }
   }
 
   // First-level array indexes:
   List get _getModeEnvelopeTypeCensusOrigin {
     if (data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN] is! List)
-      return null;
+      throw Exception(
+          "ProcessData MODE_ENVELOPE_TYPE_CENSUS_ORIGIN expected to be a list, instead is a ${data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN].runtimeType}");
     return data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN];
   }
 
-  String get getEntityAddress {
-    if (data[ProcessContractGetIdx.ENTITY_ADDRESS] is! String) return null;
+  EthereumAddress get getEntityAddress {
+    if (data[ProcessContractGetIdx.ENTITY_ADDRESS] is! EthereumAddress)
+      throw Exception(
+          "ProcessData ENTITY_ADDRESS expected to be an EthereumAddress, instead is a ${[
+        ProcessContractGetIdx.ENTITY_ADDRESS
+      ].runtimeType}");
     return data[ProcessContractGetIdx.ENTITY_ADDRESS];
   }
 
   List get _getMetadataCensusRootCensusUri {
     if (data[ProcessContractGetIdx.METADATA_CENSUS_ROOT_CENSUS_URI] is! List)
-      return null;
+      throw Exception(
+          "ProcessData METADATA_CENSUS_ROOT_CENSUS_URI expected to be a List, instead is a ${data[ProcessContractGetIdx.METADATA_CENSUS_ROOT_CENSUS_URI].runtimeType}");
     return data[ProcessContractGetIdx.METADATA_CENSUS_ROOT_CENSUS_URI];
   }
 
   List get _getStartBlockBlockCount {
     if (data[ProcessContractGetIdx.START_BLOCK_BLOCK_COUNT] is! List)
-      return null;
+      throw Exception(
+          "ProcessData START_BLOCK_BLOCK_COUNT expected to be a List, instead is a ${data[ProcessContractGetIdx.START_BLOCK_BLOCK_COUNT].runtimeType}");
     return data[ProcessContractGetIdx.START_BLOCK_BLOCK_COUNT];
   }
 
   ProcessStatus get getStatus {
-    if (data[ProcessContractGetIdx.STATUS] is! int) return null;
-    return ProcessStatus(data[ProcessContractGetIdx.STATUS]);
+    if (data[ProcessContractGetIdx.STATUS] is! BigInt)
+      throw Exception(
+          "ProcessData STATUS expected to be a BigInt, instead is a ${data[ProcessContractGetIdx.STATUS].runtimeType}");
+    return ProcessStatus(data[ProcessContractGetIdx.STATUS].toInt());
   }
 
   List get _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites {
     if (data[ProcessContractGetIdx
             .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES]
-        is! List) return null;
+        is! List)
+      throw Exception(
+          "ProcessData QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES expected to be a List, instead is a ${data[ProcessContractGetIdx.QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES].runtimeType}");
     return data[ProcessContractGetIdx
         .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES];
   }
 
   List get _getMaxTotalCostCostExponentNamespace {
     if (data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE]
-        is! List) return null;
+        is! List)
+      throw Exception(
+          "ProcessData MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE expected to be a List, instead is a ${data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE].runtimeType}");
     return data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE];
   }
 
   BigInt get getEvmBlockHeight {
-    if (data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT] is! List<int>) return null;
-    return bytesToInt(data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT]);
+    if (data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT] is! BigInt)
+      throw Exception(
+          "ProcessData EVM_BLOCK_HEIGHT expected to be a BigInt, instead is a ${data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT].runtimeType}");
+    return data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT];
   }
 
   // Second-level array indexes
   ProcessMode get getMode {
     final list = _getModeEnvelopeTypeCensusOrigin;
-    if (list == null || list[ProcessContractGetIdx.SUB_INDEX_MODE] is! int)
-      return null;
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+    if (list[ProcessContractGetIdx.SUB_INDEX_MODE] is! int) return null;
     return ProcessMode(list[ProcessContractGetIdx.SUB_INDEX_MODE]);
   }
 
   ProcessEnvelopeType get getEnvelopeType {
     final list = _getModeEnvelopeTypeCensusOrigin;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_ENVELOPE_TYPE] is! int)
-      return null;
+    if (list == null) throw Exception("LISTTYPE is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_ENVELOPE_TYPE] is! BigInt)
+      throw Exception(
+          "ProcessData ENVELOPE_TYPE expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_ENVELOPE_TYPE].runtimeType}");
     return ProcessEnvelopeType(
-        list[ProcessContractGetIdx.SUB_INDEX_ENVELOPE_TYPE]);
+        list[ProcessContractGetIdx.SUB_INDEX_ENVELOPE_TYPE].toInt());
   }
 
   ProcessCensusOrigin get getCensusOrigin {
     final list = _getModeEnvelopeTypeCensusOrigin;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ORIGIN] is! int)
-      return null;
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ORIGIN] is! BigInt)
+      throw Exception(
+          "ProcessData CENSUS_ORIGIN expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ORIGIN].runtimeType}");
     return ProcessCensusOrigin(
-        list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ORIGIN]);
+        list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ORIGIN].toInt());
   }
 
   String get getMetadata {
     final list = _getMetadataCensusRootCensusUri;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_METADATA] is! String) return null;
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_METADATA] is! String)
+      throw Exception(
+          "ProcessData METADATA expected to be a String, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_METADATA].runtimeType}");
     return list[ProcessContractGetIdx.SUB_INDEX_METADATA];
   }
 
   String get getCensusRoot {
     final list = _getMetadataCensusRootCensusUri;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ROOT] is! String)
-      return null;
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ROOT] is! String)
+      throw Exception(
+          "ProcessData CENSUS_ROOT expected to be a String, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ROOT].runtimeType}");
     return list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ROOT];
   }
 
   String get getCensusUri {
     final list = _getMetadataCensusRootCensusUri;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_CENSUS_URI] is! String)
-      return null;
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_CENSUS_URI] is! String)
+      throw Exception(
+          "ProcessData CENSUS_URI expected to be a String, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_CENSUS_URI].runtimeType}");
     return list[ProcessContractGetIdx.SUB_INDEX_CENSUS_URI];
   }
 
   int get getStartBlock {
     final list = _getStartBlockBlockCount;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_START_BLOCK] is! int) return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_START_BLOCK];
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+    if (list[ProcessContractGetIdx.SUB_INDEX_START_BLOCK] is! BigInt)
+      throw Exception(
+          "ProcessData START_BLOCK expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_START_BLOCK].runtimeType}");
+    return list[ProcessContractGetIdx.SUB_INDEX_START_BLOCK].toInt();
   }
 
   int get getBlockCount {
     final list = _getStartBlockBlockCount;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_BLOCK_COUNT] is! int) return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_BLOCK_COUNT];
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+    if (list[ProcessContractGetIdx.SUB_INDEX_BLOCK_COUNT] is! BigInt)
+      throw Exception(
+          "ProcessData BLOCK_COUNT expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_BLOCK_COUNT].runtimeType}");
+    return list[ProcessContractGetIdx.SUB_INDEX_BLOCK_COUNT].toInt();
   }
 
   int get getQuestionIndex {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_QUESTION_INDEX] is! int)
-      return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_QUESTION_INDEX];
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_QUESTION_INDEX] is! BigInt)
+      throw Exception(
+          "ProcessData QUESTION_INDEX expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_QUESTION_INDEX].runtimeType}");
+    return list[ProcessContractGetIdx.SUB_INDEX_QUESTION_INDEX].toInt();
   }
 
   int get getQuestionCount {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_QUESTION_COUNT] is! int)
-      return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_QUESTION_COUNT];
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_QUESTION_COUNT] is! BigInt)
+      throw Exception(
+          "ProcessData QUESTION_COUNT expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_QUESTION_COUNT].runtimeType}");
+    return list[ProcessContractGetIdx.SUB_INDEX_QUESTION_COUNT].toInt();
   }
 
   int get getMaxCount {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
-    if (list == null || list[ProcessContractGetIdx.SUB_INDEX_MAX_COUNT] is! int)
-      return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_MAX_COUNT];
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_MAX_COUNT] is! BigInt)
+      throw Exception(
+          "ProcessData MAX_COUNT expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_MAX_COUNT].runtimeType}");
+    return list[ProcessContractGetIdx.SUB_INDEX_MAX_COUNT].toInt();
   }
 
   int get getMaxValue {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
-    if (list == null || list[ProcessContractGetIdx.SUB_INDEX_MAX_VALUE] is! int)
-      return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_MAX_VALUE];
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_MAX_VALUE] is! BigInt)
+      throw Exception(
+          "ProcessData MAX_VALUE expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_MAX_VALUE].runtimeType}");
+    return list[ProcessContractGetIdx.SUB_INDEX_MAX_VALUE].toInt();
   }
 
   int get getMaxVoteOverwrites {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_MAX_VOTE_OVERWRITES] is! int)
-      return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_MAX_VOTE_OVERWRITES];
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_MAX_VOTE_OVERWRITES] is! BigInt)
+      throw Exception(
+          "ProcessData MAX_VOTE_OVERWRITES expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_MAX_VOTE_OVERWRITES].runtimeType}");
+    return list[ProcessContractGetIdx.SUB_INDEX_MAX_VOTE_OVERWRITES].toInt();
   }
 
   int get getMaxTotalCost {
     final list = _getMaxTotalCostCostExponentNamespace;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_MAX_TOTAL_COST] is! int)
-      return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_MAX_TOTAL_COST];
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_MAX_TOTAL_COST] is! BigInt)
+      throw Exception(
+          "ProcessData MAX_TOTAL_COST expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_MAX_TOTAL_COST].runtimeType}");
+    return list[ProcessContractGetIdx.SUB_INDEX_MAX_TOTAL_COST].toInt();
   }
 
   int get getCostExponent {
     final list = _getMaxTotalCostCostExponentNamespace;
-    if (list == null ||
-        list[ProcessContractGetIdx.SUB_INDEX_COST_EXPONENT] is! int)
-      return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_COST_EXPONENT];
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_COST_EXPONENT] is! BigInt)
+      throw Exception(
+          "ProcessData COST_EXPONENT expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_COST_EXPONENT].runtimeType}");
+    return list[ProcessContractGetIdx.SUB_INDEX_COST_EXPONENT].toInt();
   }
 
   int get getNamespace {
     final list = _getMaxTotalCostCostExponentNamespace;
-    if (list == null || list[ProcessContractGetIdx.SUB_INDEX_NAMESPACE] is! int)
-      return null;
-    return list[ProcessContractGetIdx.SUB_INDEX_NAMESPACE];
+    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
+
+    if (list[ProcessContractGetIdx.SUB_INDEX_NAMESPACE] is! BigInt)
+      throw Exception(
+          "ProcessData NAMESPACE expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_NAMESPACE].runtimeType}");
+    return list[ProcessContractGetIdx.SUB_INDEX_NAMESPACE].toInt();
   }
+}
+
+parseJsonFields(String jsonString) {
+  final jsonData = json.decode(jsonString);
+  if (jsonData[ProcessContractGetIdx.ENTITY_ADDRESS] is String) {
+    jsonData[ProcessContractGetIdx.ENTITY_ADDRESS] =
+        EthereumAddress.fromHex(jsonData[ProcessContractGetIdx.ENTITY_ADDRESS]);
+  }
+  decodeBigInt(jsonData, ProcessContractGetIdx.STATUS);
+  decodeBigInt(jsonData, ProcessContractGetIdx.EVM_BLOCK_HEIGHT);
+  decodeBigInt(jsonData, ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN,
+      idx2: ProcessContractGetIdx.SUB_INDEX_ENVELOPE_TYPE);
+  decodeBigInt(jsonData, ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN,
+      idx2: ProcessContractGetIdx.SUB_INDEX_CENSUS_ORIGIN);
+  decodeBigInt(jsonData, ProcessContractGetIdx.START_BLOCK_BLOCK_COUNT,
+      idx2: ProcessContractGetIdx.SUB_INDEX_START_BLOCK);
+  decodeBigInt(jsonData, ProcessContractGetIdx.START_BLOCK_BLOCK_COUNT,
+      idx2: ProcessContractGetIdx.SUB_INDEX_BLOCK_COUNT);
+  decodeBigInt(
+      jsonData,
+      ProcessContractGetIdx
+          .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES,
+      idx2: ProcessContractGetIdx.SUB_INDEX_QUESTION_INDEX);
+  decodeBigInt(
+      jsonData,
+      ProcessContractGetIdx
+          .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES,
+      idx2: ProcessContractGetIdx.SUB_INDEX_QUESTION_COUNT);
+  decodeBigInt(
+      jsonData,
+      ProcessContractGetIdx
+          .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES,
+      idx2: ProcessContractGetIdx.SUB_INDEX_MAX_COUNT);
+  decodeBigInt(
+      jsonData,
+      ProcessContractGetIdx
+          .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES,
+      idx2: ProcessContractGetIdx.SUB_INDEX_MAX_VALUE);
+  decodeBigInt(
+      jsonData,
+      ProcessContractGetIdx
+          .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES,
+      idx2: ProcessContractGetIdx.SUB_INDEX_MAX_VOTE_OVERWRITES);
+  decodeBigInt(
+      jsonData, ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE,
+      idx2: ProcessContractGetIdx.SUB_INDEX_MAX_TOTAL_COST);
+  decodeBigInt(
+      jsonData, ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE,
+      idx2: ProcessContractGetIdx.SUB_INDEX_COST_EXPONENT);
+  decodeBigInt(
+      jsonData, ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE,
+      idx2: ProcessContractGetIdx.SUB_INDEX_NAMESPACE);
+  return jsonData;
+}
+
+void decodeBigInt(dynamic jsonData, int idx1, {int idx2}) {
+  if (idx2 == null) {
+    jsonData[idx1] = BigInt.tryParse(jsonData[idx1]);
+    return;
+  }
+  jsonData[idx1][idx2] = BigInt.tryParse(jsonData[idx1][idx2]);
 }
 
 // HANDLERS
@@ -542,36 +667,34 @@ Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
 
 Future<ProcessResultsDigested> getResultsDigest(
     String processId, GatewayPool gw,
-    {ProcessMetadata meta, ProcessData data}) async {
+    {ProcessMetadata meta, ProcessData processData}) async {
   if (gw == null || processId == "") throw Exception("Invalid parameters");
   final pid = processId.startsWith("0x") ? processId : "0x" + processId;
   try {
-    if (data == null) {
-      data = await getProcess(processId, gw);
+    if (processData == null) {
+      processData = await getProcess(processId, gw);
     }
     // Enable option to pass-in metadata, otherwise call metadata api
     if (meta == null) {
-      meta = await getProcessMetadata(pid, gw, data: data);
+      meta = await getProcessMetadata(pid, gw, data: processData);
     }
     final processMetadata = meta;
     final currentBlock = await getBlockHeight(gw);
 
     // If process hasn't started yet, throw exception
-    if (currentBlock < processMetadata.startBlock) {
+    if (currentBlock < processData.getStartBlock) {
       return null; // No results yet
     }
     final rawResults = await getRawResults(pid, gw);
-    if (processMetadata.details.questions?.isEmpty ?? true) {
+    if (processMetadata.questions?.isEmpty ?? true) {
       return ProcessResultsDigested(rawResults.state, rawResults.type);
     }
     if (processMetadata == null) {
       throw Exception("Process Metadata is empty");
     }
 
-    // TODO here get process, use ProcessData instead of "type"
-
-    if (processMetadata.type == "encrypted-poll") {
-      final endBlock = processMetadata.startBlock + processMetadata.blockCount;
+    if (processData.getEnvelopeType.hasEncryptedVotes) {
+      final endBlock = processData.getStartBlock + processData.getBlockCount;
       if ((currentBlock < endBlock) && rawResults.state != "canceled") {
         return null; // No results
       }
@@ -591,7 +714,8 @@ Future<ProcessResultsDigested> getResultsDigest(
       }
     }
 
-    return parseProcessResultsDigested(rawResults, processMetadata);
+    return parseProcessResultsDigested(
+        rawResults, processMetadata, processData);
   } catch (err) {
     throw Exception("The results could not be digested: $err");
   }

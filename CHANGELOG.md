@@ -2,6 +2,8 @@
 - Update Ens public resolver
 - Update Process contract artifacts
 - Hash entity address for ENS call
+- Convert ProcessData ints to BigInts
+- Ensure ProcessData parses upon declaration
 
 ## 0.19.0
 - Update process contract wrappers to smart contracts v2
