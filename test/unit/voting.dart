@@ -7,6 +7,7 @@ import 'package:dvote/wrappers/process-results.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dvote/dvote.dart';
 import 'package:dvote_crypto/dvote_crypto.dart';
+import 'package:web3dart/credentials.dart';
 import 'package:web3dart/crypto.dart';
 
 // import '../../lib/dvote.dart';
@@ -21,25 +22,20 @@ void resultsParse() {
     expect(results.results, expectedResults);
   }
 
-  void testProcessResultsDigest(
-      ProcessMetadata fakeMetadata, ProcessResults fakeResults) {
+  void testProcessResultsDigest(ProcessMetadata fakeMetadata,
+      ProcessResults fakeResults, ProcessData fakeData) {
     final resultsDigested =
-        parseProcessResultsDigested(fakeResults, fakeMetadata);
+        parseProcessResultsDigested(fakeResults, fakeMetadata, fakeData);
     expect(resultsDigested.type, fakeResults.type);
     expect(resultsDigested.state, fakeResults.state);
-    expect(resultsDigested.questions.length,
-        fakeMetadata.details.questions.length);
+    expect(resultsDigested.questions.length, fakeMetadata.questions.length);
 
     for (int i = 0; i < resultsDigested.questions.length; i++) {
-      expect(resultsDigested.questions[i].type,
-          fakeMetadata.details.questions[i].type);
-      expect(resultsDigested.questions[i].question["default"],
-          fakeMetadata.details.questions[i].question["default"]);
-      for (int j = 0;
-          j < fakeMetadata.details.questions[i].voteOptions.length;
-          j++) {
+      expect(resultsDigested.questions[i].question.title['default'],
+          fakeMetadata.questions[i].title["default"]);
+      for (int j = 0; j < fakeMetadata.questions[i].choices.length; j++) {
         expect(resultsDigested.questions[i].voteResults[j].title["default"],
-            fakeMetadata.details.questions[i].voteOptions[j].title["default"]);
+            fakeMetadata.questions[i].choices[j].title["default"]);
         expect(resultsDigested.questions[i].voteResults[j].votes.toString(),
             fakeResults.results[i][j]);
       }
@@ -120,43 +116,42 @@ void resultsParse() {
 
   test("Process Results: Should parse valid process results digest", () async {
     final fakeMetadata0 = ProcessMetadata();
+    final fakeData0 = ProcessData.fromJsonString(
+        """[["1","0","1"],"0x63c1452cf8f2fed7ead5e6c222c41e96c6ec1e0f",["ipfs://QmVBUKa6xUitCSmf5fnghJUhEXXoY4qjW79LkUntpwDY9s","0x0000000000000000000000000000000000000000000000000000000000000000","ipfs://1234"],["14500","100"],"0",["0","2","1","5","1"],["0","1000","1"],"0"]""");
     final fakeResults0 = ProcessResults.empty();
-    ProcessMetadata_Details details = ProcessMetadata_Details();
-    List<ProcessMetadata_Details_Question> questions =
-        List<ProcessMetadata_Details_Question>();
+    List<ProcessMetadata_Question> questions = List<ProcessMetadata_Question>();
     fakeResults0.type = "poll-vote";
     fakeResults0.state = "ended";
     fakeResults0.results = List<List<String>>();
     for (int i = 0; i < 10; i++) {
-      final question = ProcessMetadata_Details_Question();
-      question.type = "Type " + i.toString();
-      question.question.addAll({"default": "Question " + i.toString()});
+      final question = ProcessMetadata_Question();
+      question.title.addAll({"default": "Question " + i.toString()});
       question.description.addAll({"default": "Description " + i.toString()});
       fakeResults0.results.add([]);
-      final options = List<ProcessMetadata_Details_Question_VoteOption>();
+      final options = List<ProcessMetadata_Question_VoteOption>();
       for (int j = 0; j < 3; j++) {
-        final option = ProcessMetadata_Details_Question_VoteOption();
+        final option = ProcessMetadata_Question_VoteOption();
         option.title.addAll({"default": "Yes" + i.toString()});
         option.title.addAll({"default": "No" + i.toString()});
         option.value = i;
         options.add(option);
         fakeResults0.results[i].add(j.toString());
       }
-      question.voteOptions.addAll(options);
+      question.choices.addAll(options);
       questions.add(question);
     }
-    details.questions.addAll(questions);
-    fakeMetadata0.details = details;
+    fakeMetadata0.questions.addAll(questions);
 
     final fakeMetadata1 = fakeMetadata0;
+    final fakeData1 = fakeData0;
     final fakeResults1 = fakeResults0;
     // Test for metadata with no results yet
     fakeResults1.results.forEach((element) {
       element = [];
     });
 
-    testProcessResultsDigest(fakeMetadata0, fakeResults0);
-    testProcessResultsDigest(fakeMetadata1, fakeResults1);
+    testProcessResultsDigest(fakeMetadata0, fakeResults0, fakeData0);
+    testProcessResultsDigest(fakeMetadata1, fakeResults1, fakeData1);
   });
 }
 
@@ -256,7 +251,7 @@ void flagsParse() {
       {int mode = 0,
       int envelopeType = 0,
       int censusOrigin = 1,
-      String entityAddress = "",
+      EthereumAddress entityAddress,
       String metadata = "",
       String censusRoot = "",
       String censusUri = "",
@@ -272,15 +267,28 @@ void flagsParse() {
       int costExponent = 0,
       int namespace = 0,
       int evmBlockHeight = 0}) {
+    if (entityAddress == null)
+      entityAddress =
+          EthereumAddress.fromHex("0x0000000000000000000000000000000000000000");
     final testData = ProcessData([
-      [mode, envelopeType, censusOrigin],
+      [BigInt.from(mode), BigInt.from(envelopeType), BigInt.from(censusOrigin)],
       entityAddress,
       [metadata, censusRoot, censusUri],
-      [startBlock, blockCount],
-      status,
-      [questionIndex, questionCount, maxCount, maxValue, maxVoteOverwrites],
-      [maxTotalCost, costExponent, namespace],
-      intToBytes(BigInt.from(evmBlockHeight)),
+      [BigInt.from(startBlock), BigInt.from(blockCount)],
+      BigInt.from(status),
+      [
+        BigInt.from(questionIndex),
+        BigInt.from(questionCount),
+        BigInt.from(maxCount),
+        BigInt.from(maxValue),
+        BigInt.from(maxVoteOverwrites)
+      ],
+      [
+        BigInt.from(maxTotalCost),
+        BigInt.from(costExponent),
+        BigInt.from(namespace)
+      ],
+      BigInt.from(evmBlockHeight),
     ]);
     expect(testData.getMode.value, mode);
     expect(testData.getEnvelopeType.value, envelopeType);

@@ -386,8 +386,10 @@ class ProcessData {
   ProcessMode get getMode {
     final list = _getModeEnvelopeTypeCensusOrigin;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
-    if (list[ProcessContractGetIdx.SUB_INDEX_MODE] is! int) return null;
-    return ProcessMode(list[ProcessContractGetIdx.SUB_INDEX_MODE]);
+    if (list[ProcessContractGetIdx.SUB_INDEX_MODE] is! BigInt)
+      throw Exception(
+          "ProcessData SUB_INDEX_MODE expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_MODE].runtimeType}");
+    return ProcessMode(list[ProcessContractGetIdx.SUB_INDEX_MODE].toInt());
   }
 
   ProcessEnvelopeType get getEnvelopeType {
@@ -554,6 +556,8 @@ parseJsonFields(String jsonString) {
   }
   decodeBigInt(jsonData, ProcessContractGetIdx.STATUS);
   decodeBigInt(jsonData, ProcessContractGetIdx.EVM_BLOCK_HEIGHT);
+  decodeBigInt(jsonData, ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN,
+      idx2: ProcessContractGetIdx.SUB_INDEX_MODE);
   decodeBigInt(jsonData, ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN,
       idx2: ProcessContractGetIdx.SUB_INDEX_ENVELOPE_TYPE);
   decodeBigInt(jsonData, ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN,
