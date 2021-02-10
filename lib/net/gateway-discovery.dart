@@ -10,10 +10,10 @@ Future<List<Gateway>> discoverGateways(
     {String bootnodeUri,
     String networkId = "xdai",
     int maxGatewayCount = 5,
-    bool useTestingContracts = false}) async {
+    String alternateEnvironment = ""}) async {
   if (bootnodeUri is! String || bootnodeUri.length < 1) {
     bootnodeUri = await resolveWellKnownBootnodeUri(networkId,
-        useTestingContracts: useTestingContracts);
+        alternateEnvironment: alternateEnvironment);
   }
 
   final info = await fetchBootnodeInfo(bootnodeUri);
@@ -21,14 +21,15 @@ Future<List<Gateway>> discoverGateways(
   return discoverGatewaysFromBootnodeInfo(info,
       networkId: networkId,
       maxGatewayCount: maxGatewayCount,
-      useTestingContracts: useTestingContracts);
+      alternateEnvironment: alternateEnvironment);
 }
 
 // Digests the bootnode info into a list of working gateways, featuring web3 and DVote nodes
+// AlternateEnvironment eg "stg" "dev". "" for mainnet
 Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
     {String networkId = "xdai",
     int maxGatewayCount = 5,
-    bool useTestingContracts = false}) async {
+    String alternateEnvironment = ""}) async {
   BootNodeGateways_NetworkNodes networkNodes;
 
   switch (networkId) {
@@ -64,7 +65,7 @@ Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
     return Web3Gateway.isSyncing(candidate.uri).then((syncing) {
       if (!syncing)
         web3Nodes.add(Web3Gateway(candidate.uri,
-            useTestingContracts: useTestingContracts));
+            alternateEnvironment: alternateEnvironment));
       else
         log("[Discovery] Web3 node ${candidate.uri} is syncing: Skip");
     }).catchError((err) {

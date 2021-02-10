@@ -15,27 +15,23 @@ void ens() {
 
     // XDAI Main contract
     final addr1 = await resolveName(
-        "entity-resolver.vocdoni.eth", "https://dai.poa.network",
-        useTestingContracts: false);
+        "entity-resolver.vocdoni.eth", "https://dai.poa.network");
     expect(addressRegExp.hasMatch(addr1), true,
         reason: "The result should be a valid address");
 
     final addr2 = await resolveName(
-        "voting-process.vocdoni.eth", "https://dai.poa.network",
-        useTestingContracts: false);
+        "voting-process.vocdoni.eth", "https://dai.poa.network");
     expect(addressRegExp.hasMatch(addr2), true,
         reason: "The result should be a valid address");
 
     // XDAI testing
     final addr3 = await resolveName(
-        "entity-resolver.vocdoni.eth", "https://dai.poa.network",
-        useTestingContracts: true);
+        "entity-resolver.vocdoni.eth", "https://dai.poa.network");
     expect(addressRegExp.hasMatch(addr3), true,
         reason: "The result should be a valid address");
 
     final addr4 = await resolveName(
-        "voting-process.vocdoni.eth", "https://dai.poa.network",
-        useTestingContracts: true);
+        "voting-process.vocdoni.eth", "https://dai.poa.network");
     expect(addressRegExp.hasMatch(addr4), true,
         reason: "The result should be a valid address");
 

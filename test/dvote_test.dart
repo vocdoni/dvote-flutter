@@ -6,12 +6,12 @@ import "./integration/entity.dart";
 import "./unit/voting.dart";
 
 void main() {
-  pollVoting();
-  resultsParse();
-  flagsParse();
-  dataModels();
+  // pollVoting();
+  // resultsParse();
+  // flagsParse();
+  // dataModels();
 
-  ens();
+  // ens();
   bootnodes();
   dvoteGateway();
   web3Gateway();

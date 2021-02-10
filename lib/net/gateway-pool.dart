@@ -29,7 +29,8 @@ class GatewayPool {
     return discoverGateways(
             bootnodeUri: bootnodeUri, // may be null
             networkId: networkId,
-            maxGatewayCount: maxGatewayCount)
+            maxGatewayCount: maxGatewayCount,
+            alternateEnvironment: alternateEnvironment(bootnodeUri))
         .then((gws) {
       if (gws.length == 0)
         throw Exception("The network has no gateways available");
@@ -50,7 +51,8 @@ class GatewayPool {
     return discoverGateways(
             bootnodeUri: bootnodeUri, // may be null
             networkId: networkId,
-            maxGatewayCount: maxGatewayCount)
+            maxGatewayCount: maxGatewayCount,
+            alternateEnvironment: alternateEnvironment(bootnodeUri))
         .then((gws) {
       this._pool = gws;
       this.errorCount = 0;
@@ -150,4 +152,10 @@ class GatewayPool {
         .web3
         .sendTransaction(method, params, contractEnum, credentials);
   }
+}
+
+String alternateEnvironment(String bootnodeUrl) {
+  if (bootnodeUrl.contains(".dev")) return "dev";
+  if (bootnodeUrl.contains(".stg")) return "stg";
+  return "";
 }

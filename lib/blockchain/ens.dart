@@ -26,15 +26,13 @@ Uint8List ensHashAddress(Uint8List address) {
   return keccak256(address);
 }
 
-Future<String> resolveName(String domain, String gatewayUri,
-    {bool useTestingContracts = false}) async {
+Future<String> resolveName(String domain, String gatewayUri) async {
   if (!domainRegExp.hasMatch(domain)) return null;
 
   final nodeHash = hashDomainName(domain);
 
   // Get the resolver from the registry
-  final resolverAddress = await getResolver(domain, gatewayUri,
-      useTestingContracts: useTestingContracts);
+  final resolverAddress = await getResolver(domain, gatewayUri);
   if (resolverAddress == null) return null;
 
   // keccak256('addr(bytes32)')
@@ -51,8 +49,7 @@ Future<String> resolveName(String domain, String gatewayUri,
 }
 
 /// Returns the entity resolver contract that corresponds to the given settings
-Future<String> getResolver(String domain, String gatewayUri,
-    {bool useTestingContracts = true}) async {
+Future<String> getResolver(String domain, String gatewayUri) async {
   if (!domainRegExp.hasMatch(domain)) return null;
   final nodeHash = hashDomainName(domain);
 
@@ -78,9 +75,7 @@ Future<String> getResolver(String domain, String gatewayUri,
       networkInfo = NetworkInfo("goerli", 5, WELL_KNOWN_ENS_REGISTRY);
       break;
     case "100":
-      networkInfo = useTestingContracts
-          ? NetworkInfo("xdai", 100, XDAI_TESTING_ENS_REGISTRY)
-          : NetworkInfo("xdai", 100, XDAI_ENS_REGISTRY);
+      networkInfo = NetworkInfo("xdai", 100, XDAI_ENS_REGISTRY);
       break;
     case "77":
       networkInfo = NetworkInfo("sokol", 77, SOKOL_ENS_REGISTRY);

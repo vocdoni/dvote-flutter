@@ -11,7 +11,7 @@ enum ContractEnum { EntityResolver, Process }
 /// Client class to wrap calls to Ethereum Smart Contracts using a Web3 endpoint
 class Web3Gateway {
   final String _gatewayUri;
-  final bool useTestingContracts;
+  final String alternateEnvironment;
   Web3Client _client;
 
   static String _entityResolverAddress; // Lazy loaded
@@ -22,7 +22,7 @@ class Web3Gateway {
 
   String get uri => _gatewayUri;
 
-  Web3Gateway(this._gatewayUri, {this.useTestingContracts = false}) {
+  Web3Gateway(this._gatewayUri, {this.alternateEnvironment = ""}) {
     if (_gatewayUri == null || _gatewayUri == "")
       throw Exception("Invalid Gateway URI");
 
@@ -68,12 +68,12 @@ class Web3Gateway {
         _entityResolverAddress.length == 0) {
       Web3Gateway._entityResolverAddress =
           await Web3Gateway.resolveEntityResolverDomain(this._gatewayUri,
-              useTestingContracts: useTestingContracts ?? false);
+              alternateEnvironment: alternateEnvironment ?? false);
     }
     if (_processAddress is! String || _processAddress.length == 0) {
       Web3Gateway._processAddress = await Web3Gateway.resolveProcessDomain(
           this._gatewayUri,
-          useTestingContracts: useTestingContracts ?? false);
+          alternateEnvironment: alternateEnvironment ?? "");
     }
 
     // Define contract instances
@@ -163,10 +163,12 @@ class Web3Gateway {
   // HELPERS
 
   static Future<String> resolveEntityResolverDomain(String gatewayUri,
-      {bool useTestingContracts = false}) {
-    return resolveName(ENS_PUBLIC_RESOLVER_DOMAIN, gatewayUri,
-            useTestingContracts: useTestingContracts)
-        .then((address) {
+      {String alternateEnvironment = ""}) {
+    String domain = ENS_PUBLIC_RESOLVER_DOMAIN;
+    if (alternateEnvironment.length > 0) {
+      domain = domain.replaceFirst(".", "." + alternateEnvironment + ".");
+    }
+    return resolveName(domain, gatewayUri).then((address) {
       if (address is! String)
         throw Exception(
             "The domain $ENS_PUBLIC_RESOLVER_DOMAIN does not resolve using $gatewayUri");
@@ -176,10 +178,12 @@ class Web3Gateway {
   }
 
   static Future<String> resolveProcessDomain(String gatewayUri,
-      {bool useTestingContracts = false}) {
-    return resolveName(PROCESS_DOMAIN, gatewayUri,
-            useTestingContracts: useTestingContracts)
-        .then((address) {
+      {String alternateEnvironment = ""}) {
+    String domain = PROCESS_DOMAIN;
+    if (alternateEnvironment.length > 0) {
+      domain = domain.replaceFirst(".", "." + alternateEnvironment + ".");
+    }
+    return resolveName(domain, gatewayUri).then((address) {
       if (address is! String)
         throw Exception(
             "The domain $PROCESS_DOMAIN does not resolve using $gatewayUri");
