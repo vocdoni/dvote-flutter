@@ -30,7 +30,7 @@ class GatewayPool {
             bootnodeUri: bootnodeUri, // may be null
             networkId: networkId,
             maxGatewayCount: maxGatewayCount,
-            alternateEnvironment: alternateEnvironment(bootnodeUri))
+            alternateEnvironment: parseAlternateEnvironment(bootnodeUri))
         .then((gws) {
       if (gws.length == 0)
         throw Exception("The network has no gateways available");
@@ -52,7 +52,7 @@ class GatewayPool {
             bootnodeUri: bootnodeUri, // may be null
             networkId: networkId,
             maxGatewayCount: maxGatewayCount,
-            alternateEnvironment: alternateEnvironment(bootnodeUri))
+            alternateEnvironment: parseAlternateEnvironment(bootnodeUri))
         .then((gws) {
       this._pool = gws;
       this.errorCount = 0;
@@ -154,8 +154,8 @@ class GatewayPool {
   }
 }
 
-String alternateEnvironment(String bootnodeUrl) {
-  if (bootnodeUrl.contains(".dev")) return "dev";
+String parseAlternateEnvironment(String bootnodeUrl) {
+  if (bootnodeUrl.contains(".dev")) return "";
   if (bootnodeUrl.contains(".stg")) return "stg";
   return "";
 }

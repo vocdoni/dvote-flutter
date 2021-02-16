@@ -17,6 +17,7 @@ final random = Random.secure();
 
 /// Retrieve the Content URI of the boot nodes Content URI provided by Vocdoni.
 /// `networkId` should be among "mainnet", "goerli", "xdai" or "sokol"
+/// `alternateEnvironment` eg. "dev", "stg". Empty string for production
 Future<String> resolveWellKnownBootnodeUri(String networkId,
     {String alternateEnvironment = ""}) async {
   List<String> providerUris;

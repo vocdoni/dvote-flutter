@@ -33,8 +33,8 @@ Future<EntityMetadata> fetchEntity(
       throw Exception("The metadata of the entity can't be found");
     else if (result[0] is! String || result[0].length == 0)
       throw Exception("The response from the blockchain is invalid");
-  } catch (err, s) {
-    log("${err.toString()}, $s");
+  } catch (err) {
+    log("${err.toString()}");
     throw err;
   }
 
