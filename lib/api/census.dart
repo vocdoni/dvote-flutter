@@ -16,7 +16,7 @@ Future<String> generateProof(
       "censusId": censusRoot,
       "digested": isDigested,
       "censuskey": censusKey,
-      "censusValue": censusValue.toRadixString(8),
+      "censusValue": censusValue.toRadixString(8).padLeft(2, "0"),
     };
     final response = await gw.sendRequest(reqParams, timeout: 20);
     if (!(response is Map)) {
@@ -33,16 +33,20 @@ Future<String> generateProof(
 
 /// Determine whether the Merkle Proof is valid for the given claim
 Future<bool> checkProof(String censusMerkleRootHash, String base64Claim,
-    bool isDigested, String proofData, GatewayPool gw) async {
+    bool isDigested, String proofData, GatewayPool gw,
+    {BigInt censusValue}) async {
   if (!(censusMerkleRootHash is String) || !(base64Claim is String))
     throw Exception('Invalid parameters');
+  if (censusValue == null) censusValue = BigInt.zero;
   try {
     Map<String, dynamic> reqParams = {
       "method": "checkProof",
       "censusId": censusMerkleRootHash,
+      "censusKey": base64Claim,
+      "censusValue": censusValue.toRadixString(8).padLeft(2, "0"),
+      "proofData": proofData,
       "digested": isDigested,
-      "claimData": base64Claim,
-      "proofData": proofData
+      // "claimData": base64Claim,
     };
     final response = await gw.sendRequest(reqParams, timeout: 12);
     if (!(response is Map) || !(response["validProof"] is bool)) {

@@ -813,6 +813,19 @@ Future<bool> getEnvelopeStatus(
   }
 }
 
+/// Computes the user ethereum address from their pubkey for some specific entity.
+String getUserAddressFromPubKey(String pubKey) {
+  final hexPubKey = hex.decode(pubKey.replaceAll("0x", ""));
+  Uint8List publicKeyBytes = decompressPublicKey(hexPubKey);
+
+  // If decompress appends 04, remove this byte
+  if (publicKeyBytes.length > 64 && publicKeyBytes.first == 4)
+    publicKeyBytes = publicKeyBytes.sublist(1);
+
+  final addrBytes = publicKeyToAddress(publicKeyBytes);
+  return EthereumAddress(addrBytes).hexEip55;
+}
+
 /// Computes the nullifier of the user's vote within a voting process.
 /// Returns a hex string with kecak256(bytes(address) + bytes(processId))
 Future<String> getSignedVoteNullifier(String address, String processId) {
@@ -1091,7 +1104,7 @@ Future<void> submitEnvelope(List<int> package, GatewayPool gw,
   try {
     Map<String, dynamic> reqParams = {
       "method": "submitEnvelope",
-      "payload": base64.encode(package),
+      "payload": package,
       "signature": hexSignature ?? "",
     };
     Map<String, dynamic> response = await gw.sendRequest(reqParams);
@@ -1145,28 +1158,34 @@ Future<EnvelopePackage> packageSignedEnvelope(
   try {
     final envelope = VoteEnvelope.create();
     final proof = Proof();
-    if (!censusOrigin.isOffChain && !censusOrigin.isOffChainWeighted) {
+    if (!(censusOrigin.isOffChain || censusOrigin.isOffChainWeighted)) {
       throw UnimplementedError(
-          "On-chain and CA voting not supported yet in-app");
+          "Off-chain and CA voting not supported yet in-app");
     } else {
       // Off-chain census origin:
       final gravitron = ProofGraviton();
       // set proof
-      gravitron.siblings = utf8.encode(merkleProof.replaceFirst("0x", ""));
+      gravitron.siblings = hex.decode(merkleProof.replaceFirst("0x", ""));
       proof.graviton = gravitron;
+      print("grav $gravitron");
     }
+    print("merkle $merkleProof");
+    print("proof $proof");
 
     // All census origins
-    final nonce = utf8.encode(makeRandomNonce(32));
-
+    final nonce = hex.decode(
+        "b39facdaca441db02270a54cf728883c57849b71f7433c63a587aa35f344f20c");
     envelope.proof = proof;
-    envelope.processId = utf8.encode(processId);
+    envelope.processId =
+        Uint8List.fromList(hex.decode(processId.replaceAll("0x", "")));
     envelope.nonce = nonce;
 
-    final packageValues =
-        await packageVoteContent(votes, processKeys: processKeys);
+    final packageValues = await packageVoteContent(votes);
+    print(envelope);
+    print(packageValues);
 
     envelope.votePackage = packageValues["votePackage"];
+    // envelope.votePackage = [1, 2, 1];
 
     if (packageValues["keyIndexes"] is List &&
         packageValues["keyIndexes"].length > 0) {
@@ -1174,10 +1193,12 @@ Future<EnvelopePackage> packageSignedEnvelope(
     }
 
     final envelopeBytes = envelope.writeToBuffer();
+    print("Envelope bytes: $envelopeBytes");
 
     // Sign the vote package
     final signature = await BytesSignature.signBytesPayloadAsync(
-        envelopeBytes, signingPrivateKey);
+        envelopeBytes, signingPrivateKey.replaceAll("0x", ""));
+    print("Signature: $signature");
 
     return EnvelopePackage(envelopeBytes, signature);
   } catch (error) {
@@ -1209,7 +1230,9 @@ Future<Map<String, dynamic>> packageVoteContent(List<int> votes,
   final nonce = makeRandomNonce(16);
 
   VotePackage package = VotePackage();
-  package.nonce = nonce;
+  // package.nonce = nonce;
+  package.nonce =
+      "b39facdaca441db02270a54cf728883c57849b71f7433c63a587aa35f344f20c";
   package.votes = votes;
 
   final strPayload = jsonEncode(package.toJSON());
