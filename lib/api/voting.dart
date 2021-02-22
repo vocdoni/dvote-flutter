@@ -7,6 +7,7 @@ import 'package:dvote/util/bytes-signature.dart';
 import 'package:dvote/util/random.dart';
 import 'package:dvote/util/waiters.dart';
 import 'package:dvote/wrappers/process-results.dart';
+import 'package:dvote_crypto/native/signature.dart';
 import 'package:web3dart/crypto.dart';
 import 'dart:typed_data';
 import 'package:dvote/api/file.dart';
@@ -1160,32 +1161,26 @@ Future<EnvelopePackage> packageSignedEnvelope(
     final proof = Proof();
     if (!(censusOrigin.isOffChain || censusOrigin.isOffChainWeighted)) {
       throw UnimplementedError(
-          "Off-chain and CA voting not supported yet in-app");
+          "On-chain and CA voting not supported yet in-app");
     } else {
       // Off-chain census origin:
       final gravitron = ProofGraviton();
       // set proof
       gravitron.siblings = hex.decode(merkleProof.replaceFirst("0x", ""));
       proof.graviton = gravitron;
-      print("grav $gravitron");
     }
-    print("merkle $merkleProof");
-    print("proof $proof");
 
     // All census origins
-    final nonce = hex.decode(
-        "b39facdaca441db02270a54cf728883c57849b71f7433c63a587aa35f344f20c");
+    final nonce = makeRandomNonce(32);
     envelope.proof = proof;
     envelope.processId =
         Uint8List.fromList(hex.decode(processId.replaceAll("0x", "")));
-    envelope.nonce = nonce;
+    envelope.nonce = hex.decode(nonce);
 
-    final packageValues = await packageVoteContent(votes);
-    print(envelope);
-    print(packageValues);
+    final packageValues =
+        await packageVoteContent(votes, processKeys: processKeys);
 
     envelope.votePackage = packageValues["votePackage"];
-    // envelope.votePackage = [1, 2, 1];
 
     if (packageValues["keyIndexes"] is List &&
         packageValues["keyIndexes"].length > 0) {
@@ -1193,12 +1188,9 @@ Future<EnvelopePackage> packageSignedEnvelope(
     }
 
     final envelopeBytes = envelope.writeToBuffer();
-    print("Envelope bytes: $envelopeBytes");
-
     // Sign the vote package
     final signature = await BytesSignature.signBytesPayloadAsync(
         envelopeBytes, signingPrivateKey.replaceAll("0x", ""));
-    print("Signature: $signature");
 
     return EnvelopePackage(envelopeBytes, signature);
   } catch (error) {
@@ -1230,9 +1222,7 @@ Future<Map<String, dynamic>> packageVoteContent(List<int> votes,
   final nonce = makeRandomNonce(16);
 
   VotePackage package = VotePackage();
-  // package.nonce = nonce;
-  package.nonce =
-      "b39facdaca441db02270a54cf728883c57849b71f7433c63a587aa35f344f20c";
+  package.nonce = nonce;
   package.votes = votes;
 
   final strPayload = jsonEncode(package.toJSON());

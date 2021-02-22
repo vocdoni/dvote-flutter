@@ -46,7 +46,6 @@ Future<bool> checkProof(String censusMerkleRootHash, String base64Claim,
       "censusValue": censusValue.toRadixString(8).padLeft(2, "0"),
       "proofData": proofData,
       "digested": isDigested,
-      // "claimData": base64Claim,
     };
     final response = await gw.sendRequest(reqParams, timeout: 12);
     if (!(response is Map) || !(response["validProof"] is bool)) {

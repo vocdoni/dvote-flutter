@@ -5,6 +5,8 @@
 - Convert ProcessData ints to BigInts
 - Ensure ProcessData parses upon declaration
 - Enable alternate ENS/Process contract domains
+- Update checkProof api call
+- Sign envelope as bytes
 
 ## 0.19.0
 - Update process contract wrappers to smart contracts v2
