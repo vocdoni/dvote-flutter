@@ -25,28 +25,26 @@ class ProcessResultsDigested {
   toString() {
     String s = "Process results: \nType: $type, state: $state \n";
     if (questions?.isEmpty ?? true) {
-      s += "No questions available";
+      s += "No fields available";
       return s;
     }
 
     for (int i = 0; i < questions.length; i++) {
-      s += "Question ${i + 1}: \n" + questions[i].toString() + "\n";
+      s += "Field ${i + 1}: \n" + questions[i].toString() + "\n";
     }
     return s;
   }
 }
 
 class ProcessResultItem {
-  ProcessEnvelopeType type;
-  ProcessMetadata_Question question;
   Map<String, String> description;
   List<VoteResults> voteResults;
 
-  ProcessResultItem(this.type, this.question, this.description);
+  ProcessResultItem(this.description);
 
   @override
   toString() {
-    return "Question: ${type.toString()}, question: ${question.toString()}, description: ${description["default"]}, results: $voteResults";
+    return "Question: description: ${description["default"]}, values: $voteResults";
   }
 }
 

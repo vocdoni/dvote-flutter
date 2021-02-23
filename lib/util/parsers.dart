@@ -172,8 +172,48 @@ ProcessResults parseProcessResults(Map<String, dynamic> response) {
   }
 }
 
-ProcessResultsDigested parseProcessResultsDigested(ProcessResults rawResults,
-    ProcessMetadata processMetadata, ProcessData processData) {
+ProcessResultsDigested parseProcessResultsDigestedSingleQuestion(
+    ProcessResults rawResults,
+    ProcessMetadata processMetadata,
+    ProcessData processData) {
+  if (rawResults == null || processMetadata == null) {
+    return null;
+  }
+  if (processMetadata.questions?.isEmpty ?? true) {
+    return ProcessResultsDigested(rawResults.state, rawResults.type);
+  }
+
+  final resultsDigest =
+      ProcessResultsDigested(rawResults.state, rawResults.type);
+  resultsDigest.questions = new List<ProcessResultItem>();
+  for (int i = 0; i < rawResults.results.length; i++) {
+    if (i == 0) {
+      resultsDigest.questions
+          .add(ProcessResultItem(processMetadata.questions[i].description));
+      resultsDigest.questions[i].voteResults = new List<VoteResults>();
+    }
+    int votes = 0;
+    for (int j = 0; j < rawResults.results[i].length; j++) {
+      // Multiply vote number by option value
+      votes += int.parse(rawResults.results[i][j]) * j;
+    }
+    BigInt numberVotes;
+    try {
+      numberVotes = BigInt.from(votes);
+    } catch (err) {
+      log("Could not parse results: $err");
+      numberVotes = BigInt.zero;
+    }
+    resultsDigest.questions[0].voteResults.add(VoteResults(
+        processMetadata.questions[0].choices[i].title, numberVotes));
+  }
+  return resultsDigest;
+}
+
+ProcessResultsDigested parseProcessResultsDigestedMultiQuestion(
+    ProcessResults rawResults,
+    ProcessMetadata processMetadata,
+    ProcessData processData) {
   if (rawResults == null || processMetadata == null) {
     return null;
   }
@@ -189,11 +229,8 @@ ProcessResultsDigested parseProcessResultsDigested(ProcessResults rawResults,
       throw Exception("Metadata question is null");
     }
 
-    resultsDigest.questions.add(ProcessResultItem(
-        // processMetadata.questions[i].type,
-        processData.getEnvelopeType,
-        processMetadata.questions[i],
-        processMetadata.questions[i].description));
+    resultsDigest.questions
+        .add(ProcessResultItem(processMetadata.questions[i].description));
     resultsDigest.questions[i].voteResults = new List<VoteResults>();
 
     for (int j = 0; j < processMetadata.questions[i].choices.length; j++) {

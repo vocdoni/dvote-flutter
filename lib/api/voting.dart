@@ -7,7 +7,6 @@ import 'package:dvote/util/bytes-signature.dart';
 import 'package:dvote/util/random.dart';
 import 'package:dvote/util/waiters.dart';
 import 'package:dvote/wrappers/process-results.dart';
-import 'package:dvote_crypto/native/signature.dart';
 import 'package:web3dart/crypto.dart';
 import 'dart:typed_data';
 import 'package:dvote/api/file.dart';
@@ -719,7 +718,7 @@ Future<ProcessResultsDigested> getResultsDigest(
       }
     }
 
-    return parseProcessResultsDigested(
+    return parseProcessResultsDigestedSingleQuestion(
         rawResults, processMetadata, processData);
   } catch (err) {
     throw Exception("The results could not be digested: $err");

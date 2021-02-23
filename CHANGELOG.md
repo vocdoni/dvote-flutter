@@ -7,6 +7,7 @@
 - Enable alternate ENS/Process contract domains
 - Update checkProof api call
 - Sign envelope as bytes
+- parseProcessResultsDigested -> parseProcessResultsDigestedSingleQuestion, multiQuestion tbd
 
 ## 0.19.0
 - Update process contract wrappers to smart contracts v2

@@ -12,10 +12,10 @@ void main() {
   // dataModels();
 
   // ens();
-  bootnodes();
-  dvoteGateway();
-  web3Gateway();
+  // bootnodes();
+  // dvoteGateway();
+  // web3Gateway();
 
-  entity();
+  // entity();
   pollVoting();
 }

@@ -158,7 +158,7 @@ Raw JSON data can't be directly serialized into a Protobuf object. For this reas
 - `ProcessMetadata parseProcessMetadata(String json)`
   - `List<Process_Details_Question> _parseQuestions(List items)`
 - `ProcessResults parseProcessResults(Map<String, dynamic> response)`
-- `ProcessResultsDigested parseProcessResultsDigested(ProcessResults rawResults, ProcessMetadata processMetadata)`
+- `ProcessResultsDigested parseProcessResultsDigestedSingleQuestion(ProcessResults rawResults, ProcessMetadata processMetadata, ProcessData processData)`
 - `Feed parseFeed(String json)`
 - `BootNodeGateways parseBootnodeInfo(String json)`
   - `BootNodeGateways_NetworkNodes _parseBootnodeNetworkItems(Map item)` 

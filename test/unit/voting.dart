@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:convert/convert.dart';
 import 'package:dvote/models/build/dart/common/vote.pb.dart';
 import 'package:dvote/util/parsers.dart';
 import 'package:dvote/wrappers/process-keys.dart';
@@ -8,7 +9,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dvote/dvote.dart';
 import 'package:dvote_crypto/dvote_crypto.dart';
 import 'package:web3dart/credentials.dart';
-import 'package:web3dart/crypto.dart';
 
 // import '../../lib/dvote.dart';
 
@@ -24,15 +24,13 @@ void resultsParse() {
 
   void testProcessResultsDigest(ProcessMetadata fakeMetadata,
       ProcessResults fakeResults, ProcessData fakeData) {
-    final resultsDigested =
-        parseProcessResultsDigested(fakeResults, fakeMetadata, fakeData);
+    final resultsDigested = parseProcessResultsDigestedMultiQuestion(
+        fakeResults, fakeMetadata, fakeData);
     expect(resultsDigested.type, fakeResults.type);
     expect(resultsDigested.state, fakeResults.state);
     expect(resultsDigested.questions.length, fakeMetadata.questions.length);
 
     for (int i = 0; i < resultsDigested.questions.length; i++) {
-      expect(resultsDigested.questions[i].question.title['default'],
-          fakeMetadata.questions[i].title["default"]);
       for (int j = 0; j < fakeMetadata.questions[i].choices.length; j++) {
         expect(resultsDigested.questions[i].voteResults[j].title["default"],
             fakeMetadata.questions[i].choices[j].title["default"]);
@@ -367,8 +365,9 @@ void pollVoting() {
         wallet.privateKey,
         ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE));
     final decodedEnvelope1 = VoteEnvelope.fromBuffer(envelope1.envelope);
-    expect(utf8.decode(decodedEnvelope1.processId), processId);
-    expect(utf8.decode(decodedEnvelope1.proof.graviton.siblings),
+    expect(hex.encode(decodedEnvelope1.processId),
+        processId.replaceFirst("0x", ""));
+    expect(hex.encode(decodedEnvelope1.proof.graviton.siblings),
         siblings.replaceFirst("0x", ""));
 
     final pkg1 =
@@ -392,8 +391,9 @@ void pollVoting() {
         wallet.privateKey,
         ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE));
     final decodedEnvelope2 = VoteEnvelope.fromBuffer(envelope2.envelope);
-    expect(utf8.decode(decodedEnvelope2.processId), processId);
-    expect(utf8.decode(decodedEnvelope2.proof.graviton.siblings),
+    expect(
+        hex.encode(decodedEnvelope2.processId), processId.replaceAll("0x", ""));
+    expect(hex.encode(decodedEnvelope2.proof.graviton.siblings),
         siblings.replaceFirst("0x", ""));
 
     final pkg2 =
@@ -457,8 +457,9 @@ void pollVoting() {
           processKeys: processKeys);
 
       final decodedEnvelope = VoteEnvelope.fromBuffer(envelope.envelope);
-      expect(utf8.decode(decodedEnvelope.processId), item["processId"]);
-      expect(utf8.decode(decodedEnvelope.proof.graviton.siblings),
+      expect(hex.encode(decodedEnvelope.processId),
+          item["processId"].replaceFirst("0x", ""));
+      expect(hex.encode(decodedEnvelope.proof.graviton.siblings),
           item["siblings"].replaceFirst("0x", ""));
       expect(decodedEnvelope.encryptionKeyIndexes.length, 1);
       expect(decodedEnvelope.encryptionKeyIndexes[0], 0);
@@ -555,8 +556,9 @@ void pollVoting() {
           processKeys: processKeys);
 
       final decodedEnvelope = VoteEnvelope.fromBuffer(envelope.envelope);
-      expect(utf8.decode(decodedEnvelope.processId), item["processId"]);
-      expect(utf8.decode(decodedEnvelope.proof.graviton.siblings),
+      expect(hex.encode(decodedEnvelope.processId),
+          item["processId"].replaceFirst("0x", ""));
+      expect(hex.encode(decodedEnvelope.proof.graviton.siblings),
           item["siblings"].replaceFirst("0x", ""));
       expect(decodedEnvelope.encryptionKeyIndexes.length, 4);
       expect(decodedEnvelope.encryptionKeyIndexes[0], 0);
