@@ -826,6 +826,19 @@ String getUserAddressFromPubKey(String pubKey) {
   return EthereumAddress(addrBytes).hexEip55;
 }
 
+bool pubKeysAreEqual(String key1, String key2) {
+  // Ensure both pubkeys are compressed
+  if (key1.startsWith("0x04"))
+    key1 =
+        hex.encode(compressPublicKey(hex.decode(key1.replaceFirst("0x", ""))));
+  if (key2.startsWith("0x04"))
+    key2 =
+        hex.encode(compressPublicKey(hex.decode(key2.replaceFirst("0x", ""))));
+  key1.replaceFirst("0x", "");
+  key2.replaceFirst("0x", "");
+  return key1 == key2;
+}
+
 /// Computes the nullifier of the user's vote within a voting process.
 /// Returns a hex string with kecak256(bytes(address) + bytes(processId))
 Future<String> getSignedVoteNullifier(String address, String processId) {
