@@ -114,6 +114,10 @@ class ProcessEnvelopeType {
             (encrypted ? ProcessEnvelopeType.ENCRYPTED : 0) |
             (uniqueValues ? ProcessEnvelopeType.UNIQUE_VALUES : 0);
 
+  String toString() {
+    return "Serial: ${this.hasSerialVoting}, Anonymous: ${this.hasAnonymousVoters}, Encrypted: ${this.hasEncryptedVotes}, Unique: ${this.hasUniqueValues}";
+  }
+
   //  By default, all votes are sent within a single envelope. When set, the process questions are voted one by one (enables `questionIndex`).
   static const SERIAL = 1 << 0;
   //  By default, the franchise proof relies on an ECDSA signature (this could reveal the voter's identity). When set, the franchise proof will use ZK-Snarks.
@@ -141,6 +145,18 @@ class ProcessCensusOrigin {
     if (!processCensusOriginValues.contains(this.origin)) {
       throw Exception("Process census origin ${this.origin} is invalid");
     }
+  }
+
+  String toString() {
+    if (this.isOffChain) return "Off chain";
+    if (this.isOffChainWeighted) return "Off chain weighted";
+    if (this.isOffChainCA) return "Off chain CA";
+    if (this.isERC20) return "ERC 20";
+    if (this.isERC721) return "ERC 721";
+    if (this.isERC1155) return "ERC 1155";
+    if (this.isERC777) return "ERC 777";
+    if (this.isMiniMe) return "MiniMe";
+    return "Unknown";
   }
 
   static const OFF_CHAIN_TREE = 1;
@@ -182,6 +198,15 @@ class ProcessStatus {
     if (!processStatusValues.contains(this.status)) {
       throw Exception("ProcessStatus ${this.status} is invalid");
     }
+  }
+
+  String toString() {
+    if (this.isReady) return "Ready";
+    if (this.isEnded) return "Ended";
+    if (this.isCanceled) return "Canceled";
+    if (this.isPaused) return "Paused";
+    if (this.hasResults) return "Results";
+    return "Unknown";
   }
 
   // The process is ready to accept votes, according to `AUTO_START`, `startBlock` and `blockCount`.
@@ -317,6 +342,28 @@ class ProcessData {
     } catch (err) {
       throw Exception("Could not encode ProcessData to json: $err");
     }
+  }
+
+  String toString() {
+    return """Mode: ${this.getMode}  
+    Envelope type: ${this.getEnvelopeType.toString()}
+    Census origin: ${this.getCensusOrigin.toString()}
+    Entity address: ${this.getEntityAddress}
+    Metadata: ${this.getMetadata}
+    Census root: ${this.getCensusRoot}
+    Census uri: ${this.getCensusUri}
+    Start block: ${this.getStartBlock}
+    Block count: ${this.getBlockCount}
+    Status: ${this.getStatus.toString()}
+    Question index: ${this.getQuestionIndex}
+    Question count: ${this.getQuestionCount}
+    Max count: ${this.getMaxCount}
+    Max Value: ${this.getMaxValue}
+    Max vote overwrites: ${this.getMaxVoteOverwrites}
+    Max total cost: ${this.getMaxTotalCost}
+    Cost exponent: ${this.getCostExponent}
+    Namespace: ${this.getNamespace}
+    Evm block height: ${this.getEvmBlockHeight}""";
   }
 
   // First-level array indexes:
