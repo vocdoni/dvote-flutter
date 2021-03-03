@@ -70,6 +70,10 @@ class ProcessMode {
             (dynamicCensus ? ProcessMode.DYNAMIC_CENSUS : 0) |
             (encryptedMetadata ? ProcessMode.ENCRYPTED_METADATA : 0);
 
+  String toString() {
+    return "Auto start: $isAutoStart, Interruptible: $isInterruptible, Dynamic census: $hasDynamicCensus, Encrypted metadata: $hasEncryptedMetadata";
+  }
+
   //  By default, the process is started on demand (PAUSED). If set, the process will sIf set, the process will work like `status=PAUSED` before `startBlock` and like `status=ENDED` after `startBlock + blockCount`. The process works on demand, by default.tart as READY and the Vochain will allow incoming votes after `startBlock`
   static const AUTO_START = 1 << 0;
   //  By default, the process can't be paused, ended or canceled. If set, the process can be paused, ended or canceled by the creator.
@@ -345,7 +349,8 @@ class ProcessData {
   }
 
   String toString() {
-    return """Mode: ${this.getMode}  
+    return """
+    Mode: ${this.getMode.toString()}  
     Envelope type: ${this.getEnvelopeType.toString()}
     Census origin: ${this.getCensusOrigin.toString()}
     Entity address: ${this.getEntityAddress}

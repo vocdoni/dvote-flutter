@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:dvote/models/build/dart/common/vote.pb.dart';
@@ -22,7 +23,25 @@ void resultsParse() {
     expect(results.results, expectedResults);
   }
 
-  void testProcessResultsDigest(ProcessMetadata fakeMetadata,
+  void testProcessResultsDigestMultipleQuestion(ProcessMetadata fakeMetadata,
+      ProcessResults fakeResults, ProcessData fakeData) {
+    final resultsDigested = parseProcessResultsDigestedMultiQuestion(
+        fakeResults, fakeMetadata, fakeData);
+    expect(resultsDigested.type, fakeResults.type);
+    expect(resultsDigested.state, fakeResults.state);
+    expect(resultsDigested.questions.length, fakeMetadata.questions.length);
+
+    for (int i = 0; i < resultsDigested.questions.length; i++) {
+      for (int j = 0; j < fakeMetadata.questions[i].choices.length; j++) {
+        expect(resultsDigested.questions[i].voteResults[j].title["default"],
+            fakeMetadata.questions[i].choices[j].title["default"]);
+        expect(resultsDigested.questions[i].voteResults[j].votes.toString(),
+            fakeResults.results[i][j]);
+      }
+    }
+  }
+
+  void testProcessResultsDigestMultipleChoice(ProcessMetadata fakeMetadata,
       ProcessResults fakeResults, ProcessData fakeData) {
     final resultsDigested = parseProcessResultsDigestedMultiQuestion(
         fakeResults, fakeMetadata, fakeData);
@@ -112,7 +131,9 @@ void resultsParse() {
         fakeResponse2, "ended", "encrypted-poll", expectedResults2);
   });
 
-  test("Process Results: Should parse valid process results digest", () async {
+  test(
+      "Process Results Multiquestion: Should parse valid process results digest",
+      () async {
     final fakeMetadata0 = ProcessMetadata();
     final fakeData0 = ProcessData.fromJsonString(
         """[["1","0","1"],"0x63c1452cf8f2fed7ead5e6c222c41e96c6ec1e0f",["ipfs://QmVBUKa6xUitCSmf5fnghJUhEXXoY4qjW79LkUntpwDY9s","0x0000000000000000000000000000000000000000000000000000000000000000","ipfs://1234"],["14500","100"],"0",["0","2","1","5","1"],["0","1000","1"],"0"]""");
@@ -148,8 +169,52 @@ void resultsParse() {
       element = [];
     });
 
-    testProcessResultsDigest(fakeMetadata0, fakeResults0, fakeData0);
-    testProcessResultsDigest(fakeMetadata1, fakeResults1, fakeData1);
+    testProcessResultsDigestMultipleQuestion(
+        fakeMetadata0, fakeResults0, fakeData0);
+    testProcessResultsDigestMultipleQuestion(
+        fakeMetadata1, fakeResults1, fakeData1);
+  });
+
+  test(
+      "Process Results Multiple Choice: Should parse valid process results digest",
+      () async {
+    final fakeMetadata0 = ProcessMetadata();
+    final fakeData0 = ProcessData.fromJsonString(
+        """[[3, 0, 1], 0xa76737456a15f1c700ece7d46593262d0caa4ec1, [ipfs://QmehryA5Y8itsSWt6fQtPaSCySJn4a2kz7xV7mj9ndyyou, bb0c58b6875208e754a890068cdb9e48f1728b2e7a5308d0633b0a32717f08d9, ipfs://Qmb7chRHogULWt6G8uBF9ZP8hcJMhBJaEYXTn4i9eoWgP2], [147814, 25087], 0, [0, 2, 2, 6, 0], [0, 1, 0], 0]""");
+    final fakeResults0 = ProcessResults.empty();
+    List<ProcessMetadata_Question> questions = List<ProcessMetadata_Question>();
+    fakeResults0.type = "poll-vote";
+    fakeResults0.state = "ended";
+    fakeResults0.results = List<List<String>>();
+    final question = ProcessMetadata_Question();
+    question.title.addAll({"default": "Multi question"});
+    question.description
+        .addAll({"default": "Do we like multi question voting?"});
+    fakeResults0.results.add([]);
+    final options = List<ProcessMetadata_Question_VoteOption>();
+    for (int j = 0; j < 3; j++) {
+      final option = ProcessMetadata_Question_VoteOption();
+      option.title.addAll({"default": "Option " + j.toString()});
+      option.value = j;
+      options.add(option);
+      fakeResults0.results[0].add(Random().nextInt(10).toString());
+    }
+    question.choices.addAll(options);
+    questions.add(question);
+    fakeMetadata0.questions.addAll(questions);
+
+    final fakeMetadata1 = fakeMetadata0;
+    final fakeData1 = fakeData0;
+    final fakeResults1 = fakeResults0;
+    // Test for metadata with no results yet
+    fakeResults1.results.forEach((element) {
+      element = [];
+    });
+
+    testProcessResultsDigestMultipleChoice(
+        fakeMetadata0, fakeResults0, fakeData0);
+    testProcessResultsDigestMultipleChoice(
+        fakeMetadata1, fakeResults1, fakeData1);
   });
 }
 
