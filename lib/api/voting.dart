@@ -765,7 +765,7 @@ Future<ProcessResultsDigested> getResultsDigest(
       }
     }
 
-    return parseProcessResultsDigestedSingleQuestion(
+    return parseProcessResultsDigestedMultiQuestion(
         rawResults, processMetadata, processData);
   } catch (err) {
     throw Exception("The results could not be digested: $err");
