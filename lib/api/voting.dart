@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:dvote/dvote.dart';
 import 'package:dvote/models/build/dart/common/vote.pb.dart';
+import 'package:dvote/models/build/dart/vochain/vochain.pbserver.dart';
 import 'package:dvote/net/gateway-web3.dart';
 import 'package:dvote/util/bytes-signature.dart';
 import 'package:dvote/util/random.dart';
@@ -667,22 +668,18 @@ void decodeBigInt(dynamic jsonData, int idx1, {int idx2}) {
 
 /// Fetch the metadata for the given Process ID
 Future<ProcessMetadata> getProcessMetadata(String processId, GatewayPool gw,
-    {ProcessData data}) {
-  // If data param exists, start with future of this value. Otherwise get ProcessData
-  return (data == null ? getProcess(processId, gw) : Future.value(data)).then(
-      (processData) {
-    if (processData.getMetadata is! String) return null;
-    final metadataUri = ContentURI(processData.getMetadata);
-    return fetchFileString(metadataUri, gw);
-  }, onError: (err) {
-    print("ERROR Fetching Process metadata: $err");
-    return null;
-  }).then((strMetadata) {
+    {ProcessData data}) async {
+  try {
+    // If data param exists, start with future of this value. Otherwise get ProcessData
+    if (data == null) data = await getProcess(processId, gw);
+    if (data.getMetadata is! String) return null;
+    final ipfsUri = ContentURI(data.getMetadata);
+    final strMetadata = await fetchFileString(ipfsUri, gw);
     return parseProcessMetadata(strMetadata);
-  }, onError: (err) {
+  } catch (err) {
     print("ERROR Parsing Process metadata: $err");
     return null;
-  });
+  }
 }
 
 /// Fetch the Process from the contract
