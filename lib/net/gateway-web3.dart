@@ -11,7 +11,7 @@ enum ContractEnum { EntityResolver, Process }
 /// Client class to wrap calls to Ethereum Smart Contracts using a Web3 endpoint
 class Web3Gateway {
   final String _gatewayUri;
-  final String alternateEnvironment;
+  final String ensDomainSuffix;
   Web3Client _client;
 
   String _entityResolverAddress; // Lazy loaded
@@ -22,7 +22,7 @@ class Web3Gateway {
 
   String get uri => _gatewayUri;
 
-  Web3Gateway(this._gatewayUri, {this.alternateEnvironment = ""}) {
+  Web3Gateway(this._gatewayUri, {this.ensDomainSuffix}) {
     if (_gatewayUri == null || _gatewayUri == "")
       throw Exception("Invalid Gateway URI");
 
@@ -68,11 +68,11 @@ class Web3Gateway {
         _entityResolverAddress.length == 0) {
       _entityResolverAddress = await Web3Gateway.resolveEntityResolverDomain(
           this._gatewayUri,
-          alternateEnvironment: alternateEnvironment ?? "");
+          ensDomainSuffix: ensDomainSuffix);
     }
     if (_processAddress is! String || _processAddress.length == 0) {
       _processAddress = await Web3Gateway.resolveProcessDomain(this._gatewayUri,
-          alternateEnvironment: alternateEnvironment ?? "");
+          ensDomainSuffix: ensDomainSuffix);
     }
 
     // Define contract instances
@@ -162,11 +162,10 @@ class Web3Gateway {
   // HELPERS
 
   static Future<String> resolveEntityResolverDomain(String gatewayUri,
-      {String alternateEnvironment = ""}) {
-    String domain = ENS_PUBLIC_RESOLVER_DOMAIN;
-    if (alternateEnvironment.length > 0) {
-      domain = domain.replaceFirst(".", "." + alternateEnvironment + ".");
-    }
+      {String ensDomainSuffix}) {
+    String domain = ENS_PUBLIC_RESOLVER_DOMAIN.replaceFirst(
+        ENS_SUFFIX_KEY, ensDomainSuffix ?? PRODUCTION_ENS_DOMAIN_SUFFIX);
+    print("entity domain: $domain");
     return resolveName(domain, gatewayUri).then((address) {
       if (address is! String)
         throw Exception(
@@ -177,11 +176,11 @@ class Web3Gateway {
   }
 
   static Future<String> resolveProcessDomain(String gatewayUri,
-      {String alternateEnvironment = ""}) {
-    String domain = PROCESS_DOMAIN;
-    if (alternateEnvironment.length > 0) {
-      domain = domain.replaceFirst(".", "." + alternateEnvironment + ".");
-    }
+      {String ensDomainSuffix}) {
+    String domain = PROCESS_DOMAIN.replaceFirst(
+        ENS_SUFFIX_KEY, ensDomainSuffix ?? PRODUCTION_ENS_DOMAIN_SUFFIX);
+    print("process omain: $domain");
+
     return resolveName(domain, gatewayUri).then((address) {
       if (address is! String)
         throw Exception(

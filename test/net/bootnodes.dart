@@ -1,3 +1,4 @@
+import 'package:dvote/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dvote/net/bootnodes.dart';
 
@@ -51,7 +52,7 @@ void bootnodes() {
 
     // GOERLI
     final uri3 = await resolveWellKnownBootnodeUri(DEV_NETWORK_ID,
-        alternateEnvironment: "dev");
+        ensDomainSuffix: DEVELOPMENT_ENS_DOMAIN_SUFFIX);
     final gws3 = await fetchBootnodeInfo(uri3);
 
     expect(gws3.xdai.dvote.length > 0, true);

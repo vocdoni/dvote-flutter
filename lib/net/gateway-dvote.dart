@@ -193,8 +193,9 @@ class DVoteGateway {
   /// Calls `getInfo` on the current node.
   static Future<DVoteGatewayStatus> getStatus(String gatewayUri,
       {int timeout = 6}) async {
-    final pingOk = await DVoteGateway._checkPing(gatewayUri, timeout: timeout);
-    if (!pingOk) return DVoteGatewayStatus(false, 0, <String>[]);
+    // final pingOk = await DVoteGateway._checkPing(gatewayUri, timeout: timeout);
+    // print("Ping ok $pingOk");
+    // if (!pingOk) return DVoteGatewayStatus(false, 0, <String>[]);
 
     final req = {"method": "getInfo", "timestamp": getTimestampForGateway()};
     return DVoteGateway(gatewayUri)
@@ -206,6 +207,7 @@ class DVoteGateway {
       return DVoteGatewayStatus(
           true, result["health"] ?? 0, apis.cast<String>().toList());
     }).catchError((err) {
+      print(err.toString());
       return DVoteGatewayStatus(false, 0, <String>[]);
     });
   }

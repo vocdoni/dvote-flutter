@@ -26,5 +26,11 @@ const SIGNATURE_TIMESTAMP_TOLERANCE_GW = 60 * 60 * 2; // 2h
 const VOCHAIN_BLOCK_TIME = 10;
 
 // ENS
-const ENS_PUBLIC_RESOLVER_DOMAIN = "entities.vocdoni.eth";
-const PROCESS_DOMAIN = "processes.vocdoni.eth";
+const PRODUCTION_ENS_DOMAIN_SUFFIX = ".vocdoni.eth";
+const STAGING_ENS_DOMAIN_SUFFIX = ".stg.vocdoni.eth";
+const DEVELOPMENT_ENS_DOMAIN_SUFFIX = ".dev.vocdoni.eth";
+
+const ENS_SUFFIX_KEY = "{SUFFIX}";
+
+const ENS_PUBLIC_RESOLVER_DOMAIN = "entities" + ENS_SUFFIX_KEY;
+const PROCESS_DOMAIN = "processes" + ENS_SUFFIX_KEY;

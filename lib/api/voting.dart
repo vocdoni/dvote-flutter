@@ -1285,7 +1285,8 @@ Future<SignedTx> packageVoteTx(
   final txBytes = transaction.writeToBuffer();
   final signature = await BytesSignature.signBytesPayloadAsync(
       txBytes, signingPrivateKey.replaceAll("0x", ""));
-  return SignedTx(tx: txBytes, signature: hex.decode(signature));
+  return SignedTx(
+      tx: txBytes, signature: hex.decode(signature.replaceAll("0x", "")));
 }
 
 Future<VoteEnvelope> packageEnvelope(List<int> votes, String merkleProof,

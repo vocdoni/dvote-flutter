@@ -17,9 +17,9 @@ final random = Random.secure();
 
 /// Retrieve the Content URI of the boot nodes Content URI provided by Vocdoni.
 /// `networkId` should be among "mainnet", "goerli", "xdai" or "sokol"
-/// `alternateEnvironment` eg. "dev", "stg". Empty string for production
+/// `ensDomainSuffix` eg. ".dev.vocdoni.eth", ".stg.vocdoni.eth". Null -> production
 Future<String> resolveWellKnownBootnodeUri(String networkId,
-    {String alternateEnvironment = ""}) async {
+    {String ensDomainSuffix}) async {
   List<String> providerUris;
   String entityId;
 
@@ -53,11 +53,12 @@ Future<String> resolveWellKnownBootnodeUri(String networkId,
     entityAddressBytes = Uint8List.fromList(hexEntityId);
   for (var uri in providerUris) {
     try {
-      final gw = Web3Gateway(uri, alternateEnvironment: alternateEnvironment);
+      final gw = Web3Gateway(uri, ensDomainSuffix: ensDomainSuffix);
       var result = await gw.callMethod(
           "text",
           [entityAddressBytes, TextRecordKeys.VOCDONI_BOOT_NODES],
           ContractEnum.EntityResolver);
+      print("Result $result");
       if (result is List && result[0] is String) return result[0];
     } catch (err, s) {
       print("Err: $err, $s");

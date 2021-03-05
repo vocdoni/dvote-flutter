@@ -10,26 +10,28 @@ Future<List<Gateway>> discoverGateways(
     {String bootnodeUri,
     String networkId = "xdai",
     int maxGatewayCount = 5,
-    String alternateEnvironment = ""}) async {
-  if (bootnodeUri is! String || bootnodeUri.length < 1) {
+    String ensDomainSuffix}) async {
+  if (bootnodeUri is! String || bootnodeUri.length == 0) {
     bootnodeUri = await resolveWellKnownBootnodeUri(networkId,
-        alternateEnvironment: alternateEnvironment);
+        ensDomainSuffix: ensDomainSuffix);
   }
+  print("bootnode uri $bootnodeUri");
+  print("Ens domain suffix: $ensDomainSuffix");
 
   final info = await fetchBootnodeInfo(bootnodeUri);
 
   return discoverGatewaysFromBootnodeInfo(info,
       networkId: networkId,
       maxGatewayCount: maxGatewayCount,
-      alternateEnvironment: alternateEnvironment);
+      ensDomainSuffix: ensDomainSuffix);
 }
 
 // Digests the bootnode info into a list of working gateways, featuring web3 and DVote nodes
-// AlternateEnvironment eg "stg" "dev". "" for mainnet
+// EnsDomainSuffix eg "stg" "dev". "" for mainnet
 Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
     {String networkId = "xdai",
     int maxGatewayCount = 5,
-    String alternateEnvironment = ""}) async {
+    String ensDomainSuffix}) async {
   BootNodeGateways_NetworkNodes networkNodes;
 
   switch (networkId) {
@@ -64,8 +66,8 @@ Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
   await Future.wait(web3Candidates.map((candidate) {
     return Web3Gateway.isSyncing(candidate.uri).then((syncing) {
       if (!syncing)
-        web3Nodes.add(Web3Gateway(candidate.uri,
-            alternateEnvironment: alternateEnvironment));
+        web3Nodes
+            .add(Web3Gateway(candidate.uri, ensDomainSuffix: ensDomainSuffix));
       else
         log("[Discovery] Web3 node ${candidate.uri} is syncing: Skip");
     }).catchError((err) {
