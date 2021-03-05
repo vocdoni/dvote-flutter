@@ -155,7 +155,7 @@ class GatewayPool {
 }
 
 String parseAlternateEnvironment(String bootnodeUrl) {
-  if (bootnodeUrl.contains(".dev")) return "";
+  if (bootnodeUrl.contains(".dev")) return "dev";
   if (bootnodeUrl.contains(".stg")) return "stg";
   return "";
 }

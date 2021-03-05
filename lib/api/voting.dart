@@ -1178,6 +1178,25 @@ Future<void> submitEnvelope(List<int> package, GatewayPool gw,
   }
 }
 
+/// Submit a raw transaction (SignedTx) to the gateway
+Future<void> submitRawTx(List<int> package, GatewayPool gw) async {
+  if (gw is! GatewayPool) throw Exception("Invalid parameters");
+  if ((package.length ?? 0) == 0) throw Exception("Invalid parameters");
+
+  try {
+    Map<String, dynamic> reqParams = {
+      "method": "submitRawTx",
+      "payload": base64.encode(package),
+    };
+    Map<String, dynamic> response = await gw.sendRequest(reqParams);
+    if (!(response is Map)) {
+      throw Exception("Invalid response received from the gateway");
+    }
+  } catch (err) {
+    throw err;
+  }
+}
+
 Future<String> packageAnonymousEnvelope(
     List<int> votes, String proof, String privateKey) async {
   throw Exception("unimplemented");
@@ -1254,6 +1273,68 @@ Future<EnvelopePackage> packageSignedEnvelope(
         envelopeBytes, signingPrivateKey.replaceAll("0x", ""));
 
     return EnvelopePackage(envelopeBytes, signature);
+  } catch (error) {
+    throw Exception("Poll vote Envelope could not be generated: $error");
+  }
+}
+
+Future<SignedTx> packageVoteTx(
+    VoteEnvelope voteEnvelope, String signingPrivateKey) async {
+  if (signingPrivateKey is! String) throw Exception("Invalid parameters");
+  final transaction = Tx(vote: voteEnvelope);
+  final txBytes = transaction.writeToBuffer();
+  final signature = await BytesSignature.signBytesPayloadAsync(
+      txBytes, signingPrivateKey.replaceAll("0x", ""));
+  return SignedTx(tx: txBytes, signature: hex.decode(signature));
+}
+
+Future<VoteEnvelope> packageEnvelope(List<int> votes, String merkleProof,
+    String processId, ProcessCensusOrigin censusOrigin,
+    {ProcessKeys processKeys}) async {
+  if (!(votes is List) || !(processId is String) || !(merkleProof is String))
+    throw Exception("Invalid parameters");
+  else if (processKeys is ProcessKeys) {
+    if (!(processKeys.encryptionPubKeys is List) ||
+        !processKeys.encryptionPubKeys.every((item) =>
+            item is ProcessKey &&
+            item.idx is int &&
+            item.key is String &&
+            RegExp(r"^(0x)?[0-9a-zA-Z]+$").hasMatch(item.key))) {
+      throw Exception("Some encryption public keys are not valid");
+    }
+  }
+  try {
+    final envelope = VoteEnvelope.create();
+    final proof = Proof();
+    if (!(censusOrigin.isOffChain || censusOrigin.isOffChainWeighted)) {
+      throw UnimplementedError(
+          "On-chain and CA voting not supported yet in-app");
+    } else {
+      // Off-chain census origin:
+      final gravitron = ProofGraviton();
+      // set proof
+      gravitron.siblings = hex.decode(merkleProof.replaceFirst("0x", ""));
+      proof.graviton = gravitron;
+    }
+
+    // All census origins
+    final nonce = makeRandomNonce(32);
+    envelope.proof = proof;
+    envelope.processId =
+        Uint8List.fromList(hex.decode(processId.replaceAll("0x", "")));
+    envelope.nonce = hex.decode(nonce);
+
+    final packageValues =
+        await packageVoteContent(votes, processKeys: processKeys);
+
+    envelope.votePackage = packageValues["votePackage"];
+
+    if (packageValues["keyIndexes"] is List &&
+        packageValues["keyIndexes"].length > 0) {
+      envelope.encryptionKeyIndexes.insertAll(0, packageValues["keyIndexes"]);
+    }
+
+    return envelope;
   } catch (error) {
     throw Exception("Poll vote Envelope could not be generated: $error");
   }
