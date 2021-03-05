@@ -58,7 +58,6 @@ Future<String> resolveWellKnownBootnodeUri(String networkId,
           "text",
           [entityAddressBytes, TextRecordKeys.VOCDONI_BOOT_NODES],
           ContractEnum.EntityResolver);
-      print("Result $result");
       if (result is List && result[0] is String) return result[0];
     } catch (err, s) {
       print("Err: $err, $s");

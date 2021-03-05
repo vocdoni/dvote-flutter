@@ -113,6 +113,7 @@ class GatewayPool {
     if (this.current is! Gateway)
       throw Exception("The pool has no gateways available");
     else if (!this.current.dvote.supportsMethod(body["method"])) {
+      print(body["method"] + " is not supported");
       errorCount++;
       await this.shift();
 

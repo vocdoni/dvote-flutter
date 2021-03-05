@@ -44,7 +44,6 @@ class _MetadataScreenState extends State<MetadataScreen> {
         final pid = entityMeta.votingProcesses?.active?.first;
         final processMeta = await getProcessMetadata(pid, gw);
         processMetaStr = processMeta.toString();
-        // print(processMetaStr);
       }
     } on PlatformException catch (err) {
       error = err.message;

@@ -165,7 +165,6 @@ class Web3Gateway {
       {String ensDomainSuffix}) {
     String domain = ENS_PUBLIC_RESOLVER_DOMAIN.replaceFirst(
         ENS_SUFFIX_KEY, ensDomainSuffix ?? PRODUCTION_ENS_DOMAIN_SUFFIX);
-    print("entity domain: $domain");
     return resolveName(domain, gatewayUri).then((address) {
       if (address is! String)
         throw Exception(
@@ -179,8 +178,6 @@ class Web3Gateway {
       {String ensDomainSuffix}) {
     String domain = PROCESS_DOMAIN.replaceFirst(
         ENS_SUFFIX_KEY, ensDomainSuffix ?? PRODUCTION_ENS_DOMAIN_SUFFIX);
-    print("process omain: $domain");
-
     return resolveName(domain, gatewayUri).then((address) {
       if (address is! String)
         throw Exception(

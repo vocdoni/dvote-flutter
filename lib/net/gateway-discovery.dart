@@ -15,8 +15,6 @@ Future<List<Gateway>> discoverGateways(
     bootnodeUri = await resolveWellKnownBootnodeUri(networkId,
         ensDomainSuffix: ensDomainSuffix);
   }
-  print("bootnode uri $bootnodeUri");
-  print("Ens domain suffix: $ensDomainSuffix");
 
   final info = await fetchBootnodeInfo(bootnodeUri);
 

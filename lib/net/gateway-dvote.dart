@@ -28,7 +28,8 @@ class DVoteApiList {
     "getEnvelopeList",
     "getBlockHeight",
     "getBlockStatus",
-    "getResults"
+    "getResults",
+    "submitRawTx"
   ];
   static const census = <String>[
     "addCensus",
@@ -193,10 +194,6 @@ class DVoteGateway {
   /// Calls `getInfo` on the current node.
   static Future<DVoteGatewayStatus> getStatus(String gatewayUri,
       {int timeout = 6}) async {
-    // final pingOk = await DVoteGateway._checkPing(gatewayUri, timeout: timeout);
-    // print("Ping ok $pingOk");
-    // if (!pingOk) return DVoteGatewayStatus(false, 0, <String>[]);
-
     final req = {"method": "getInfo", "timestamp": getTimestampForGateway()};
     return DVoteGateway(gatewayUri)
         .sendRequest(req, timeout: timeout)
