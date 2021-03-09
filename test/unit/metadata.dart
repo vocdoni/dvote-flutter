@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dvote/util/parsers.dart';
 import 'package:dvote/dvote.dart';
+import 'package:web3dart/web3dart.dart';
 
 void dataModels() {
   test("Entity metadata model", () {
@@ -25,40 +26,130 @@ void dataModels() {
 
   test("Process metadata model", () {
     String meta =
-        """{"version": "1.0","id":"0x12345678","type": "snark-vote","startBlock": 10000,"numberOfBlocks": 400,"census": {"merkleRoot": "0x1234","merkleTree": "https://merkle-tree/"},"details": {"entityId": "0x2345","title": {"default": "Universal Basic Income"},"description": {"default": "## Markdown text goes here### Abstract"},"headerImage": "https://server/image.png","streamUrl":"https://youtube.com/stream1234","questions": [{"type": "single-choice","question": {"default": "Should universal basic income become a human right?"},"description": {"default": "## Markdown text goes here### Abstract"},"voteOptions": [{"title": {"en": "Yes","ca": "Sí"},"value": 0},{"title": {"en": "No","ca": "No"},"value": 1}]}]}}""";
+        """{"version":"1.1","title":{"default":"Board election"},"description":{"default":"Process description"},"media":{"header":"https://ipfs.io/ipfs/1234...","streamUri":""},"meta":{"my":"custom-field","value":1234},"questions":[{"title":{"default":"Should universal basic income become a human right?"},"description":{"default":"## Markdown text goes here### Abstract"},"choices":[{"title":{"en":"Yes", "ca": "Sí"},"value":0},{"title":{"en":"No", "ca": "No"},"value":1}]}]}""";
     ProcessMetadata process = parseProcessMetadata(meta);
-    expect(process.version, "1.0", reason: "The version should equal 1.0");
-    expect(process.type, "snark-vote",
-        reason: "The type should equal snark-vote");
-    expect(process.startBlock, 10000, reason: "startBlock should equal 10000");
-    expect(process.blockCount, 400, reason: "blockCount should equal 400");
+    expect(process.version, "1.1", reason: "The version should equal 1.1");
+    expect(process.title['default'], "Board election",
+        reason: "The title should equal \"Board election\"");
+    expect(process.description['default'], "Process description",
+        reason: "The description should equal \"Process description\"");
+    expect(process.media['header'], "https://ipfs.io/ipfs/1234...",
+        reason:
+            "The media header should equal \"https://ipfs.io/ipfs/1234...\"");
+    expect(process.meta['my'], "custom-field",
+        reason: "The meta field \'my\' should equal \"custom-field\"");
+    expect(process.meta['value'], "1234",
+        reason: "The meta field \'value\' should equal 1234");
 
-    expect(process.census.merkleRoot, "0x1234",
-        reason: "The census merkleRoot should equal 0x1234");
-    expect(process.census.merkleTree, "https://merkle-tree/",
-        reason: "The census ID should equal https://merkle-tree/");
-
-    expect(process.details.entityId, "0x2345");
-
-    expect(process.details.title["default"], "Universal Basic Income");
-    expect(process.details.description["default"],
-        "## Markdown text goes here### Abstract");
-    expect(process.details.headerImage, "https://server/image.png");
-    expect(process.details.streamUrl, "https://youtube.com/stream1234");
-
-    expect(process.details.questions[0].type, "single-choice");
-    expect(process.details.questions[0].question["default"],
+    expect(process.questions[0].title["default"],
         "Should universal basic income become a human right?");
-    expect(process.details.questions[0].description["default"],
+    expect(process.questions[0].description["default"],
         "## Markdown text goes here### Abstract");
 
-    expect(process.details.questions[0].voteOptions[0].title["en"], "Yes");
-    expect(process.details.questions[0].voteOptions[0].title["ca"], "Sí");
-    expect(process.details.questions[0].voteOptions[0].value, 0);
+    expect(process.questions[0].choices[0].title["en"], "Yes");
+    expect(process.questions[0].choices[0].title["ca"], "Sí");
+    expect(process.questions[0].choices[0].value, 0);
 
-    expect(process.details.questions[0].voteOptions[1].title["en"], "No");
-    expect(process.details.questions[0].voteOptions[1].title["ca"], "No");
-    expect(process.details.questions[0].voteOptions[1].value, 1);
+    expect(process.questions[0].choices[1].title["en"], "No");
+    expect(process.questions[0].choices[1].title["ca"], "No");
+    expect(process.questions[0].choices[1].value, 1);
+  });
+
+  test("Process data model", () {
+    final jsonData = ProcessData.fromJsonString(
+        """[["1","0","1"],"0x63c1452cf8f2fed7ead5e6c222c41e96c6ec1e0f",["ipfs://QmVBUKa6xUitCSmf5fnghJUhEXXoY4qjW79LkUntpwDY9s","0x0000000000000000000000000000000000000000000000000000000000000000","ipfs://1234"],["14500","100"],"0",["0","2","1","5","1"],["0","1000","1"],"0"]""");
+    final data = ProcessData([
+      [BigInt.from(1), BigInt.from(0), BigInt.from(1)],
+      EthereumAddress.fromHex("63c1452cf8f2fed7ead5e6c222c41e96c6ec1e0f"),
+      [
+        "ipfs://QmVBUKa6xUitCSmf5fnghJUhEXXoY4qjW79LkUntpwDY9s",
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "ipfs://1234"
+      ],
+      [BigInt.from(14500), BigInt.from(100)],
+      BigInt.from(0),
+      [
+        BigInt.from(0),
+        BigInt.from(2),
+        BigInt.from(1),
+        BigInt.from(5),
+        BigInt.from(1)
+      ],
+      [BigInt.from(0), BigInt.from(1000), BigInt.from(1)],
+      BigInt.from(0),
+    ]);
+
+    expect(data.getMode.value, jsonData.getMode.value,
+        reason:
+            "ProcessData should parse getMode correctly from jsonString and list");
+    expect(data.getEnvelopeType.hasAnonymousVoters,
+        jsonData.getEnvelopeType.hasAnonymousVoters,
+        reason:
+            "ProcessData should parse getEnvelopeType correctly from jsonString and list");
+    expect(data.getEnvelopeType.hasEncryptedVotes,
+        jsonData.getEnvelopeType.hasEncryptedVotes,
+        reason:
+            "ProcessData should parse getEnvelopeType correctly from jsonString and list");
+    expect(data.getEnvelopeType.hasSerialVoting,
+        jsonData.getEnvelopeType.hasSerialVoting,
+        reason:
+            "ProcessData should parse getEnvelopeType correctly from jsonString and list");
+    expect(data.getEnvelopeType.hasUniqueValues,
+        jsonData.getEnvelopeType.hasUniqueValues,
+        reason:
+            "ProcessData should parse getEnvelopeType correctly from jsonString and list");
+    expect(data.getCensusOrigin.value, jsonData.getCensusOrigin.value,
+        reason:
+            "ProcessData should parse getCensusOrigin correctly from jsonString and list");
+    expect(
+        data.getEntityAddress.toString(), jsonData.getEntityAddress.toString(),
+        reason:
+            "ProcessData should parse getEntityAddress correctly from jsonString and list");
+    expect(data.getMetadata, jsonData.getMetadata,
+        reason:
+            "ProcessData should parse getMetadata correctly from jsonString and list");
+    expect(data.getCensusRoot, jsonData.getCensusRoot,
+        reason:
+            "ProcessData should parse getCensusRoot correctly from jsonString and list");
+    expect(data.getCensusUri, jsonData.getCensusUri,
+        reason:
+            "ProcessData should parse getCensusUri correctly from jsonString and list");
+    expect(data.getStartBlock, jsonData.getStartBlock,
+        reason:
+            "ProcessData should parse getStartBlock correctly from jsonString and list");
+    expect(data.getBlockCount, jsonData.getBlockCount,
+        reason:
+            "ProcessData should parse getBlockCount correctly from jsonString and list");
+    expect(data.getStatus.value, jsonData.getStatus.value,
+        reason:
+            "ProcessData should parse getStatus correctly from jsonString and list");
+    expect(data.getQuestionIndex, jsonData.getQuestionIndex,
+        reason:
+            "ProcessData should parse getQuestionIndex correctly from jsonString and list");
+    expect(data.getQuestionCount, jsonData.getQuestionCount,
+        reason:
+            "ProcessData should parse getQuestionCount correctly from jsonString and list");
+    expect(data.getMaxCount, jsonData.getMaxCount,
+        reason:
+            "ProcessData should parse getMaxCount correctly from jsonString and list");
+    expect(data.getMaxValue, jsonData.getMaxValue,
+        reason:
+            "ProcessData should parse getMaxValue correctly from jsonString and list");
+    expect(data.getMaxVoteOverwrites, jsonData.getMaxVoteOverwrites,
+        reason:
+            "ProcessData should parse getMaxVoteOverwrites correctly from jsonString and list");
+    expect(data.getMaxTotalCost, jsonData.getMaxTotalCost,
+        reason:
+            "ProcessData should parse getMaxTotalCost correctly from jsonString and list");
+    expect(data.getCostExponent, jsonData.getCostExponent,
+        reason:
+            "ProcessData should parse getCostExponent correctly from jsonString and list");
+    expect(data.getNamespace, jsonData.getNamespace,
+        reason:
+            "ProcessData should parse getNamespace correctly from jsonString and list");
+    expect(data.getEvmBlockHeight.toInt(), jsonData.getEvmBlockHeight.toInt(),
+        reason:
+            "ProcessData should parse getEvmBlockHeight correctly from jsonString and list");
   });
 
   test("Feed model", () {

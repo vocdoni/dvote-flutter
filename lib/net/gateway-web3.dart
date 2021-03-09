@@ -11,18 +11,18 @@ enum ContractEnum { EntityResolver, Process }
 /// Client class to wrap calls to Ethereum Smart Contracts using a Web3 endpoint
 class Web3Gateway {
   final String _gatewayUri;
-  final bool useTestingContracts;
+  final String ensDomainSuffix;
   Web3Client _client;
 
-  static String _entityResolverAddress; // Lazy loaded
-  static String _processAddress; // Lazy loaded
+  String _entityResolverAddress; // Lazy loaded
+  String _processAddress; // Lazy loaded
 
-  static DeployedContract _entityResolverInstance; // Loaded on init()
-  static DeployedContract _processInstance; // Loaded on init()
+  DeployedContract _entityResolverInstance; // Loaded on init()
+  DeployedContract _processInstance; // Loaded on init()
 
   String get uri => _gatewayUri;
 
-  Web3Gateway(this._gatewayUri, {this.useTestingContracts = false}) {
+  Web3Gateway(this._gatewayUri, {this.ensDomainSuffix}) {
     if (_gatewayUri == null || _gatewayUri == "")
       throw Exception("Invalid Gateway URI");
 
@@ -66,23 +66,22 @@ class Web3Gateway {
     // Check contract address availability
     if (_entityResolverAddress is! String ||
         _entityResolverAddress.length == 0) {
-      Web3Gateway._entityResolverAddress =
-          await Web3Gateway.resolveEntityResolverDomain(this._gatewayUri,
-              useTestingContracts: useTestingContracts ?? false);
+      _entityResolverAddress = await Web3Gateway.resolveEntityResolverDomain(
+          this._gatewayUri,
+          ensDomainSuffix: ensDomainSuffix);
     }
     if (_processAddress is! String || _processAddress.length == 0) {
-      Web3Gateway._processAddress = await Web3Gateway.resolveProcessDomain(
-          this._gatewayUri,
-          useTestingContracts: useTestingContracts ?? false);
+      _processAddress = await Web3Gateway.resolveProcessDomain(this._gatewayUri,
+          ensDomainSuffix: ensDomainSuffix);
     }
 
     // Define contract instances
     _entityResolverInstance = DeployedContract(
         EnsPublicResolverContract.contractAbi,
-        EthereumAddress.fromHex(Web3Gateway._entityResolverAddress));
+        EthereumAddress.fromHex(_entityResolverAddress));
 
-    _processInstance = DeployedContract(ProcessContract.contractAbi,
-        EthereumAddress.fromHex(Web3Gateway._processAddress));
+    _processInstance = DeployedContract(
+        ProcessContract.contractAbi, EthereumAddress.fromHex(_processAddress));
   }
 
   void dispose() {
@@ -98,10 +97,10 @@ class Web3Gateway {
     DeployedContract contractInstance;
     switch (contractEnum) {
       case ContractEnum.EntityResolver:
-        contractInstance = Web3Gateway._entityResolverInstance;
+        contractInstance = _entityResolverInstance;
         break;
       case ContractEnum.Process:
-        contractInstance = Web3Gateway._processInstance;
+        contractInstance = _processInstance;
         break;
       default:
         throw Exception("Invalid contract enum value");
@@ -111,7 +110,6 @@ class Web3Gateway {
     if (methodFunc == null) throw Exception("Method not found");
 
     final Completer<List<dynamic>> completer = Completer<List<dynamic>>();
-
     // Launch the request
     _client
         .call(
@@ -141,10 +139,10 @@ class Web3Gateway {
     DeployedContract contractInstance;
     switch (contractEnum) {
       case ContractEnum.EntityResolver:
-        contractInstance = Web3Gateway._entityResolverInstance;
+        contractInstance = _entityResolverInstance;
         break;
       case ContractEnum.Process:
-        contractInstance = Web3Gateway._processInstance;
+        contractInstance = _processInstance;
         break;
       default:
         throw Exception("Invalid contract enum value");
@@ -164,26 +162,26 @@ class Web3Gateway {
   // HELPERS
 
   static Future<String> resolveEntityResolverDomain(String gatewayUri,
-      {bool useTestingContracts = false}) {
-    return resolveName(ENS_PUBLIC_RESOLVER_DOMAIN, gatewayUri,
-            useTestingContracts: useTestingContracts)
-        .then((address) {
+      {String ensDomainSuffix}) {
+    String domain = ENS_PUBLIC_RESOLVER_DOMAIN.replaceFirst(
+        ENS_SUFFIX_KEY, ensDomainSuffix ?? PRODUCTION_ENS_DOMAIN_SUFFIX);
+    return resolveName(domain, gatewayUri).then((address) {
       if (address is! String)
         throw Exception(
-            "The domain $ENS_PUBLIC_RESOLVER_DOMAIN does not resolve using $gatewayUri");
+            "The domain $domain does not resolve using $gatewayUri");
 
       return address;
     });
   }
 
   static Future<String> resolveProcessDomain(String gatewayUri,
-      {bool useTestingContracts = false}) {
-    return resolveName(PROCESS_DOMAIN, gatewayUri,
-            useTestingContracts: useTestingContracts)
-        .then((address) {
+      {String ensDomainSuffix}) {
+    String domain = PROCESS_DOMAIN.replaceFirst(
+        ENS_SUFFIX_KEY, ensDomainSuffix ?? PRODUCTION_ENS_DOMAIN_SUFFIX);
+    return resolveName(domain, gatewayUri).then((address) {
       if (address is! String)
         throw Exception(
-            "The domain $PROCESS_DOMAIN does not resolve using $gatewayUri");
+            "The domain $domain does not resolve using $gatewayUri");
 
       return address;
     });

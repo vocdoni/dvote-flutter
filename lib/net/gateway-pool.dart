@@ -11,12 +11,16 @@ class GatewayPool {
   List<Gateway> _pool = List<Gateway>();
   final String bootnodeUri;
   final String networkId;
+  final String ensDomainSuffix;
   final int maxGatewayCount;
   final int timeout;
   int errorCount = 0;
 
   GatewayPool(this._pool, this.networkId,
-      {this.bootnodeUri, this.maxGatewayCount = 5, this.timeout = 6});
+      {this.bootnodeUri,
+      this.ensDomainSuffix,
+      this.maxGatewayCount = 5,
+      this.timeout = 6});
 
   Gateway get current {
     return (_pool is List && _pool.length >= 1) ? _pool[0] : null;
@@ -24,13 +28,17 @@ class GatewayPool {
 
   /// Populates a GatewayPool instance using the healthiest gateways available
   static Future<GatewayPool> discover(String networkId,
-      {String bootnodeUri, int maxGatewayCount = 5, int timeout = 6}) {
+      {String bootnodeUri,
+      String ensDomainSuffix,
+      int maxGatewayCount = 5,
+      int timeout = 6}) {
     // Get a list of gateways from discover
     return discoverGateways(
-            bootnodeUri: bootnodeUri, // may be null
-            networkId: networkId,
-            maxGatewayCount: maxGatewayCount)
-        .then((gws) {
+      bootnodeUri: bootnodeUri, // may be null
+      networkId: networkId,
+      maxGatewayCount: maxGatewayCount,
+      ensDomainSuffix: ensDomainSuffix,
+    ).then((gws) {
       if (gws.length == 0)
         throw Exception("The network has no gateways available");
 
@@ -38,6 +46,7 @@ class GatewayPool {
       return GatewayPool(gws, networkId,
           bootnodeUri: bootnodeUri,
           maxGatewayCount: maxGatewayCount,
+          ensDomainSuffix: ensDomainSuffix,
           timeout: timeout);
     });
   }
@@ -50,7 +59,8 @@ class GatewayPool {
     return discoverGateways(
             bootnodeUri: bootnodeUri, // may be null
             networkId: networkId,
-            maxGatewayCount: maxGatewayCount)
+            maxGatewayCount: maxGatewayCount,
+            ensDomainSuffix: ensDomainSuffix)
         .then((gws) {
       this._pool = gws;
       this.errorCount = 0;
@@ -103,6 +113,7 @@ class GatewayPool {
     if (this.current is! Gateway)
       throw Exception("The pool has no gateways available");
     else if (!this.current.dvote.supportsMethod(body["method"])) {
+      print(body["method"] + " is not supported");
       errorCount++;
       await this.shift();
 
@@ -150,4 +161,10 @@ class GatewayPool {
         .web3
         .sendTransaction(method, params, contractEnum, credentials);
   }
+}
+
+String parseAlternateEnvironment(String bootnodeUrl) {
+  if (bootnodeUrl.contains(".dev")) return "dev";
+  if (bootnodeUrl.contains(".stg")) return "stg";
+  return "";
 }

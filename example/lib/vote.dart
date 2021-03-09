@@ -1,4 +1,5 @@
 import 'package:dvote/dvote.dart';
+import 'package:dvote/models/build/dart/common/vote.pb.dart';
 import './constants.dart';
 import 'package:dvote_crypto/dvote_crypto.dart';
 
@@ -6,7 +7,8 @@ Future<void> vote() async {
   GatewayPool gw;
   EntityMetadata entityMeta;
   ProcessMetadata processMeta;
-  Map<String, dynamic> pollVoteEnvelope;
+  ProcessData processData;
+  EnvelopePackage pollVoteEnvelope;
   String merkleProof;
   int blockHeight, censusSize, envelopeHeight;
   DateTime dateAtBlock;
@@ -41,7 +43,8 @@ Future<void> vote() async {
       print("There are no active processes");
       return;
     }
-    processMeta = await getProcessMetadata(pid, gw);
+    processData = await getProcess(pid, gw);
+    processMeta = await getProcessMetadata(pid, gw, data: processData);
     processMeta.meta["id"] = pid;
     print("Process ID: $pid");
   } catch (err) {
@@ -59,7 +62,7 @@ Future<void> vote() async {
 
     // Census size
     print("\nQuerying for the Census size");
-    censusSize = await getCensusSize(processMeta.census.merkleRoot, gw);
+    censusSize = await getCensusSize(processData.getCensusRoot, gw);
     // censusSize = await getCensusSize(censusMerkleRoot, gw);
     if (!(censusSize is int)) throw Exception("The census size is not valid");
     print("Census size: $censusSize");
@@ -73,17 +76,17 @@ Future<void> vote() async {
 
     // Remaining seconds
     print("\nEstimating");
-    dateAtBlock = await estimateDateAtBlock(processMeta.startBlock, gw);
+    dateAtBlock = await estimateDateAtBlock(processData.getStartBlock, gw);
     print("Process start block: $dateAtBlock");
     dateAtBlock = await estimateDateAtBlock(
-        processMeta.startBlock + processMeta.blockCount, gw);
+        processData.getStartBlock + processData.getBlockCount, gw);
     print("Process end block: $dateAtBlock");
 
     // Merkle Proof
     print("\nRequesting Merkle Proof");
     final isDigested = true;
     merkleProof = await generateProof(
-        processMeta.census.merkleRoot, pubKeyClaim, isDigested, gw);
+        processData.getCensusRoot, pubKeyClaim, isDigested, gw);
     // merkleProof = await generateProof(censusMerkleRoot, pubKeyClaim, gw);
     if (!(merkleProof is String))
       throw Exception("The Merkle Proof is not valid");
@@ -93,12 +96,17 @@ Future<void> vote() async {
     print("\nGenerating the Vote Envelope");
     final voteValues = [1, 2, 1];
     pollVoteEnvelope = await packageSignedEnvelope(
-        voteValues, merkleProof, processMeta.meta["id"], privateKey);
+        voteValues,
+        merkleProof,
+        processMeta.meta["id"],
+        privateKey,
+        ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE));
     print("Poll vote envelope:  $pollVoteEnvelope");
 
     // Submit Envelope
     print("\nSubmitting the vote");
-    await submitEnvelope(pollVoteEnvelope, gw);
+    await submitEnvelope(pollVoteEnvelope.envelope, gw,
+        hexSignature: pollVoteEnvelope.signature);
 
     // Get envelope status
     final nullifier =

@@ -20,10 +20,9 @@ class Gateway {
       throw Exception("Invalid Web3 gateway");
   }
 
-  Gateway.fromInfo(GatewayInfo info, {bool useTestingContracts = false}) {
+  Gateway.fromInfo(GatewayInfo info, {String ensDomainSuffix}) {
     this._dvote = DVoteGateway(info.dvoteUri, publicKey: info.publicKey);
-    this._web3 =
-        Web3Gateway(info.web3Uri, useTestingContracts: useTestingContracts);
+    this._web3 = Web3Gateway(info.web3Uri, ensDomainSuffix: ensDomainSuffix);
   }
 
   // DVOTE METHODS

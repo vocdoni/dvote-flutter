@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:dvote/blockchain/ens.dart';
+import 'package:dvote/dvote.dart';
 import 'package:dvote/net/gateway-web3.dart';
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
@@ -10,14 +12,14 @@ import 'package:http/http.dart' as http;
 
 import '../models/build/dart/client-store/gateway.pb.dart';
 import '../util/parsers.dart';
-// import 'package:flutter/foundation.dart'; // for kReleaseMode
 
 final random = Random.secure();
 
 /// Retrieve the Content URI of the boot nodes Content URI provided by Vocdoni.
 /// `networkId` should be among "mainnet", "goerli", "xdai" or "sokol"
+/// `ensDomainSuffix` eg. ".dev.vocdoni.eth", ".stg.vocdoni.eth". Null -> production
 Future<String> resolveWellKnownBootnodeUri(String networkId,
-    {bool useTestingContracts = false}) async {
+    {String ensDomainSuffix}) async {
   List<String> providerUris;
   String entityId;
 
@@ -32,10 +34,7 @@ Future<String> resolveWellKnownBootnodeUri(String networkId,
       break;
     case "xdai":
       providerUris = [XDAI_PROVIDER_URI];
-      if (useTestingContracts)
-        entityId = VOCDONI_XDAI_TEST_ENTITY_ID;
-      else
-        entityId = VOCDONI_XDAI_ENTITY_ID;
+      entityId = VOCDONI_XDAI_ENTITY_ID;
       break;
     case "sokol":
       providerUris = [SOKOL_PROVIDER_URI];
@@ -47,16 +46,21 @@ Future<String> resolveWellKnownBootnodeUri(String networkId,
   providerUris.shuffle(random);
 
   final hexEntityId = hex.decode(entityId.substring(2));
-
+  Uint8List entityAddressBytes;
+  if (hexEntityId.length < 30)
+    entityAddressBytes = ensHashAddress(Uint8List.fromList(hexEntityId));
+  else
+    entityAddressBytes = Uint8List.fromList(hexEntityId);
   for (var uri in providerUris) {
     try {
-      final gw = Web3Gateway(uri, useTestingContracts: useTestingContracts);
+      final gw = Web3Gateway(uri, ensDomainSuffix: ensDomainSuffix);
       var result = await gw.callMethod(
           "text",
-          [Uint8List.fromList(hexEntityId), TextRecordKeys.VOCDONI_BOOT_NODES],
+          [entityAddressBytes, TextRecordKeys.VOCDONI_BOOT_NODES],
           ContractEnum.EntityResolver);
       if (result is List && result[0] is String) return result[0];
-    } catch (err) {
+    } catch (err, s) {
+      print("Err: $err, $s");
       continue;
     }
   }

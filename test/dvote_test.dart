@@ -1,4 +1,3 @@
-
 import "./unit/metadata.dart";
 import "./net/ens.dart";
 import "./net/bootnodes.dart";
@@ -7,14 +6,16 @@ import "./integration/entity.dart";
 import "./unit/voting.dart";
 
 void main() {
-  pollVoting();
-  dataModels();
+  // pollVoting();
+  // resultsParse();
+  // flagsParse();
+  // dataModels();
 
-  ens();
-  bootnodes();
-  dvoteGateway();
-  web3Gateway();
+  // ens();
+  // bootnodes();
+  // dvoteGateway();
+  // web3Gateway();
 
-  entity();
+  // entity();
   pollVoting();
 }

@@ -1,5 +1,7 @@
+import 'package:dvote/dvote.dart';
+
 class ProcessResults {
-  List<List<int>> results;
+  List<List<String>> results;
   String state;
   String type;
 
@@ -23,34 +25,32 @@ class ProcessResultsDigested {
   toString() {
     String s = "Process results: \nType: $type, state: $state \n";
     if (questions?.isEmpty ?? true) {
-      s += "No questions available";
+      s += "No fields available";
       return s;
     }
 
     for (int i = 0; i < questions.length; i++) {
-      s += "Question ${i + 1}: \n" + questions[i].toString() + "\n";
+      s += "Field ${i + 1}: \n" + questions[i].toString() + "\n";
     }
     return s;
   }
 }
 
 class ProcessResultItem {
-  String type;
-  Map<String, String> question;
   Map<String, String> description;
   List<VoteResults> voteResults;
 
-  ProcessResultItem(this.type, this.question, this.description);
+  ProcessResultItem(this.description);
 
   @override
   toString() {
-    return "Question: $type, question: ${question["default"]}, description: ${description["default"]}, results: $voteResults";
+    return "Question: description: ${description["default"]}, values: $voteResults";
   }
 }
 
 class VoteResults {
   Map<String, String> title;
-  int votes;
+  BigInt votes;
 
   VoteResults(this.title, this.votes);
 

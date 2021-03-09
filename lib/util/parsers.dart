@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:dvote/api/voting.dart';
 import 'package:dvote/models/build/dart/metadata/entity.pb.dart';
 import 'package:dvote/models/build/dart/metadata/feed.pb.dart';
 import 'package:dvote/models/build/dart/metadata/process.pb.dart';
@@ -130,47 +131,22 @@ ProcessMetadata parseProcessMetadata(String json) {
     if (!(mapProcess is Map)) return null;
 
     result.version = mapProcess["version"] ?? "";
-    result.type = mapProcess["type"] ?? "";
-    result.startBlock = mapProcess["startBlock"] ?? 0;
-    result.blockCount = mapProcess["numberOfBlocks"] ?? 0;
+    result.title.addAll(mapProcess["title"]?.cast<String, String>() ?? {});
+    result.description
+        .addAll(mapProcess["description"]?.cast<String, String>() ?? {});
+    result.media.addAll(mapProcess["media"]?.cast<String, String>() ?? {});
 
-    ProcessMetadata_Census census = ProcessMetadata_Census();
-    if (mapProcess["census"] is Map) {
-      census.merkleRoot = mapProcess["census"]["merkleRoot"] ?? "";
-      census.merkleTree = mapProcess["census"]["merkleTree"] ?? "";
+    final Map meta = mapProcess["meta"];
+    meta.forEach((key, value) => result.meta.addAll({key: value.toString()}));
+
+    if (mapProcess["questions"] is List) {
+      final questions = _parseQuestions(mapProcess["questions"]);
+
+      result.questions.addAll(questions);
     }
-    result.census = census;
-
-    ProcessMetadata_Details details = ProcessMetadata_Details();
-    if (mapProcess["details"] is Map) {
-      final Map<String, dynamic> detailsMap = mapProcess["details"];
-
-      details.entityId = detailsMap["entityId"];
-      details.title.addAll(detailsMap["title"]?.cast<String, String>() ?? {});
-
-      if (detailsMap["description"] is Map) {
-        final Map<String, String> descriptionMap =
-            detailsMap["description"].cast<String, String>();
-        details.description.addAll(descriptionMap.cast<String, String>());
-      }
-      if (detailsMap["headerImage"] is String) {
-        details.headerImage = detailsMap["headerImage"];
-      }
-      if (detailsMap["streamUrl"] is String) {
-        details.streamUrl = detailsMap["streamUrl"];
-      }
-
-      if (detailsMap["questions"] is List) {
-        final questions = _parseQuestions(detailsMap["questions"]);
-
-        details.questions.addAll(questions);
-      }
-    }
-    result.details = details;
-
     return result;
   } catch (err) {
-    throw Exception("The process metadata could not be parsed");
+    throw Exception("The process metadata could not be parsed: $err");
   }
 }
 
@@ -181,7 +157,7 @@ ProcessResults parseProcessResults(Map<String, dynamic> response) {
     if (response["results"] is List) {
       processResults.results = (response["results"] as List)
           .whereType<List>()
-          .map((list) => list.whereType<int>().toList())
+          .map((list) => list.whereType<String>().toList())
           .toList();
     }
     if (response["state"] is String) {
@@ -196,61 +172,101 @@ ProcessResults parseProcessResults(Map<String, dynamic> response) {
   }
 }
 
-ProcessResultsDigested parseProcessResultsDigested(
-    ProcessResults rawResults, ProcessMetadata processMetadata) {
+ProcessResultsDigested parseProcessResultsDigestedSingleQuestion(
+    ProcessResults rawResults,
+    ProcessMetadata processMetadata,
+    ProcessData processData) {
   if (rawResults == null || processMetadata == null) {
     return null;
   }
-  if (processMetadata.details.questions?.isEmpty ?? true) {
+  if (processMetadata.questions?.isEmpty ?? true) {
+    return ProcessResultsDigested(rawResults.state, rawResults.type);
+  }
+
+  final resultsDigest =
+      ProcessResultsDigested(rawResults.state, rawResults.type);
+  resultsDigest.questions = new List<ProcessResultItem>();
+  for (int i = 0; i < rawResults.results.length; i++) {
+    if (i == 0) {
+      resultsDigest.questions
+          .add(ProcessResultItem(processMetadata.questions[i].description));
+      resultsDigest.questions[i].voteResults = new List<VoteResults>();
+    }
+    int votes = 0;
+    for (int j = 0; j < rawResults.results[i].length; j++) {
+      // Multiply vote number by option value
+      votes += int.parse(rawResults.results[i][j]) * j;
+    }
+    BigInt numberVotes;
+    try {
+      numberVotes = BigInt.from(votes);
+    } catch (err) {
+      log("Could not parse results: $err");
+      numberVotes = BigInt.zero;
+    }
+    resultsDigest.questions[0].voteResults.add(VoteResults(
+        processMetadata.questions[0].choices[i].title, numberVotes));
+  }
+  return resultsDigest;
+}
+
+ProcessResultsDigested parseProcessResultsDigestedMultiQuestion(
+    ProcessResults rawResults,
+    ProcessMetadata processMetadata,
+    ProcessData processData) {
+  if (rawResults == null || processMetadata == null) {
+    return null;
+  }
+  if (processMetadata.questions?.isEmpty ?? true) {
     return ProcessResultsDigested(rawResults.state, rawResults.type);
   }
   final resultsDigest =
       ProcessResultsDigested(rawResults.state, rawResults.type);
   resultsDigest.questions = new List<ProcessResultItem>();
 
-  for (int i = 0; i < processMetadata.details.questions.length; i++) {
-    if (processMetadata.details.questions[i] == null) {
+  for (int i = 0; i < processMetadata.questions.length; i++) {
+    if (processMetadata.questions[i] == null) {
       throw Exception("Metadata question is null");
     }
 
-    resultsDigest.questions.add(ProcessResultItem(
-        processMetadata.details.questions[i].type,
-        processMetadata.details.questions[i].question,
-        processMetadata.details.questions[i].description));
+    resultsDigest.questions
+        .add(ProcessResultItem(processMetadata.questions[i].description));
     resultsDigest.questions[i].voteResults = new List<VoteResults>();
 
-    for (int j = 0;
-        j < processMetadata.details.questions[i].voteOptions.length;
-        j++) {
-      int votes;
+    for (int j = 0; j < processMetadata.questions[i].choices.length; j++) {
+      String votes;
       if ((i >= (rawResults.results?.length ?? 0)) ||
           (j >= (rawResults.results[i]?.length ?? 0))) {
-        votes = 0;
+        votes = "0";
       } else {
         votes = rawResults.results[i][j];
       }
+      BigInt numberVotes;
+      try {
+        numberVotes = BigInt.parse(votes);
+      } catch (err) {
+        log("Could not parse results: $err");
+        numberVotes = BigInt.zero;
+      }
       resultsDigest.questions[i].voteResults.add(VoteResults(
-          processMetadata.details.questions[i].voteOptions[j].title, votes));
+          processMetadata.questions[i].choices[j].title, numberVotes));
     }
   }
   return resultsDigest;
 }
 
-List<ProcessMetadata_Details_Question> _parseQuestions(List items) {
+List<ProcessMetadata_Question> _parseQuestions(List items) {
   return items.whereType<Map>().map((item) {
-    final ProcessMetadata_Details_Question result =
-        ProcessMetadata_Details_Question();
-    if (item["type"] is String) result.type = item["type"];
-    if (item["question"] is Map)
-      result.question.addAll(item["question"]?.cast<String, String>() ?? {});
+    final ProcessMetadata_Question result = ProcessMetadata_Question();
+    if (item["title"] is Map)
+      result.title.addAll(item["title"]?.cast<String, String>() ?? {});
     if (item["description"] is Map) {
-      final descriptionMap = item["description"];
-      result.description.addAll(descriptionMap.cast<String, String>() ?? {});
+      result.description
+          .addAll(item["description"].cast<String, String>() ?? {});
     }
 
-    final voteOptions =
-        (item["voteOptions"] as List).whereType<Map>().map((item) {
-      final result = ProcessMetadata_Details_Question_VoteOption();
+    final choices = (item["choices"] as List).whereType<Map>().map((item) {
+      final result = ProcessMetadata_Question_VoteOption();
       if (item["title"] is Map)
         result.title.addAll(item["title"]?.cast<String, String>() ?? {});
       if (item["value"] is int)
@@ -262,7 +278,7 @@ List<ProcessMetadata_Details_Question> _parseQuestions(List items) {
 
       return result;
     }).toList();
-    result.voteOptions.addAll(voteOptions);
+    result.choices.addAll(choices);
 
     return result;
   }).toList();

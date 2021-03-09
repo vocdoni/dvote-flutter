@@ -13,10 +13,7 @@ const SOKOL_ENS_REGISTRY = "0x43541c49308bF2956d3893836F5AF866fd78A295";
 const VOCDONI_MAINNET_ENTITY_ID = "0x0";
 const VOCDONI_GOERLI_ENTITY_ID =
     "0x180dd5765d9f7ecef810b565a2e5bd14a3ccd536c442b3de74867df552855e85";
-const VOCDONI_XDAI_ENTITY_ID =
-    "0x8469d886788116e18b82d6566d951c77bc0b19ef7b6b837b725b667addeef6b5";
-const VOCDONI_XDAI_TEST_ENTITY_ID =
-    "0x8469d886788116e18b82d6566d951c77bc0b19ef7b6b837b725b667addeef6b5";
+const VOCDONI_XDAI_ENTITY_ID = "0x01f5cbe42e7D758a5b184Cb96dCbF79aD603C592";
 const VOCDONI_SOKOL_ENTITY_ID =
     "0xe00f56aac24b5b78b94c38f511631b8b09a5c5a9ee49978dbe57f28135695e1a";
 
@@ -29,11 +26,11 @@ const SIGNATURE_TIMESTAMP_TOLERANCE_GW = 60 * 60 * 2; // 2h
 const VOCHAIN_BLOCK_TIME = 10;
 
 // ENS
-const ENS_PUBLIC_RESOLVER_DOMAIN = "entity-resolver.vocdoni.eth";
-const PROCESS_DOMAIN = "voting-process.vocdoni.eth";
+const PRODUCTION_ENS_DOMAIN_SUFFIX = ".vocdoni.eth";
+const STAGING_ENS_DOMAIN_SUFFIX = ".stg.vocdoni.eth";
+const DEVELOPMENT_ENS_DOMAIN_SUFFIX = ".dev.vocdoni.eth";
 
-// const ENTITY_RESOLVER_DOMAIN = "entities.vocdoni.eth";
-// const PROCESS_DOMAIN = "process.vocdoni.eth";
+const ENS_SUFFIX_KEY = "{SUFFIX}";
 
-// const ENTITY_RESOLVER_DOMAIN_DEV = "entities.dev.vocdoni.eth";
-// const PROCESS_DOMAIN_DEV = "process.dev.vocdoni.eth";
+const ENS_PUBLIC_RESOLVER_DOMAIN = "entities" + ENS_SUFFIX_KEY;
+const PROCESS_DOMAIN = "processes" + ENS_SUFFIX_KEY;

@@ -1,3 +1,23 @@
+# 0.20.0
+- Update `getGatewayInfo` to `getInfo`
+- Update Ens public resolver
+- Update Process contract artifacts
+- Hash entity address for ENS call
+- Convert ProcessData ints to BigInts
+- Ensure ProcessData parses upon declaration
+- Enable alternate ENS/Process contract domains
+- Update checkProof api call
+- Sign envelope as bytes
+- parseProcessResultsDigested -> parseProcessResultsDigestedSingleQuestion, multiQuestion tbd
+- Add pubKeysAreEqual method
+  
+## 0.19.0
+- Update process contract wrappers to smart contracts v2
+- Use ProcessCensusOrigin wrapper
+- Update generateProof
+- parseRawResults uses String for result values
+- parseProcessResultsDigested uses BigInt for result values
+
 ## 0.18.9
 
 - Enable synchronous date estimation

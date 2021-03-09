@@ -10,10 +10,10 @@ Future<List<Gateway>> discoverGateways(
     {String bootnodeUri,
     String networkId = "xdai",
     int maxGatewayCount = 5,
-    bool useTestingContracts = false}) async {
-  if (bootnodeUri is! String || bootnodeUri.length < 1) {
+    String ensDomainSuffix}) async {
+  if (bootnodeUri is! String || bootnodeUri.length == 0) {
     bootnodeUri = await resolveWellKnownBootnodeUri(networkId,
-        useTestingContracts: useTestingContracts);
+        ensDomainSuffix: ensDomainSuffix);
   }
 
   final info = await fetchBootnodeInfo(bootnodeUri);
@@ -21,14 +21,15 @@ Future<List<Gateway>> discoverGateways(
   return discoverGatewaysFromBootnodeInfo(info,
       networkId: networkId,
       maxGatewayCount: maxGatewayCount,
-      useTestingContracts: useTestingContracts);
+      ensDomainSuffix: ensDomainSuffix);
 }
 
 // Digests the bootnode info into a list of working gateways, featuring web3 and DVote nodes
+// EnsDomainSuffix eg "stg" "dev". "" for mainnet
 Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
     {String networkId = "xdai",
     int maxGatewayCount = 5,
-    bool useTestingContracts = false}) async {
+    String ensDomainSuffix}) async {
   BootNodeGateways_NetworkNodes networkNodes;
 
   switch (networkId) {
@@ -63,8 +64,8 @@ Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
   await Future.wait(web3Candidates.map((candidate) {
     return Web3Gateway.isSyncing(candidate.uri).then((syncing) {
       if (!syncing)
-        web3Nodes.add(Web3Gateway(candidate.uri,
-            useTestingContracts: useTestingContracts));
+        web3Nodes
+            .add(Web3Gateway(candidate.uri, ensDomainSuffix: ensDomainSuffix));
       else
         log("[Discovery] Web3 node ${candidate.uri} is syncing: Skip");
     }).catchError((err) {
