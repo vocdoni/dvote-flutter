@@ -1,3 +1,4 @@
+# 0.20.0
 - Update `getGatewayInfo` to `getInfo`
 - Update Ens public resolver
 - Update Process contract artifacts
@@ -9,7 +10,7 @@
 - Sign envelope as bytes
 - parseProcessResultsDigested -> parseProcessResultsDigestedSingleQuestion, multiQuestion tbd
 - Add pubKeysAreEqual method
-
+  
 ## 0.19.0
 - Update process contract wrappers to smart contracts v2
 - Use ProcessCensusOrigin wrapper
