@@ -8,7 +8,7 @@ Future<void> vote() async {
   EntityMetadata entityMeta;
   ProcessMetadata processMeta;
   ProcessData processData;
-  EnvelopePackage pollVoteEnvelope;
+  VoteEnvelope pollVoteEnvelope;
   String merkleProof;
   int blockHeight, censusSize, envelopeHeight;
   DateTime dateAtBlock;
@@ -87,7 +87,6 @@ Future<void> vote() async {
     final isDigested = true;
     merkleProof = await generateProof(
         processData.getCensusRoot, pubKeyClaim, isDigested, gw);
-    // merkleProof = await generateProof(censusMerkleRoot, pubKeyClaim, gw);
     if (!(merkleProof is String))
       throw Exception("The Merkle Proof is not valid");
     print("Merkle Proof:   $merkleProof");
@@ -95,19 +94,21 @@ Future<void> vote() async {
     // Generate Envelope
     print("\nGenerating the Vote Envelope");
     final voteValues = [1, 2, 1];
-    pollVoteEnvelope = await packageSignedEnvelope(
+    pollVoteEnvelope = await packageEnvelope(
         voteValues,
         merkleProof,
         processMeta.meta["id"],
-        privateKey,
         ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE));
     print("Poll vote envelope:  $pollVoteEnvelope");
 
+    final signedTx = await packageVoteTx(
+      pollVoteEnvelope,
+      await wallet.privateKeyAsync,
+    );
+
     // Submit Envelope
     print("\nSubmitting the vote");
-    await submitEnvelope(pollVoteEnvelope.envelope, gw,
-        hexSignature: pollVoteEnvelope.signature);
-
+    await submitRawTx(signedTx.writeToBuffer(), gw);
     // Get envelope status
     final nullifier =
         await getSignedVoteNullifier(address, processMeta.meta["id"]);

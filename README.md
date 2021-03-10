@@ -57,9 +57,6 @@ final gwInfo = await getRandomDefaultGatewayInfo("goerli");
 final DVoteGateway dvoteGw = DVoteGateway(gwInfo.dvote, publicKey: gwInfo.publicKey);
 final Web3Gateway web3Gw = Web3Gateway(gwInfo.web3);
 
-// All active from an Entity
-final List<ProcessMetadata>> processes = await fetchActiveProcesses(entityRef, dvoteGw, web3Gw);
-
 // A specific Voting Process
 final pid = "0x1234...";
 final ProcessMetadataprocessMeta = await getProcessMetadata(pid, dvoteGw, web3Gw);
@@ -126,10 +123,8 @@ The following classes are exported:
 - Process
   - ProcessMetadataStore
   - ProcessMetadata
-  - ProcessMetadata_Census
-  - ProcessMetadata_Details
-  - ProcessMetadata_Details_Question
-  - ProcessMetadata_Details_Question_VoteOption
+  - ProcessMetadata_Question
+  - ProcessMetadata_Question_VoteOption
 - Feed
   - FeedsStore
   - Feed
@@ -143,9 +138,11 @@ The following classes are exported:
 - Identity
   - IdentitiesStore
   - Identity
+  - Identity_Type
   - Identity_Peers
   - Identity_Claim
   - PeerIdentity
+  - PeerIdentity_Type
 - Key
 
 ### Parsers
@@ -156,9 +153,10 @@ Raw JSON data can't be directly serialized into a Protobuf object. For this reas
   - `List<Entity_Action> parseEntityActions(List actions)`
   - `List<Entity_EntityReference> parseEntityReferences(List entities)`
 - `ProcessMetadata parseProcessMetadata(String json)`
-  - `List<Process_Details_Question> _parseQuestions(List items)`
+  - `List<ProcessMetadata_Question> _parseQuestions(List items)`
 - `ProcessResults parseProcessResults(Map<String, dynamic> response)`
 - `ProcessResultsDigested parseProcessResultsDigestedSingleQuestion(ProcessResults rawResults, ProcessMetadata processMetadata, ProcessData processData)`
+- `ProcessResultsDigested parseProcessResultsDigestedMultiQuestion(ProcessResults rawResults, ProcessMetadata processMetadata, ProcessData processData)`
 - `Feed parseFeed(String json)`
 - `BootNodeGateways parseBootnodeInfo(String json)`
   - `BootNodeGateways_NetworkNodes _parseBootnodeNetworkItems(Map item)` 
