@@ -1,3 +1,7 @@
+#
+- Removing GW methods: `getProcListResults` and `getProcListLiveResults`
+- Renaming GW methods: `getScrutinizerEntities` into `getEntityList`
+
 # 0.20.0
 - Update `getGatewayInfo` to `getInfo`
 - Update Ens public resolver
