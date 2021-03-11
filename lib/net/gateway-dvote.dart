@@ -28,7 +28,6 @@ class DVoteApiList {
     "getEnvelopeList",
     "getBlockHeight",
     "getBlockStatus",
-    "getResults",
     "submitRawTx"
   ];
   static const census = <String>[
@@ -43,13 +42,12 @@ class DVoteApiList {
     "dumpPlain",
     "importDump",
     "publish",
-    "importRemote"
+    "importRemote",
+    "getCensusList
   ];
   static const results = <String>[
-    "getProcListResults",
-    "getProcListLiveResults",
     "getResults",
-    "getScrutinizerEntities"
+    "getEntityList"
   ];
 }
 
