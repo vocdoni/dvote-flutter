@@ -62,7 +62,7 @@ Future<void> vote() async {
 
     // Census size
     print("\nQuerying for the Census size");
-    censusSize = await getCensusSize(processData.getCensusRoot, gw);
+    censusSize = await getCensusSize(processData.censusRoot, gw);
     // censusSize = await getCensusSize(censusMerkleRoot, gw);
     if (!(censusSize is int)) throw Exception("The census size is not valid");
     print("Census size: $censusSize");
@@ -76,17 +76,17 @@ Future<void> vote() async {
 
     // Remaining seconds
     print("\nEstimating");
-    dateAtBlock = await estimateDateAtBlock(processData.getStartBlock, gw);
+    dateAtBlock = await estimateDateAtBlock(processData.startBlock, gw);
     print("Process start block: $dateAtBlock");
     dateAtBlock = await estimateDateAtBlock(
-        processData.getStartBlock + processData.getBlockCount, gw);
+        processData.startBlock + processData.blockCount, gw);
     print("Process end block: $dateAtBlock");
 
     // Merkle Proof
     print("\nRequesting Merkle Proof");
     final isDigested = true;
     merkleProof = await generateProof(
-        processData.getCensusRoot, pubKeyClaim, isDigested, gw);
+        processData.censusRoot, pubKeyClaim, isDigested, gw);
     if (!(merkleProof is String))
       throw Exception("The Merkle Proof is not valid");
     print("Merkle Proof:   $merkleProof");

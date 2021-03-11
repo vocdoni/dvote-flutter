@@ -353,26 +353,25 @@ void flagsParse() {
       ],
       BigInt.from(evmBlockHeight),
     ]);
-    expect(testData.getMode.value, mode);
-    expect(testData.getEnvelopeType.value, envelopeType);
-    expect(testData.getCensusOrigin.value, censusOrigin);
-    expect(testData.getEntityAddress, entityAddress);
-    expect(testData.getMetadata, metadata);
-    expect(testData.getCensusRoot, censusRoot);
-    expect(testData.getCensusUri, censusUri);
-    expect(testData.getStartBlock, startBlock);
-    expect(testData.getBlockCount, blockCount);
-    expect(testData.getStatus.value, status);
-    expect(testData.getQuestionIndex, questionIndex);
-    expect(testData.getQuestionCount, questionCount);
-    expect(testData.getMaxCount, maxCount);
-    expect(testData.getMaxValue, maxValue);
-    expect(testData.getMaxVoteOverwrites, maxVoteOverwrites);
-    expect(testData.getMaxTotalCost, maxTotalCost);
-    expect(testData.getCostExponent, costExponent);
-    expect(testData.getNamespace, namespace);
-    expect(
-        testData.getEvmBlockHeight.compareTo(BigInt.from(evmBlockHeight)), 0);
+    expect(testData.mode.value, mode);
+    expect(testData.envelopeType.value, envelopeType);
+    expect(testData.censusOrigin.value, censusOrigin);
+    expect(testData.entityAddress, entityAddress);
+    expect(testData.metadata, metadata);
+    expect(testData.censusRoot, censusRoot);
+    expect(testData.censusUri, censusUri);
+    expect(testData.startBlock, startBlock);
+    expect(testData.blockCount, blockCount);
+    expect(testData.status.value, status);
+    expect(testData.questionIndex, questionIndex);
+    expect(testData.questionCount, questionCount);
+    expect(testData.maxCount, maxCount);
+    expect(testData.maxValue, maxValue);
+    expect(testData.maxVoteOverwrites, maxVoteOverwrites);
+    expect(testData.maxTotalCost, maxTotalCost);
+    expect(testData.costExponent, costExponent);
+    expect(testData.namespace, namespace);
+    expect(testData.evmBlockHeight.compareTo(BigInt.from(evmBlockHeight)), 0);
   }
 
   void testProcessData() {
@@ -415,28 +414,18 @@ void pollVoting() {
 
   test("Poll Voting: Should bundle a Vote Package into a valid Vote Envelope",
       () async {
-    final wallet = EthereumWallet.fromMnemonic(
-        "seven family better journey display approve crack burden run pattern filter topple");
-
     String processId =
         "0x8b35e10045faa886bd2e18636cd3cb72e80203a04e568c47205bf0313a0f60d1";
     String siblings =
         "0x0003000000000000000000000000000000000000000000000000000000000006f0d72fbd8b3a637488107b0d8055410180ec017a4d76dbb97bee1c3086a25e25b1a6134dbd323c420d6fc2ac3aaf8fff5f9ac5bc0be5949be64b7cfd1bcc5f1f";
 
-    final envelope1 = await packageSignedEnvelope(
-        [1, 2, 3],
-        siblings,
-        processId,
-        wallet.privateKey,
+    final envelope1 = await packageEnvelope([1, 2, 3], siblings, processId,
         ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE));
-    final decodedEnvelope1 = VoteEnvelope.fromBuffer(envelope1.envelope);
-    expect(hex.encode(decodedEnvelope1.processId),
-        processId.replaceFirst("0x", ""));
-    expect(hex.encode(decodedEnvelope1.proof.graviton.siblings),
+    expect(hex.encode(envelope1.processId), processId.replaceFirst("0x", ""));
+    expect(hex.encode(envelope1.proof.graviton.siblings),
         siblings.replaceFirst("0x", ""));
 
-    final pkg1 =
-        utf8.decode(decodedEnvelope1.votePackage, allowMalformed: true);
+    final pkg1 = utf8.decode(envelope1.votePackage, allowMalformed: true);
     Map<String, dynamic> decodedVotePkg1;
     if (pkg1 is String) decodedVotePkg1 = jsonDecode(pkg1);
     expect(decodedVotePkg1["votes"].length, 3);
@@ -449,20 +438,13 @@ void pollVoting() {
     siblings =
         "0x0003000000100000000002000000000300000000000400000000000050000006f0d72fbd8b3a637488107b0d8055410180ec017a4d76dbb97bee1c3086a25e25b1a6134dbd323c420d6fc2ac3aaf8fff5f9ac5bc0be5949be64b7cfd1bcc5f1f";
 
-    final envelope2 = await packageSignedEnvelope(
-        [4, 5, 6],
-        siblings,
-        processId,
-        wallet.privateKey,
+    final envelope2 = await packageEnvelope([4, 5, 6], siblings, processId,
         ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE));
-    final decodedEnvelope2 = VoteEnvelope.fromBuffer(envelope2.envelope);
-    expect(
-        hex.encode(decodedEnvelope2.processId), processId.replaceAll("0x", ""));
-    expect(hex.encode(decodedEnvelope2.proof.graviton.siblings),
+    expect(hex.encode(envelope2.processId), processId.replaceAll("0x", ""));
+    expect(hex.encode(envelope2.proof.graviton.siblings),
         siblings.replaceFirst("0x", ""));
 
-    final pkg2 =
-        utf8.decode(decodedEnvelope2.votePackage, allowMalformed: true);
+    final pkg2 = utf8.decode(envelope2.votePackage, allowMalformed: true);
     Map<String, dynamic> decodedVotePkg2;
     if (pkg1 is String) decodedVotePkg2 = jsonDecode(pkg2);
     expect(decodedVotePkg2["votes"].length, 3);
@@ -474,9 +456,6 @@ void pollVoting() {
   test(
       "Poll Voting: Should bundle an encrypted Vote Package into a valid Vote Envelope",
       () async {
-    final wallet = EthereumWallet.fromMnemonic(
-        "seven family better journey display approve crack burden run pattern filter topple");
-
     final votePrivateKey =
         "91f86dd7a9ac258c4908ca8fbdd3157f84d1f74ffffcb9fa428fba14a1d40150";
     final votePublicKey =
@@ -513,25 +492,23 @@ void pollVoting() {
       entry.idx = 0;
       entry.key = votePublicKey;
       processKeys.encryptionPubKeys = [entry];
-      final envelope = await packageSignedEnvelope(
+      final envelope = await packageEnvelope(
           item["votes"],
           item["siblings"],
           item["processId"],
-          wallet.privateKey,
           ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE),
           processKeys: processKeys);
 
-      final decodedEnvelope = VoteEnvelope.fromBuffer(envelope.envelope);
-      expect(hex.encode(decodedEnvelope.processId),
+      expect(hex.encode(envelope.processId),
           item["processId"].replaceFirst("0x", ""));
-      expect(hex.encode(decodedEnvelope.proof.graviton.siblings),
+      expect(hex.encode(envelope.proof.graviton.siblings),
           item["siblings"].replaceFirst("0x", ""));
-      expect(decodedEnvelope.encryptionKeyIndexes.length, 1);
-      expect(decodedEnvelope.encryptionKeyIndexes[0], 0);
-      expect(decodedEnvelope.votePackage.length > 0, true);
+      expect(envelope.encryptionKeyIndexes.length, 1);
+      expect(envelope.encryptionKeyIndexes[0], 0);
+      expect(envelope.votePackage.length > 0, true);
 
-      final pkg = jsonDecode(utf8.decode(
-          Asymmetric.decryptRaw(decodedEnvelope.votePackage, votePrivateKey)));
+      final pkg = jsonDecode(utf8
+          .decode(Asymmetric.decryptRaw(envelope.votePackage, votePrivateKey)));
       expect(item["votes"] is List, true);
       expect(pkg["votes"].length, (item["votes"] as List).length);
       expect(pkg["votes"][0], (item["votes"] as List)[0]);
@@ -543,9 +520,6 @@ void pollVoting() {
   test(
       "Poll Voting: Should bundle a Vote Package encrypted with N keys in the right order",
       () async {
-    final wallet = EthereumWallet.fromMnemonic(
-        "seven family better journey display approve crack burden run pattern filter topple");
-
     final encryptionKeys = [
       {
         "publicKey":
@@ -612,22 +586,19 @@ void pollVoting() {
           .cast<ProcessKey>()
           .toList();
 
-      final envelope = await packageSignedEnvelope(
+      final envelope = await packageEnvelope(
           item["votes"],
           item["siblings"],
           item["processId"],
-          wallet.privateKey,
           ProcessCensusOrigin(ProcessCensusOrigin.OFF_CHAIN_TREE),
           processKeys: processKeys);
-
-      final decodedEnvelope = VoteEnvelope.fromBuffer(envelope.envelope);
-      expect(hex.encode(decodedEnvelope.processId),
+      expect(hex.encode(envelope.processId),
           item["processId"].replaceFirst("0x", ""));
-      expect(hex.encode(decodedEnvelope.proof.graviton.siblings),
+      expect(hex.encode(envelope.proof.graviton.siblings),
           item["siblings"].replaceFirst("0x", ""));
-      expect(decodedEnvelope.encryptionKeyIndexes.length, 4);
-      expect(decodedEnvelope.encryptionKeyIndexes[0], 0);
-      expect(decodedEnvelope.votePackage.length > 0, true);
+      expect(envelope.encryptionKeyIndexes.length, 4);
+      expect(envelope.encryptionKeyIndexes[0], 0);
+      expect(envelope.votePackage.length > 0, true);
 
       Uint8List decrypted;
       // decrypt in reverse order
@@ -637,7 +608,7 @@ void pollVoting() {
               Asymmetric.decryptRaw(decrypted, encryptionKeys[i]["privateKey"]);
         else
           decrypted = Asymmetric.decryptRaw(
-              decodedEnvelope.votePackage, encryptionKeys[i]["privateKey"]);
+              envelope.votePackage, encryptionKeys[i]["privateKey"]);
       }
 
       final pkg = jsonDecode(utf8.decode(decrypted));

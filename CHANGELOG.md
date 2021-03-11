@@ -1,4 +1,5 @@
-#
+# In progress
+- Update processData getters 
 - Removing GW methods: `getProcListResults` and `getProcListLiveResults`
 - Renaming GW methods: `getScrutinizerEntities` into `getEntityList`
 
