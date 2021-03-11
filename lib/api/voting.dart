@@ -307,25 +307,25 @@ class ProcessData {
           "Process data is invalid: data should contain ${ProcessContractGetIdx.PROCESS_CONTRACT_LENGTH} elements");
     try {
       // Use all getters to ensure data is parsed correctly
-      this.getMode;
-      this.getEnvelopeType;
-      this.getCensusOrigin;
-      this.getEntityAddress;
-      this.getMetadata;
-      this.getCensusRoot;
-      this.getCensusUri;
-      this.getStartBlock;
-      this.getBlockCount;
-      this.getStatus;
-      this.getQuestionIndex;
-      this.getQuestionCount;
-      this.getMaxCount;
-      this.getMaxValue;
-      this.getMaxVoteOverwrites;
-      this.getMaxTotalCost;
-      this.getCostExponent;
-      this.getNamespace;
-      this.getEvmBlockHeight;
+      this.mode;
+      this.envelopeType;
+      this.censusOrigin;
+      this.entityAddress;
+      this.metadata;
+      this.censusRoot;
+      this.censusUri;
+      this.startBlock;
+      this.blockCount;
+      this.status;
+      this.questionIndex;
+      this.questionCount;
+      this.maxCount;
+      this.maxValue;
+      this.maxVoteOverwrites;
+      this.maxTotalCost;
+      this.costExponent;
+      this.namespace;
+      this.evmBlockHeight;
     } catch (err) {
       throw Exception("ProcessData could not be initialized: $err");
     }
@@ -351,25 +351,25 @@ class ProcessData {
 
   String toString() {
     return """
-    Mode: ${this.getMode.toString()}  
-    Envelope type: ${this.getEnvelopeType.toString()}
-    Census origin: ${this.getCensusOrigin.toString()}
-    Entity address: ${this.getEntityAddress}
-    Metadata: ${this.getMetadata}
-    Census root: ${this.getCensusRoot}
-    Census uri: ${this.getCensusUri}
-    Start block: ${this.getStartBlock}
-    Block count: ${this.getBlockCount}
-    Status: ${this.getStatus.toString()}
-    Question index: ${this.getQuestionIndex}
-    Question count: ${this.getQuestionCount}
-    Max count: ${this.getMaxCount}
-    Max Value: ${this.getMaxValue}
-    Max vote overwrites: ${this.getMaxVoteOverwrites}
-    Max total cost: ${this.getMaxTotalCost}
-    Cost exponent: ${this.getCostExponent}
-    Namespace: ${this.getNamespace}
-    Evm block height: ${this.getEvmBlockHeight}""";
+    Mode: ${this.mode.toString()}  
+    Envelope type: ${this.envelopeType.toString()}
+    Census origin: ${this.censusOrigin.toString()}
+    Entity address: ${this.entityAddress}
+    Metadata: ${this.metadata}
+    Census root: ${this.censusRoot}
+    Census uri: ${this.censusUri}
+    Start block: ${this.startBlock}
+    Block count: ${this.blockCount}
+    Status: ${this.status.toString()}
+    Question index: ${this.questionIndex}
+    Question count: ${this.questionCount}
+    Max count: ${this.maxCount}
+    Max Value: ${this.maxValue}
+    Max vote overwrites: ${this.maxVoteOverwrites}
+    Max total cost: ${this.maxTotalCost}
+    Cost exponent: ${this.costExponent}
+    Namespace: ${this.namespace}
+    Evm block height: ${this.evmBlockHeight}""";
   }
 
   // First-level array indexes:
@@ -380,7 +380,7 @@ class ProcessData {
     return data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN];
   }
 
-  EthereumAddress get getEntityAddress {
+  EthereumAddress get entityAddress {
     if (data[ProcessContractGetIdx.ENTITY_ADDRESS] is! EthereumAddress)
       throw Exception(
           "ProcessData ENTITY_ADDRESS expected to be an EthereumAddress, instead is a ${[
@@ -403,7 +403,7 @@ class ProcessData {
     return data[ProcessContractGetIdx.START_BLOCK_BLOCK_COUNT];
   }
 
-  ProcessStatus get getStatus {
+  ProcessStatus get status {
     if (data[ProcessContractGetIdx.STATUS] is! BigInt)
       throw Exception(
           "ProcessData STATUS expected to be a BigInt, instead is a ${data[ProcessContractGetIdx.STATUS].runtimeType}");
@@ -428,7 +428,7 @@ class ProcessData {
     return data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE];
   }
 
-  BigInt get getEvmBlockHeight {
+  BigInt get evmBlockHeight {
     if (data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT] is! BigInt)
       throw Exception(
           "ProcessData EVM_BLOCK_HEIGHT expected to be a BigInt, instead is a ${data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT].runtimeType}");
@@ -436,7 +436,7 @@ class ProcessData {
   }
 
   // Second-level array indexes
-  ProcessMode get getMode {
+  ProcessMode get mode {
     final list = _getModeEnvelopeTypeCensusOrigin;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
     if (list[ProcessContractGetIdx.SUB_INDEX_MODE] is! BigInt)
@@ -445,7 +445,7 @@ class ProcessData {
     return ProcessMode(list[ProcessContractGetIdx.SUB_INDEX_MODE].toInt());
   }
 
-  ProcessEnvelopeType get getEnvelopeType {
+  ProcessEnvelopeType get envelopeType {
     final list = _getModeEnvelopeTypeCensusOrigin;
     if (list == null) throw Exception("LISTTYPE is null");
 
@@ -456,7 +456,7 @@ class ProcessData {
         list[ProcessContractGetIdx.SUB_INDEX_ENVELOPE_TYPE].toInt());
   }
 
-  ProcessCensusOrigin get getCensusOrigin {
+  ProcessCensusOrigin get censusOrigin {
     final list = _getModeEnvelopeTypeCensusOrigin;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
 
@@ -467,7 +467,7 @@ class ProcessData {
         list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ORIGIN].toInt());
   }
 
-  String get getMetadata {
+  String get metadata {
     final list = _getMetadataCensusRootCensusUri;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
 
@@ -477,7 +477,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_METADATA];
   }
 
-  String get getCensusRoot {
+  String get censusRoot {
     final list = _getMetadataCensusRootCensusUri;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
 
@@ -487,7 +487,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ROOT];
   }
 
-  String get getCensusUri {
+  String get censusUri {
     final list = _getMetadataCensusRootCensusUri;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
 
@@ -497,7 +497,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_CENSUS_URI];
   }
 
-  int get getStartBlock {
+  int get startBlock {
     final list = _getStartBlockBlockCount;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
     if (list[ProcessContractGetIdx.SUB_INDEX_START_BLOCK] is! BigInt)
@@ -506,7 +506,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_START_BLOCK].toInt();
   }
 
-  int get getBlockCount {
+  int get blockCount {
     final list = _getStartBlockBlockCount;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
     if (list[ProcessContractGetIdx.SUB_INDEX_BLOCK_COUNT] is! BigInt)
@@ -515,7 +515,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_BLOCK_COUNT].toInt();
   }
 
-  int get getQuestionIndex {
+  int get questionIndex {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -526,7 +526,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_QUESTION_INDEX].toInt();
   }
 
-  int get getQuestionCount {
+  int get questionCount {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -537,7 +537,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_QUESTION_COUNT].toInt();
   }
 
-  int get getMaxCount {
+  int get maxCount {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -548,7 +548,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_MAX_COUNT].toInt();
   }
 
-  int get getMaxValue {
+  int get maxValue {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -559,7 +559,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_MAX_VALUE].toInt();
   }
 
-  int get getMaxVoteOverwrites {
+  int get maxVoteOverwrites {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -570,7 +570,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_MAX_VOTE_OVERWRITES].toInt();
   }
 
-  int get getMaxTotalCost {
+  int get maxTotalCost {
     final list = _getMaxTotalCostCostExponentNamespace;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
 
@@ -580,7 +580,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_MAX_TOTAL_COST].toInt();
   }
 
-  int get getCostExponent {
+  int get costExponent {
     final list = _getMaxTotalCostCostExponentNamespace;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
 
@@ -590,7 +590,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_COST_EXPONENT].toInt();
   }
 
-  int get getNamespace {
+  int get namespace {
     final list = _getMaxTotalCostCostExponentNamespace;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
 
@@ -672,8 +672,8 @@ Future<ProcessMetadata> getProcessMetadata(String processId, GatewayPool gw,
   try {
     // If data param exists, start with future of this value. Otherwise get ProcessData
     if (data == null) data = await getProcess(processId, gw);
-    if (data.getMetadata is! String) return null;
-    final ipfsUri = ContentURI(data.getMetadata);
+    if (data.metadata is! String) return null;
+    final ipfsUri = ContentURI(data.metadata);
     final strMetadata = await fetchFileString(ipfsUri, gw);
     return parseProcessMetadata(strMetadata);
   } catch (err) {
@@ -735,7 +735,7 @@ Future<ProcessResultsDigested> getResultsDigest(
     final currentBlock = await getBlockHeight(gw);
 
     // If process hasn't started yet, throw exception
-    if (currentBlock < processData.getStartBlock) {
+    if (currentBlock < processData.startBlock) {
       return null; // No results yet
     }
     final rawResults = await getRawResults(pid, gw);
@@ -746,8 +746,8 @@ Future<ProcessResultsDigested> getResultsDigest(
       throw Exception("Process Metadata is empty");
     }
 
-    if (processData.getEnvelopeType.hasEncryptedVotes) {
-      final endBlock = processData.getStartBlock + processData.getBlockCount;
+    if (processData.envelopeType.hasEncryptedVotes) {
+      final endBlock = processData.startBlock + processData.blockCount;
       if ((currentBlock < endBlock) && rawResults.state != "canceled") {
         return null; // No results
       }

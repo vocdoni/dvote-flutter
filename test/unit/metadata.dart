@@ -79,75 +79,74 @@ void dataModels() {
       BigInt.from(0),
     ]);
 
-    expect(data.getMode.value, jsonData.getMode.value,
+    expect(data.mode.value, jsonData.mode.value,
         reason:
             "ProcessData should parse getMode correctly from jsonString and list");
-    expect(data.getEnvelopeType.hasAnonymousVoters,
-        jsonData.getEnvelopeType.hasAnonymousVoters,
+    expect(data.envelopeType.hasAnonymousVoters,
+        jsonData.envelopeType.hasAnonymousVoters,
         reason:
             "ProcessData should parse getEnvelopeType correctly from jsonString and list");
-    expect(data.getEnvelopeType.hasEncryptedVotes,
-        jsonData.getEnvelopeType.hasEncryptedVotes,
+    expect(data.envelopeType.hasEncryptedVotes,
+        jsonData.envelopeType.hasEncryptedVotes,
         reason:
             "ProcessData should parse getEnvelopeType correctly from jsonString and list");
-    expect(data.getEnvelopeType.hasSerialVoting,
-        jsonData.getEnvelopeType.hasSerialVoting,
+    expect(data.envelopeType.hasSerialVoting,
+        jsonData.envelopeType.hasSerialVoting,
         reason:
             "ProcessData should parse getEnvelopeType correctly from jsonString and list");
-    expect(data.getEnvelopeType.hasUniqueValues,
-        jsonData.getEnvelopeType.hasUniqueValues,
+    expect(data.envelopeType.hasUniqueValues,
+        jsonData.envelopeType.hasUniqueValues,
         reason:
             "ProcessData should parse getEnvelopeType correctly from jsonString and list");
-    expect(data.getCensusOrigin.value, jsonData.getCensusOrigin.value,
+    expect(data.censusOrigin.value, jsonData.censusOrigin.value,
         reason:
             "ProcessData should parse getCensusOrigin correctly from jsonString and list");
-    expect(
-        data.getEntityAddress.toString(), jsonData.getEntityAddress.toString(),
+    expect(data.entityAddress.toString(), jsonData.entityAddress.toString(),
         reason:
             "ProcessData should parse getEntityAddress correctly from jsonString and list");
-    expect(data.getMetadata, jsonData.getMetadata,
+    expect(data.metadata, jsonData.metadata,
         reason:
             "ProcessData should parse getMetadata correctly from jsonString and list");
-    expect(data.getCensusRoot, jsonData.getCensusRoot,
+    expect(data.censusRoot, jsonData.censusRoot,
         reason:
             "ProcessData should parse getCensusRoot correctly from jsonString and list");
-    expect(data.getCensusUri, jsonData.getCensusUri,
+    expect(data.censusUri, jsonData.censusUri,
         reason:
             "ProcessData should parse getCensusUri correctly from jsonString and list");
-    expect(data.getStartBlock, jsonData.getStartBlock,
+    expect(data.startBlock, jsonData.startBlock,
         reason:
             "ProcessData should parse getStartBlock correctly from jsonString and list");
-    expect(data.getBlockCount, jsonData.getBlockCount,
+    expect(data.blockCount, jsonData.blockCount,
         reason:
             "ProcessData should parse getBlockCount correctly from jsonString and list");
-    expect(data.getStatus.value, jsonData.getStatus.value,
+    expect(data.status.value, jsonData.status.value,
         reason:
             "ProcessData should parse getStatus correctly from jsonString and list");
-    expect(data.getQuestionIndex, jsonData.getQuestionIndex,
+    expect(data.questionIndex, jsonData.questionIndex,
         reason:
             "ProcessData should parse getQuestionIndex correctly from jsonString and list");
-    expect(data.getQuestionCount, jsonData.getQuestionCount,
+    expect(data.questionCount, jsonData.questionCount,
         reason:
             "ProcessData should parse getQuestionCount correctly from jsonString and list");
-    expect(data.getMaxCount, jsonData.getMaxCount,
+    expect(data.maxCount, jsonData.maxCount,
         reason:
             "ProcessData should parse getMaxCount correctly from jsonString and list");
-    expect(data.getMaxValue, jsonData.getMaxValue,
+    expect(data.maxValue, jsonData.maxValue,
         reason:
             "ProcessData should parse getMaxValue correctly from jsonString and list");
-    expect(data.getMaxVoteOverwrites, jsonData.getMaxVoteOverwrites,
+    expect(data.maxVoteOverwrites, jsonData.maxVoteOverwrites,
         reason:
             "ProcessData should parse getMaxVoteOverwrites correctly from jsonString and list");
-    expect(data.getMaxTotalCost, jsonData.getMaxTotalCost,
+    expect(data.maxTotalCost, jsonData.maxTotalCost,
         reason:
             "ProcessData should parse getMaxTotalCost correctly from jsonString and list");
-    expect(data.getCostExponent, jsonData.getCostExponent,
+    expect(data.costExponent, jsonData.costExponent,
         reason:
             "ProcessData should parse getCostExponent correctly from jsonString and list");
-    expect(data.getNamespace, jsonData.getNamespace,
+    expect(data.namespace, jsonData.namespace,
         reason:
             "ProcessData should parse getNamespace correctly from jsonString and list");
-    expect(data.getEvmBlockHeight.toInt(), jsonData.getEvmBlockHeight.toInt(),
+    expect(data.evmBlockHeight.toInt(), jsonData.evmBlockHeight.toInt(),
         reason:
             "ProcessData should parse getEvmBlockHeight correctly from jsonString and list");
   });

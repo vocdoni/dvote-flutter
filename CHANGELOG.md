@@ -1,3 +1,6 @@
+# In progress
+- Update processData getters 
+
 # 0.20.0
 - Update `getGatewayInfo` to `getInfo`
 - Update Ens public resolver
