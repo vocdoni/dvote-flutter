@@ -257,8 +257,8 @@ class ProcessContractGetIdx {
   // QUESTION_INDEX, QUESTION_COUNT, MAX_COUNT, MAX_VALUE, MAX_VOTE_OVERWRITES [5]uint8
   static const QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES =
       5;
-  // MAX_TOTAL_COST, COST_EXPONENT, NAMESPACE [3]uint16
-  static const MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE = 6;
+  // MAX_TOTAL_COST, COST_EXPONENT [2]uint16
+  static const MAX_TOTAL_COST_COST_EXPONENT = 6;
 
   // EVM_BLOCK_HEIGHT BigInt
   static const EVM_BLOCK_HEIGHT = 7;
@@ -289,10 +289,9 @@ class ProcessContractGetIdx {
   static const SUB_INDEX_MAX_VALUE = 3;
   static const SUB_INDEX_MAX_VOTE_OVERWRITES = 4;
 
-  // MAX_TOTAL_COST, COST_EXPONENT, NAMESPACE [3]uint16
+  // MAX_TOTAL_COST, COST_EXPONENT [2]uint16
   static const SUB_INDEX_MAX_TOTAL_COST = 0;
   static const SUB_INDEX_COST_EXPONENT = 1;
-  static const SUB_INDEX_NAMESPACE = 2;
 }
 
 /// Wraps the Process contract response and provides getters to the response's fields
@@ -324,7 +323,6 @@ class ProcessData {
       this.maxVoteOverwrites;
       this.maxTotalCost;
       this.costExponent;
-      this.namespace;
       this.evmBlockHeight;
     } catch (err) {
       throw Exception("ProcessData could not be initialized: $err");
@@ -368,7 +366,6 @@ class ProcessData {
     Max vote overwrites: ${this.maxVoteOverwrites}
     Max total cost: ${this.maxTotalCost}
     Cost exponent: ${this.costExponent}
-    Namespace: ${this.namespace}
     Evm block height: ${this.evmBlockHeight}""";
   }
 
@@ -420,12 +417,11 @@ class ProcessData {
         .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES];
   }
 
-  List get _getMaxTotalCostCostExponentNamespace {
-    if (data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE]
-        is! List)
+  List get _getMaxTotalCostCostExponent {
+    if (data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT] is! List)
       throw Exception(
-          "ProcessData MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE expected to be a List, instead is a ${data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE].runtimeType}");
-    return data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE];
+          "ProcessData MAX_TOTAL_COST_COST_EXPONENT expected to be a List, instead is a ${data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT].runtimeType}");
+    return data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT];
   }
 
   BigInt get evmBlockHeight {
@@ -571,7 +567,7 @@ class ProcessData {
   }
 
   int get maxTotalCost {
-    final list = _getMaxTotalCostCostExponentNamespace;
+    final list = _getMaxTotalCostCostExponent;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
 
     if (list[ProcessContractGetIdx.SUB_INDEX_MAX_TOTAL_COST] is! BigInt)
@@ -581,23 +577,13 @@ class ProcessData {
   }
 
   int get costExponent {
-    final list = _getMaxTotalCostCostExponentNamespace;
+    final list = _getMaxTotalCostCostExponent;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
 
     if (list[ProcessContractGetIdx.SUB_INDEX_COST_EXPONENT] is! BigInt)
       throw Exception(
           "ProcessData COST_EXPONENT expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_COST_EXPONENT].runtimeType}");
     return list[ProcessContractGetIdx.SUB_INDEX_COST_EXPONENT].toInt();
-  }
-
-  int get namespace {
-    final list = _getMaxTotalCostCostExponentNamespace;
-    if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
-
-    if (list[ProcessContractGetIdx.SUB_INDEX_NAMESPACE] is! BigInt)
-      throw Exception(
-          "ProcessData NAMESPACE expected to be a BigInt, instead is a ${list[ProcessContractGetIdx.SUB_INDEX_NAMESPACE].runtimeType}");
-    return list[ProcessContractGetIdx.SUB_INDEX_NAMESPACE].toInt();
   }
 }
 
@@ -644,15 +630,10 @@ parseJsonFields(String jsonString) {
       ProcessContractGetIdx
           .QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES,
       idx2: ProcessContractGetIdx.SUB_INDEX_MAX_VOTE_OVERWRITES);
-  decodeBigInt(
-      jsonData, ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE,
+  decodeBigInt(jsonData, ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT,
       idx2: ProcessContractGetIdx.SUB_INDEX_MAX_TOTAL_COST);
-  decodeBigInt(
-      jsonData, ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE,
+  decodeBigInt(jsonData, ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT,
       idx2: ProcessContractGetIdx.SUB_INDEX_COST_EXPONENT);
-  decodeBigInt(
-      jsonData, ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT_NAMESPACE,
-      idx2: ProcessContractGetIdx.SUB_INDEX_NAMESPACE);
   return jsonData;
 }
 

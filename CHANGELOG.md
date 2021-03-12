@@ -1,5 +1,6 @@
-# In progress
+# 0.20.1
 - Update processData getters 
+- Update process contract abi
 
 # 0.20.0
 - Update `getGatewayInfo` to `getInfo`
