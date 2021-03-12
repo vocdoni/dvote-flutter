@@ -143,9 +143,6 @@ void dataModels() {
     expect(data.costExponent, jsonData.costExponent,
         reason:
             "ProcessData should parse getCostExponent correctly from jsonString and list");
-    expect(data.namespace, jsonData.namespace,
-        reason:
-            "ProcessData should parse getNamespace correctly from jsonString and list");
     expect(data.evmBlockHeight.toInt(), jsonData.evmBlockHeight.toInt(),
         reason:
             "ProcessData should parse getEvmBlockHeight correctly from jsonString and list");

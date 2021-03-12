@@ -328,7 +328,6 @@ void flagsParse() {
       int maxVoteOverwrites = 0,
       int maxTotalCost = 0,
       int costExponent = 0,
-      int namespace = 0,
       int evmBlockHeight = 0}) {
     if (entityAddress == null)
       entityAddress =
@@ -349,7 +348,6 @@ void flagsParse() {
       [
         BigInt.from(maxTotalCost),
         BigInt.from(costExponent),
-        BigInt.from(namespace)
       ],
       BigInt.from(evmBlockHeight),
     ]);
@@ -370,7 +368,6 @@ void flagsParse() {
     expect(testData.maxVoteOverwrites, maxVoteOverwrites);
     expect(testData.maxTotalCost, maxTotalCost);
     expect(testData.costExponent, costExponent);
-    expect(testData.namespace, namespace);
     expect(testData.evmBlockHeight.compareTo(BigInt.from(evmBlockHeight)), 0);
   }
 
@@ -397,7 +394,6 @@ void flagsParse() {
           maxVoteOverwrites: 1,
           maxTotalCost: 30,
           costExponent: 1,
-          namespace: 234239,
           evmBlockHeight: 999999);
     });
   }

@@ -1,9 +1,10 @@
-# In progress
+# 0.19.1
 - Update processData getters 
 - Removing GW methods: `getProcListResults` and `getProcListLiveResults`
 - Renaming GW methods: `getScrutinizerEntities` into `getEntityList`
+- Update process contract abi
 
-# 0.20.0
+## 0.19.0
 - Update `getGatewayInfo` to `getInfo`
 - Update Ens public resolver
 - Update Process contract artifacts
@@ -14,9 +15,7 @@
 - Update checkProof api call
 - Sign envelope as bytes
 - parseProcessResultsDigested -> parseProcessResultsDigestedSingleQuestion, multiQuestion tbd
-- Add pubKeysAreEqual method
-  
-## 0.19.0
+- Add pubKeysAreEqual method  
 - Update process contract wrappers to smart contracts v2
 - Use ProcessCensusOrigin wrapper
 - Update generateProof

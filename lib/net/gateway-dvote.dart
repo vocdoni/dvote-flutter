@@ -43,12 +43,9 @@ class DVoteApiList {
     "importDump",
     "publish",
     "importRemote",
-    "getCensusList
+    "getCensusList"
   ];
-  static const results = <String>[
-    "getResults",
-    "getEntityList"
-  ];
+  static const results = <String>["getResults", "getEntityList"];
 }
 
 /// Client class to send HTTP requests to a DVote Gateway
