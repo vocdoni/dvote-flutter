@@ -1,3 +1,5 @@
+# 0.19.2
+- Fix `pubKeysAreEqual` bug
 # 0.19.1
 - Update processData getters 
 - Removing GW methods: `getProcListResults` and `getProcListLiveResults`

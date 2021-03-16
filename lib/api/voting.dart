@@ -864,8 +864,8 @@ bool pubKeysAreEqual(String key1, String key2) {
   if (key2.startsWith("0x04"))
     key2 =
         hex.encode(compressPublicKey(hex.decode(key2.replaceFirst("0x", ""))));
-  key1.replaceFirst("0x", "");
-  key2.replaceFirst("0x", "");
+  key1 = key1.replaceAll("0x", "");
+  key2 = key2.replaceAll("0x", "");
   return key1 == key2;
 }
 
