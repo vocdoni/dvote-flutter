@@ -144,6 +144,12 @@ ProcessMetadata parseProcessMetadata(String json) {
 
       result.questions.addAll(questions);
     }
+    if (mapProcess["results"] is Map) {
+      if (mapProcess["results"]["aggregation"] is String)
+        result.results.aggregation = mapProcess["results"]["aggregation"];
+      if (mapProcess["results"]["display"] is String)
+        result.results.aggregation = mapProcess["results"]["display"];
+    }
     return result;
   } catch (err) {
     throw Exception("The process metadata could not be parsed: $err");

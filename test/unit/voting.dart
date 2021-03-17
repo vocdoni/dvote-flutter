@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
-import 'package:dvote/models/build/dart/common/vote.pb.dart';
 import 'package:dvote/util/parsers.dart';
 import 'package:dvote/wrappers/process-keys.dart';
 import 'package:dvote/wrappers/process-results.dart';

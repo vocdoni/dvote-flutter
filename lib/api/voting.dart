@@ -748,8 +748,13 @@ Future<ProcessResultsDigested> getResultsDigest(
       }
     }
 
-    return parseProcessResultsDigestedMultiQuestion(
-        rawResults, processMetadata, processData);
+    if (processMetadata.results.aggregation == "index-weighted")
+      return parseProcessResultsDigestedSingleQuestion(
+          rawResults, processMetadata, processData);
+    // default to multi question
+    else
+      return parseProcessResultsDigestedMultiQuestion(
+          rawResults, processMetadata, processData);
   } catch (err) {
     throw Exception("The results could not be digested: $err");
   }
