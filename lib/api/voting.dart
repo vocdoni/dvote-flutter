@@ -25,6 +25,7 @@ import '../constants.dart';
 
 // ENUMS AND WRAPPERS
 
+/// A wrapper for the block time and status of a blockchain state.
 class BlockStatus {
   int blockNumber;
   int blockTimestamp;
@@ -32,6 +33,7 @@ class BlockStatus {
   BlockStatus(this.blockNumber, this.blockTimestamp, this.averageBlockTimes);
 }
 
+/// A single vote package containing [votes] and a [nonce].
 class VotePackage {
   String nonce;
   List<int> votes;
@@ -41,13 +43,7 @@ class VotePackage {
   }
 }
 
-class EnvelopePackage {
-  List<int> envelope;
-  String signature;
-
-  EnvelopePackage(this.envelope, this.signature);
-}
-
+/// A wrapper providing meaningful interaction with the `mode` process flag.
 class ProcessMode {
   final int mode;
   ProcessMode(this.mode) {
@@ -76,26 +72,35 @@ class ProcessMode {
   }
 
   //  By default, the process is started on demand (PAUSED). If set, the process will sIf set, the process will work like `status=PAUSED` before `startBlock` and like `status=ENDED` after `startBlock + blockCount`. The process works on demand, by default.tart as READY and the Vochain will allow incoming votes after `startBlock`
+  /// Constant representing the auto start binary flag.
   static const AUTO_START = 1 << 0;
   //  By default, the process can't be paused, ended or canceled. If set, the process can be paused, ended or canceled by the creator.
+  /// Constant representing the interruptible binary fla.
   static const INTERRUPTIBLE = 1 << 1;
   //  By default, the census is immutable. When set, the creator can update the census while the process remains `READY` or `PAUSED`.
+  /// Constant representing the dynamic census binary flag.
   static const DYNAMIC_CENSUS = 1 << 2;
   //  By default, the metadata is not encrypted. If set, clients should fetch the decryption key before trying to display the metadata.
+  /// Constant representing the encrypted metadata binary flag.
   static const ENCRYPTED_METADATA = 1 << 3;
 
+  /// The integer value of the mode.
   int get value => this.mode;
 
-  //  Returns true if the Vochain will not allow votes until `startBlock`.
+  ///  Flag signifying whether the Vochain will not allow votes until `startBlock`.
   bool get isAutoStart => mode & ProcessMode.AUTO_START != 0;
-  //  Returns true if the process can be paused, ended and canceled by the creator.
+
+  ///  Flag signifying whether the process can be paused, ended and canceled by the creator.
   bool get isInterruptible => mode & ProcessMode.INTERRUPTIBLE != 0;
-  //  Returns true if the census can be updated by the creator.
+
+  ///  Flag signifying whether the census can be updated by the creator.
   bool get hasDynamicCensus => mode & ProcessMode.DYNAMIC_CENSUS != 0;
-  //  Returns true if the process metadata is expected to be encrypted.
+
+  ///  Flag signifying whether the process metadata is expected to be encrypted.
   bool get hasEncryptedMetadata => mode & ProcessMode.ENCRYPTED_METADATA != 0;
 }
 
+/// A wrapper for the envelopeType process flag.
 class ProcessEnvelopeType {
   final int type;
   ProcessEnvelopeType(this.type) {
@@ -124,28 +129,37 @@ class ProcessEnvelopeType {
   }
 
   //  By default, all votes are sent within a single envelope. When set, the process questions are voted one by one (enables `questionIndex`).
+  /// Constant representing the serial binary flag.
   static const SERIAL = 1 << 0;
   //  By default, the franchise proof relies on an ECDSA signature (this could reveal the voter's identity). When set, the franchise proof will use ZK-Snarks.
+  /// Constant representing the anonymous binary flag.
   static const ANONYMOUS = 1 << 1;
   //  By default, votes are sent unencrypted. When the flag is set, votes are sent encrypted and become public when the process ends.
+  /// Constant representing the encrypted binary flag.
   static const ENCRYPTED = 1 << 2;
   // Whether choices for a question can only appear once or not.
+  /// Constant representing the unique values binary flag.
   static const UNIQUE_VALUES = 1 << 3;
 
+  /// The integer value of [type].
   int get value => this.type;
 
-  // Returns true if the process expects one envelope to be sent for each question.
+  /// Flag signifying whether the process expects one envelope to be sent for each question.
   bool get hasSerialVoting => type & ProcessEnvelopeType.SERIAL != 0;
-  //  Returns true if franchise proofs use ZK-Snarks.
+
+  /// Flag signifying whether franchise proofs use ZK-Snarks.
   bool get hasAnonymousVoters => type & ProcessEnvelopeType.ANONYMOUS != 0;
-  //  Returns true if envelopes are to be sent encrypted.
+
+  /// Flag signifying whether envelopes are to be sent encrypted.
   bool get hasEncryptedVotes => type & ProcessEnvelopeType.ENCRYPTED != 0;
+
+  /// Flag signifying whether envelopes must contain unique values.
   bool get hasUniqueValues => type & ProcessEnvelopeType.UNIQUE_VALUES != 0;
 }
 
+/// A wrapper for the census origin process flag.
 class ProcessCensusOrigin {
   final int origin;
-
   ProcessCensusOrigin(this.origin) {
     if (!processCensusOriginValues.contains(this.origin)) {
       throw Exception("Process census origin ${this.origin} is invalid");
@@ -164,15 +178,31 @@ class ProcessCensusOrigin {
     return "Unknown";
   }
 
+  /// Flag value of off-chain tree.
   static const OFF_CHAIN_TREE = 1;
+
+  /// Flag value of off-chain weighted tree.
   static const OFF_CHAIN_TREE_WEIGHTED = 2;
+
+  /// Flag value of off-chain CA.
   static const OFF_CHAIN_CA = 3;
+
+  /// Flag value of ERC20.
   static const ERC20 = 11;
+
+  /// Flag value of ERC721.
   static const ERC721 = 12;
+
+  /// Flag value of ERC1155.
   static const ERC1155 = 13;
+
+  /// Flag value of ERC777.
   static const ERC777 = 14;
+
+  /// Flag value of MINI ME.
   static const MINI_ME = 15;
 
+  /// All valid flag values.
   static const processCensusOriginValues = [
     ProcessCensusOrigin.OFF_CHAIN_TREE,
     ProcessCensusOrigin.OFF_CHAIN_TREE_WEIGHTED,
@@ -184,19 +214,36 @@ class ProcessCensusOrigin {
     ProcessCensusOrigin.MINI_ME,
   ];
 
+  /// Integer value of origin flag.
   int get value => this.origin;
 
+  /// Census origin is off-chain.
   bool get isOffChain => origin == ProcessCensusOrigin.OFF_CHAIN_TREE;
+
+  /// Census origin is off-chain weighted.
   bool get isOffChainWeighted =>
       origin == ProcessCensusOrigin.OFF_CHAIN_TREE_WEIGHTED;
+
+  /// Census origin is off-chain CA.
   bool get isOffChainCA => origin == ProcessCensusOrigin.OFF_CHAIN_CA;
+
+  /// Census origin is ERC20.
   bool get isERC20 => origin == ProcessCensusOrigin.ERC20;
+
+  /// Census origin is ERC721.
   bool get isERC721 => origin == ProcessCensusOrigin.ERC721;
+
+  /// Census origin is ERC1155.
   bool get isERC1155 => origin == ProcessCensusOrigin.ERC1155;
+
+  /// Census origin is ERC777.
   bool get isERC777 => origin == ProcessCensusOrigin.ERC777;
+
+  /// Census origin is MINI ME.
   bool get isMiniMe => origin == ProcessCensusOrigin.MINI_ME;
 }
 
+/// A wrapper for the process status flag.
 class ProcessStatus {
   final int status;
   ProcessStatus(this.status) {
@@ -214,17 +261,22 @@ class ProcessStatus {
     return "Unknown";
   }
 
-  // The process is ready to accept votes, according to `AUTO_START`, `startBlock` and `blockCount`.
+  /// The process is ready to accept votes, according to `AUTO_START`, `startBlock` and `blockCount`.
   static const READY = 0;
-  // The creator has ended the process and the results will be available soon.
+
+  /// The creator has ended the process and the results will be available soon.
   static const ENDED = 1;
-  // The process has been canceled. Results will not be available anytime.
+
+  /// The process has been canceled. Results will not be available anytime.
   static const CANCELED = 2;
-  // The process is temporarily paused and votes are not accepted at the time. It might be resumed in the future.
+
+  /// The process is temporarily paused and votes are not accepted at the time. It might be resumed in the future.
   static const PAUSED = 3;
-  // The process is ended and its results are available.
+
+  /// The process is ended and its results are available.
   static const RESULTS = 4;
 
+  /// All valid flag values.
   static const processStatusValues = [
     ProcessStatus.READY,
     ProcessStatus.ENDED,
@@ -233,68 +285,85 @@ class ProcessStatus {
     ProcessStatus.RESULTS,
   ];
 
+  /// The numeric value of the status flag.
   int get value => this.status;
 
+  /// The process status is `ready`.
   bool get isReady => status == ProcessStatus.READY;
+
+  /// The process status is `ended`.
   bool get isEnded => status == ProcessStatus.ENDED;
+
+  /// The process status is `canceled`.
   bool get isCanceled => status == ProcessStatus.CANCELED;
+
+  /// The process status is `paused`.
   bool get isPaused => status == ProcessStatus.PAUSED;
+
+  /// The process status is `ready`.
   bool get hasResults => status == ProcessStatus.RESULTS;
 }
 
+/// A record of expected index values for each process data flag.
 class ProcessContractGetIdx {
   // First-level array indexes
-  // MODE, ENVELOPE_TYPE, CENSUS_ORIGIN [3]uint8
+  /// Index of MODE, ENVELOPE_TYPE, CENSUS_ORIGIN [3]uint8.
   static const MODE_ENVELOPE_TYPE_CENSUS_ORIGIN = 0;
-  // ENTITY_ADDRESS address
+
+  /// Index of ENTITY_ADDRESS address.
   static const ENTITY_ADDRESS = 1;
-  //METADATA, CENSUS_ROOT, CENSUS_URI [3]string
+
+  /// Index of METADATA, CENSUS_ROOT, CENSUS_URI [3]string.
   static const METADATA_CENSUS_ROOT_CENSUS_URI = 2;
-  // START_BLOCK, BLOCK_COUNT [2]uint32
+
+  /// Index of START_BLOCK, BLOCK_COUNT [2]uint32.
   static const START_BLOCK_BLOCK_COUNT = 3;
-  // STATUS ProcessStatus
+
+  /// Index of STATUS ProcessStatus.
   static const STATUS = 4;
-  // QUESTION_INDEX, QUESTION_COUNT, MAX_COUNT, MAX_VALUE, MAX_VOTE_OVERWRITES [5]uint8
+
+  /// Index of QUESTION_INDEX, QUESTION_COUNT, MAX_COUNT, MAX_VALUE, MAX_VOTE_OVERWRITES [5]uint8.
   static const QUESTION_INDEX_QUESTION_COUNT_MAX_COUNT_MAX_VALUE_MAX_VOTE_OVERWRITES =
       5;
-  // MAX_TOTAL_COST, COST_EXPONENT [2]uint16
+
+  /// Index of MAX_TOTAL_COST, COST_EXPONENT [2]uint16.
   static const MAX_TOTAL_COST_COST_EXPONENT = 6;
 
-  // EVM_BLOCK_HEIGHT BigInt
+  /// Index of EVM_BLOCK_HEIGHT BigInt.
   static const EVM_BLOCK_HEIGHT = 7;
 
-  // the length of the process contract list
+  /// Index of the length of the process contract list.
   static const PROCESS_CONTRACT_LENGTH = 8;
 
   // Second-level array indexes
 
-  // MODE, ENVELOPE_TYPE, CENSUS_ORIGIN [3]uint8
+  /// Index of MODE, ENVELOPE_TYPE, CENSUS_ORIGIN [3]uint8.
   static const SUB_INDEX_MODE = 0;
   static const SUB_INDEX_ENVELOPE_TYPE = 1;
   static const SUB_INDEX_CENSUS_ORIGIN = 2;
 
-  //METADATA, CENSUS_ROOT, CENSUS_URI [3]string
+  /// Index of METADATA, CENSUS_ROOT, CENSUS_URI [3]string.
   static const SUB_INDEX_METADATA = 0;
   static const SUB_INDEX_CENSUS_ROOT = 1;
   static const SUB_INDEX_CENSUS_URI = 2;
 
-  // START_BLOCK, BLOCK_COUNT [2]uint32
+  /// Index of START_BLOCK, BLOCK_COUNT [2]uint32.
   static const SUB_INDEX_START_BLOCK = 0;
   static const SUB_INDEX_BLOCK_COUNT = 1;
 
-  // QUESTION_INDEX, QUESTION_COUNT, MAX_COUNT, MAX_VALUE, MAX_VOTE_OVERWRITES [5]uint8
+  /// Index of QUESTION_INDEX, QUESTION_COUNT, MAX_COUNT, MAX_VALUE, MAX_VOTE_OVERWRITES [5]uint8.
   static const SUB_INDEX_QUESTION_INDEX = 0;
   static const SUB_INDEX_QUESTION_COUNT = 1;
   static const SUB_INDEX_MAX_COUNT = 2;
   static const SUB_INDEX_MAX_VALUE = 3;
   static const SUB_INDEX_MAX_VOTE_OVERWRITES = 4;
 
-  // MAX_TOTAL_COST, COST_EXPONENT [2]uint16
+  /// Index of MAX_TOTAL_COST, COST_EXPONENT [2]uint16.
   static const SUB_INDEX_MAX_TOTAL_COST = 0;
   static const SUB_INDEX_COST_EXPONENT = 1;
 }
 
-/// Wraps the Process contract response and provides getters to the response's fields
+/// A wrapper for the Process contract response, provides getters to the response's fields.
 class ProcessData {
   final List<dynamic> data;
 
@@ -377,6 +446,7 @@ class ProcessData {
     return data[ProcessContractGetIdx.MODE_ENVELOPE_TYPE_CENSUS_ORIGIN];
   }
 
+  /// The entity address.
   EthereumAddress get entityAddress {
     if (data[ProcessContractGetIdx.ENTITY_ADDRESS] is! EthereumAddress)
       throw Exception(
@@ -400,6 +470,7 @@ class ProcessData {
     return data[ProcessContractGetIdx.START_BLOCK_BLOCK_COUNT];
   }
 
+  /// The process status.
   ProcessStatus get status {
     if (data[ProcessContractGetIdx.STATUS] is! BigInt)
       throw Exception(
@@ -424,6 +495,7 @@ class ProcessData {
     return data[ProcessContractGetIdx.MAX_TOTAL_COST_COST_EXPONENT];
   }
 
+  /// The evm block height.
   BigInt get evmBlockHeight {
     if (data[ProcessContractGetIdx.EVM_BLOCK_HEIGHT] is! BigInt)
       throw Exception(
@@ -432,6 +504,7 @@ class ProcessData {
   }
 
   // Second-level array indexes
+  /// The process mode.
   ProcessMode get mode {
     final list = _getModeEnvelopeTypeCensusOrigin;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -441,6 +514,7 @@ class ProcessData {
     return ProcessMode(list[ProcessContractGetIdx.SUB_INDEX_MODE].toInt());
   }
 
+  /// The envelope type.
   ProcessEnvelopeType get envelopeType {
     final list = _getModeEnvelopeTypeCensusOrigin;
     if (list == null) throw Exception("LISTTYPE is null");
@@ -452,6 +526,7 @@ class ProcessData {
         list[ProcessContractGetIdx.SUB_INDEX_ENVELOPE_TYPE].toInt());
   }
 
+  /// The census origin.
   ProcessCensusOrigin get censusOrigin {
     final list = _getModeEnvelopeTypeCensusOrigin;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -463,6 +538,7 @@ class ProcessData {
         list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ORIGIN].toInt());
   }
 
+  /// The Metadata uri.
   String get metadata {
     final list = _getMetadataCensusRootCensusUri;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -473,6 +549,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_METADATA];
   }
 
+  /// The census root.
   String get censusRoot {
     final list = _getMetadataCensusRootCensusUri;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -483,6 +560,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_CENSUS_ROOT];
   }
 
+  /// The census uri.
   String get censusUri {
     final list = _getMetadataCensusRootCensusUri;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -493,6 +571,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_CENSUS_URI];
   }
 
+  /// The start block.
   int get startBlock {
     final list = _getStartBlockBlockCount;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -502,6 +581,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_START_BLOCK].toInt();
   }
 
+  /// The block count.\.
   int get blockCount {
     final list = _getStartBlockBlockCount;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -511,6 +591,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_BLOCK_COUNT].toInt();
   }
 
+  /// The question index.
   int get questionIndex {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
@@ -522,6 +603,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_QUESTION_INDEX].toInt();
   }
 
+  /// The question count.
   int get questionCount {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
@@ -533,6 +615,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_QUESTION_COUNT].toInt();
   }
 
+  /// The max count for vote values.
   int get maxCount {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
@@ -544,6 +627,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_MAX_COUNT].toInt();
   }
 
+  /// The max value of a vote.
   int get maxValue {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
@@ -555,6 +639,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_MAX_VALUE].toInt();
   }
 
+  /// The max number of vote overwrites.
   int get maxVoteOverwrites {
     final list =
         _getQuestionIndexQuestionCountMaxCountMaxValueMaxVoteOverwrites;
@@ -566,6 +651,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_MAX_VOTE_OVERWRITES].toInt();
   }
 
+  /// The max total cost for a vote.
   int get maxTotalCost {
     final list = _getMaxTotalCostCostExponent;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -576,6 +662,7 @@ class ProcessData {
     return list[ProcessContractGetIdx.SUB_INDEX_MAX_TOTAL_COST].toInt();
   }
 
+  /// The cost exponent for a vote.
   int get costExponent {
     final list = _getMaxTotalCostCostExponent;
     if (list == null) throw Exception("ModeEnvelopeTypeCensusOrigin is null");
@@ -587,6 +674,7 @@ class ProcessData {
   }
 }
 
+/// Converts [ProcessData] to a serializable json string.
 parseJsonFields(String jsonString) {
   final jsonData = json.decode(jsonString);
   if (jsonData[ProcessContractGetIdx.ENTITY_ADDRESS] is String) {
@@ -637,6 +725,7 @@ parseJsonFields(String jsonString) {
   return jsonData;
 }
 
+/// Decodes a [BigInt] from a [string] at [idx1] and [idx2] of [jsonData].
 void decodeBigInt(dynamic jsonData, int idx1, {int idx2}) {
   if (idx2 == null) {
     jsonData[idx1] = BigInt.tryParse(jsonData[idx1]);
@@ -647,7 +736,7 @@ void decodeBigInt(dynamic jsonData, int idx1, {int idx2}) {
 
 // HANDLERS
 
-/// Fetch the metadata for the given Process ID
+/// Fetch the metadata for the given Process ID.
 Future<ProcessMetadata> getProcessMetadata(String processId, GatewayPool gw,
     {ProcessData data}) async {
   try {
@@ -663,7 +752,7 @@ Future<ProcessMetadata> getProcessMetadata(String processId, GatewayPool gw,
   }
 }
 
-/// Fetch the Process from the contract
+/// Fetch the Process from the contract.
 Future<ProcessData> getProcess(String processId, GatewayPool gw) {
   List<int> pid;
   try {
@@ -680,7 +769,7 @@ Future<ProcessData> getProcess(String processId, GatewayPool gw) {
   });
 }
 
-/// Returns number of existing blocks in the blockchain
+/// Returns number of existing blocks in the blockchain.
 Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
   if (gw == null || processId == "") throw Exception("Invalid parameters");
   processId = processId.startsWith("0x") ? processId : "0x" + processId;
@@ -699,6 +788,7 @@ Future<ProcessResults> getRawResults(String processId, GatewayPool gw) async {
   }
 }
 
+/// Fetches the digested results of a process, using [meta] and [processData] if provided.
 Future<ProcessResultsDigested> getResultsDigest(
     String processId, GatewayPool gw,
     {ProcessMetadata meta, ProcessData processData}) async {
@@ -760,7 +850,7 @@ Future<ProcessResultsDigested> getResultsDigest(
   }
 }
 
-/// Returns number of existing blocks in the blockchain
+/// Returns number of existing blocks in the blockchain.
 Future<ProcessKeys> getProcessKeys(String processId, GatewayPool gw) async {
   if (gw == null) throw Exception("Invalid parameters");
   try {
@@ -793,7 +883,7 @@ Future<ProcessKeys> getProcessKeys(String processId, GatewayPool gw) async {
   }
 }
 
-/// Returns number of existing blocks in the blockchain
+/// Returns number of existing blocks in the blockchain.
 Future<int> getBlockHeight(GatewayPool gw) async {
   if (gw == null) throw Exception("Invalid parameters");
   try {
@@ -808,7 +898,7 @@ Future<int> getBlockHeight(GatewayPool gw) async {
   }
 }
 
-/// Returns number of existing envelopes in the process
+/// Returns number of existing envelopes in the process.
 Future<int> getEnvelopeHeight(String processId, GatewayPool gw) async {
   if (processId == null || gw == null) throw Exception("Invalid parameters");
   try {
@@ -826,7 +916,7 @@ Future<int> getEnvelopeHeight(String processId, GatewayPool gw) async {
   }
 }
 
-/// Returns the status of an already submited vote envelope
+/// Returns the status of an already submited vote envelope.
 Future<bool> getEnvelopeStatus(
     String processId, String nullifier, GatewayPool gw) async {
   if (processId == null || nullifier == null || gw == null)
@@ -861,6 +951,7 @@ String getUserAddressFromPubKey(String pubKey) {
   return EthereumAddress(addrBytes).hexEip55;
 }
 
+/// Checks if two pubkeys are equal, normalizing for compression & prefixes.
 bool pubKeysAreEqual(String key1, String key2) {
   // Ensure both pubkeys are compressed
   if (key1.startsWith("0x04"))
@@ -875,7 +966,7 @@ bool pubKeysAreEqual(String key1, String key2) {
 }
 
 /// Computes the nullifier of the user's vote within a voting process.
-/// Returns a hex string with kecak256(bytes(address) + bytes(processId))
+/// Returns a hex string with kecak256(bytes(address) + bytes(processId)).
 Future<String> getSignedVoteNullifier(String address, String processId) {
   address = address.replaceFirst(new RegExp(r'^0x'), '');
   processId = processId.replaceFirst(new RegExp(r'^0x'), '');
@@ -899,8 +990,8 @@ String _getSignedVoteNullifier(String address, String processId) {
 }
 
 /// Retrieves the current block number, the timestamp at which the block was mined and the average block time in miliseconds for 1m, 10m, 1h, 6h and 24h.
-/// @see estimateBlockAtDateTime (date, gateway)
-/// @see estimateDateAtBlock (blockNumber, gateway)
+/// @see estimateBlockAtDateTime (date, gateway).
+/// @see estimateDateAtBlock (blockNumber, gateway).
 Future<BlockStatus> getBlockStatus(GatewayPool gw) {
   if (gw is! GatewayPool)
     return Future.error(Exception("Invalid Gateway object"));
@@ -933,9 +1024,7 @@ Future<BlockStatus> getBlockStatus(GatewayPool gw) {
   });
 }
 
-/// Returns the block number that is expected to be current at the given date and time
-/// @param dateTime
-/// @param gateway
+/// Returns the block number that is expected to be current at the given [targetDate].
 Future<int> estimateBlockAtDateTime(DateTime targetDate, GatewayPool gw) async {
   if (!(targetDate is DateTime)) return null;
   final targetTimestamp = targetDate.millisecondsSinceEpoch;
@@ -1029,10 +1118,10 @@ const blocksPerH = blocksPerM * 60;
 const blocksPer6h = 6 * blocksPerH;
 const blocksPerDay = 24 * blocksPerH;
 
-/// Returns the DateTime at which the given block number is expected to be mined
-/// @param blockNumber
-/// @param gateway
-/// @param status
+/// Returns the DateTime at which the given block number is expected to be mined.
+/// @param blockNumber.
+/// @param gateway.
+/// @param status.
 Future<DateTime> estimateDateAtBlock(int blockNumber, GatewayPool gw,
     {BlockStatus status}) async {
   if (!(blockNumber is int)) return null;
@@ -1045,8 +1134,8 @@ Future<DateTime> estimateDateAtBlock(int blockNumber, GatewayPool gw,
 }
 
 /// Returns the DateTime at which the given block number is expected to be mined, given a BlockStatus.
-/// @param blockNumber
-/// @param status
+/// @param blockNumber.
+/// @param status.
 DateTime estimateDateAtBlockSync(int blockNumber, BlockStatus status) {
   if (!(blockNumber is int)) return null;
 
@@ -1143,7 +1232,7 @@ DateTime estimateDateAtBlockSync(int blockNumber, BlockStatus status) {
   return DateTime.fromMicrosecondsSinceEpoch(targetTimestamp.floor());
 }
 
-/// Submit a raw transaction (SignedTx) to the gateway
+/// Submit a raw transaction (SignedTx) to the gateway.
 Future<void> submitRawTx(List<int> package, GatewayPool gw) async {
   if (gw is! GatewayPool) throw Exception("Invalid parameters");
   if ((package.length ?? 0) == 0) throw Exception("Invalid parameters");
@@ -1162,6 +1251,7 @@ Future<void> submitRawTx(List<int> package, GatewayPool gw) async {
   }
 }
 
+/// (Not implemented) Packages an anonymous vote envelope.
 Future<String> packageAnonymousEnvelope(
     List<int> votes, String proof, String privateKey) async {
   throw Exception("unimplemented");
@@ -1179,6 +1269,7 @@ Future<String> packageAnonymousEnvelope(
   */
 }
 
+/// Packages and signes a vote transaction.
 Future<SignedTx> packageVoteTx(
     VoteEnvelope voteEnvelope, String signingPrivateKey) async {
   if (signingPrivateKey is! String) throw Exception("Invalid parameters");
@@ -1190,6 +1281,7 @@ Future<SignedTx> packageVoteTx(
       tx: txBytes, signature: hex.decode(signature.replaceAll("0x", "")));
 }
 
+/// packages a vote envelope.
 Future<VoteEnvelope> packageEnvelope(List<int> votes, String merkleProof,
     String processId, ProcessCensusOrigin censusOrigin,
     {ProcessKeys processKeys}) async {
@@ -1246,8 +1338,8 @@ Future<VoteEnvelope> packageEnvelope(List<int> votes, String merkleProof,
 // / Internal helpers
 // ////////////////////////////////////////////////////////////////////////////
 
-/// Packages the vote and returns `{ votePackage: "..." }` on non-encrypted polls and
-/// `{ votePackage: "...", keyIndexes: [0, 1, 2, 3, 4] }` on encrypted polls
+/// Packages the vote and returns `{ votePackage: "..." }` on non-encrypted polls and.
+/// `{ votePackage: "...", keyIndexes: [0, 1, 2, 3, 4] }` on encrypted polls.
 Future<Map<String, dynamic>> packageVoteContent(List<int> votes,
     {ProcessKeys processKeys}) async {
   if (!(votes is List))
@@ -1303,7 +1395,7 @@ Future<Map<String, dynamic>> packageVoteContent(List<int> votes,
 
 // HELPERS
 
-/// Turns [{idx:1, key: "1234"}, ...] into [ProcessKey(...), ...]
+/// Turns [{idx:1, key: "1234"}, ...] into [ProcessKey(...), .].
 List<ProcessKey> _parseProcessKeyList(List<dynamic> items) {
   if (!(items is List)) return <ProcessKey>[];
   return items

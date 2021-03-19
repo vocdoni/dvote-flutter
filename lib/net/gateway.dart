@@ -3,7 +3,7 @@ import 'package:dvote/net/gateway-dvote.dart';
 import 'package:dvote/wrappers/gateway-info.dart';
 import 'package:web3dart/credentials.dart';
 
-/// This is class, addressed to the end user, is a wrapper of DvoteGateway and Web3Gateway
+/// A wrapper of DvoteGateway and Web3Gateway
 class Gateway {
   DVoteGateway _dvote;
   Web3Gateway _web3;
@@ -27,14 +27,17 @@ class Gateway {
 
   // DVOTE METHODS
 
+  /// The vocdoni node gateway's public key
   String get publicKey {
     return this._dvote.publicKey;
   }
 
+  /// The supported vocdoni node api's
   List<String> get supportedApis {
     return this._dvote.supportedApis;
   }
 
+  /// Sends a request to the node gateway
   Future<Map<String, dynamic>> sendRequest(Map<String, dynamic> body,
       {int timeout = 20, String privateKey}) {
     return this
@@ -42,6 +45,7 @@ class Gateway {
         .sendRequest(body, timeout: timeout, privateKey: privateKey);
   }
 
+  /// Gets the vocdoni node gateway health & apis status
   Future<DVoteGatewayStatus> getInfo() {
     return this._dvote.updateStatus().then((_) {
       return DVoteGatewayStatus(
@@ -64,6 +68,7 @@ class Gateway {
     return this.web3.sendTransaction(method, params, contractEnum, credentials);
   }
 
+  /// Disposes of the web3 gateway
   void dispose() {
     this.web3?.dispose();
   }

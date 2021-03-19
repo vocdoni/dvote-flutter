@@ -1,5 +1,10 @@
+# 1.0.0
+- Parse digested results by aggregation type
+- Improve package documentation
+
 # 0.19.2
 - Fix `pubKeysAreEqual` bug
+  
 # 0.19.1
 - Update processData getters 
 - Removing GW methods: `getProcListResults` and `getProcListLiveResults`

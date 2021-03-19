@@ -12,6 +12,7 @@ import 'package:dvote/wrappers/process-results.dart';
 // ENTITY
 // ////////////////////////////////////////////////////////////////////////////
 
+/// Parses an entity metadata json. Returns [EntityMetadata].
 EntityMetadata parseEntityMetadata(String json) {
   try {
     final mapEntity = jsonDecode(json);
@@ -75,6 +76,7 @@ EntityMetadata parseEntityMetadata(String json) {
   }
 }
 
+/// Parses an entity metadata actions list. Returns [List<EntityMetadata_Action>].
 List<EntityMetadata_Action> parseEntityActions(List actions) {
   if (!(actions is List)) return [];
   return actions.whereType<Map>().map((action) {
@@ -110,6 +112,7 @@ List<EntityMetadata_Action> parseEntityActions(List actions) {
   }).toList();
 }
 
+/// Parses an entity reference list. Returns [List<EntityReference>].
 List<EntityReference> parseEntityReferences(List entities) {
   if (!(entities is List)) return [];
   return entities.whereType<Map>().map((entity) {
@@ -124,6 +127,7 @@ List<EntityReference> parseEntityReferences(List entities) {
 // VOTING PROCESS
 // ////////////////////////////////////////////////////////////////////////////
 
+/// Parses a process metadata json. Returns [ProcessMetadata].
 ProcessMetadata parseProcessMetadata(String json) {
   try {
     ProcessMetadata result = ProcessMetadata();
@@ -156,7 +160,7 @@ ProcessMetadata parseProcessMetadata(String json) {
   }
 }
 
-// Parse raw results Map into ProcessResults object
+/// Parses raw process results Map into [ProcessResults] object.
 ProcessResults parseProcessResults(Map<String, dynamic> response) {
   try {
     ProcessResults processResults = ProcessResults.empty();
@@ -178,6 +182,7 @@ ProcessResults parseProcessResults(Map<String, dynamic> response) {
   }
 }
 
+/// Digests [rawResults], [processMetadata], and [processData] into a [ProcessResultsDigested] according to an `index-weighted` aggregation
 ProcessResultsDigested parseProcessResultsDigestedSingleQuestion(
     ProcessResults rawResults,
     ProcessMetadata processMetadata,
@@ -216,6 +221,7 @@ ProcessResultsDigested parseProcessResultsDigestedSingleQuestion(
   return resultsDigest;
 }
 
+/// Digests [rawResults], [processMetadata], and [processData] into a [ProcessResultsDigested] according to a `discrete-counting` aggregation
 ProcessResultsDigested parseProcessResultsDigestedMultiQuestion(
     ProcessResults rawResults,
     ProcessMetadata processMetadata,
@@ -294,6 +300,7 @@ List<ProcessMetadata_Question> _parseQuestions(List items) {
 // FEED
 // ////////////////////////////////////////////////////////////////////////////
 
+/// Parses a feed json into [Feed]
 Feed parseFeed(String json) {
   try {
     Feed result = Feed();
@@ -353,6 +360,7 @@ Feed parseFeed(String json) {
 // GATEWAY BOOT NODES
 // ////////////////////////////////////////////////////////////////////////////
 
+/// Parses a bootnode info json into [BootNodeGateways]
 BootNodeGateways parseBootnodeInfo(String json) {
   try {
     BootNodeGateways result = BootNodeGateways();

@@ -55,6 +55,7 @@ class Web3Gateway {
     return completer.future;
   }
 
+  /// Web3 gateway is ready to be used
   bool get isReady {
     return _client != null &&
         _entityResolverInstance != null &&
@@ -161,6 +162,7 @@ class Web3Gateway {
 
   // HELPERS
 
+  /// Resolves the domain of an entity resolver contract, using [ensDomainSuffix] if provided (eg. `"vocdoni.eth")
   static Future<String> resolveEntityResolverDomain(String gatewayUri,
       {String ensDomainSuffix}) {
     String domain = ENS_PUBLIC_RESOLVER_DOMAIN.replaceFirst(
@@ -174,6 +176,7 @@ class Web3Gateway {
     });
   }
 
+  /// Resolves the domain of processes contract, using [ensDomainSuffix] if provided (eg. `"vocdoni.eth")
   static Future<String> resolveProcessDomain(String gatewayUri,
       {String ensDomainSuffix}) {
     String domain = PROCESS_DOMAIN.replaceFirst(

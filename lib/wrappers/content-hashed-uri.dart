@@ -2,9 +2,11 @@ import 'package:dvote/wrappers/content-uri.dart';
 
 const CONTENT_URI_HASH_REGEX = r'![0-9a-f]+$';
 
+/// Wrapper for a URI containing a content hash
 class ContentHashedURI extends ContentURI {
   String _hash = "";
 
+  /// The content hash
   String get hash => _hash;
 
   /// Parses the given string into a Content Hashed URI

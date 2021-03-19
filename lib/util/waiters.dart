@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dvote/dvote.dart';
 import 'package:dvote/net/gateway-pool.dart';
 
+/// Completes [blockCount] blocks in the tufure
 Future waitVochainBlocks(int blockCount, GatewayPool gw) async {
   if (gw == null) throw Exception("Invalid parameters");
 
@@ -29,6 +30,7 @@ Future waitVochainBlocks(int blockCount, GatewayPool gw) async {
   return compl.future;
 }
 
+/// Completes when a certain [block] height has been reached
 Future waitUntilVochainBlock(int block, GatewayPool gw) async {
   final currentBlock = await getBlockHeight(gw);
   if (currentBlock >= block) return;

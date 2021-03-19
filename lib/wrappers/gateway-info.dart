@@ -1,3 +1,4 @@
+/// Wrapper for information about a web3 or vocdoni node gateway
 class GatewayInfo {
   String dvoteUri;
   List<String> supportedApis;

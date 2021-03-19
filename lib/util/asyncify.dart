@@ -8,11 +8,12 @@ import 'dart:isolate';
 ///   print(await runAsync<String, String Function(String)>(sing, ["lalalala"]));
 ///   print(await runAsync<String, Function>(song));
 /// }
-/// 
+///
 /// String sing(String str) => "Singing: " + str;
 /// String song() => "lololololo";
 /// ```
 
+/// Executes [func] asynchronously with the given [parameters].
 Future<R> runAsync<R, F>(F func, [List<dynamic> parameters]) async {
   final receivePort = ReceivePort();
   await Isolate.spawn(asyncRunner, receivePort.sendPort);
@@ -30,6 +31,8 @@ Future<R> runAsync<R, F>(F func, [List<dynamic> parameters]) async {
 }
 
 // Isolate entry point
+/// Runs an asyncify service listening on [sendPort].
+/// This can be used to run a method asynchronously.
 void asyncRunner(SendPort sendPort) async {
   // Open the ReceivePort for incoming messages
   final port = ReceivePort();

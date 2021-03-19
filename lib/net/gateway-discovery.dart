@@ -24,8 +24,8 @@ Future<List<Gateway>> discoverGateways(
       ensDomainSuffix: ensDomainSuffix);
 }
 
-// Digests the bootnode info into a list of working gateways, featuring web3 and DVote nodes
-// EnsDomainSuffix eg "stg" "dev". "" for mainnet
+/// Digests the bootnode info into a list of working gateways, featuring web3 and DVote nodes.
+/// EnsDomainSuffix eg "stg" "dev". "" for mainnet.
 Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
     {String networkId = "xdai",
     int maxGatewayCount = 5,
@@ -96,6 +96,7 @@ Future<List<Gateway>> discoverGatewaysFromBootnodeInfo(BootNodeGateways info,
   return arrangeHealthierNodes(web3Nodes, dvoteNodes, maxGatewayCount);
 }
 
+/// Sorts gateway nodes by health
 Future<List<Gateway>> arrangeHealthierNodes(List<Web3Gateway> web3Nodes,
     List<DVoteGateway> dvoteNodes, int maxGatewayCount) async {
   assert(web3Nodes.length >= 1);

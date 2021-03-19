@@ -7,6 +7,7 @@ import 'package:web3dart/credentials.dart';
 
 import 'gateway-web3.dart';
 
+/// A pool of vocdoni-node and web3 gateways
 class GatewayPool {
   List<Gateway> _pool = List<Gateway>();
   final String bootnodeUri;
@@ -93,10 +94,12 @@ class GatewayPool {
 
   // DVOTE METHODS
 
+  /// The current gateway's public key
   String get publicKey {
     return this.current.dvote.publicKey;
   }
 
+  /// The current gateway's supported apis
   List<String> get supportedApis {
     return this.current.dvote.supportedApis;
   }
@@ -161,10 +164,4 @@ class GatewayPool {
         .web3
         .sendTransaction(method, params, contractEnum, credentials);
   }
-}
-
-String parseAlternateEnvironment(String bootnodeUrl) {
-  if (bootnodeUrl.contains(".dev")) return "dev";
-  if (bootnodeUrl.contains(".stg")) return "stg";
-  return "";
 }

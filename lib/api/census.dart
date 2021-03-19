@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:dvote/net/gateway-pool.dart';
 
 /// Fetch the Proof that proves that the given claim is part
-/// of the Census Tree with the given Root Hash
+/// of the Census Tree with the given Root Hash.
 Future<String> generateProof(
     String censusRoot, String censusKey, bool isDigested, GatewayPool gw,
     {BigInt censusValue}) async {
@@ -31,7 +31,7 @@ Future<String> generateProof(
   }
 }
 
-/// Determine whether the Merkle Proof is valid for the given claim
+/// Determine whether the Merkle Proof is valid for the given claim.
 Future<bool> checkProof(String censusMerkleRootHash, String base64Claim,
     bool isDigested, String proofData, GatewayPool gw,
     {BigInt censusValue}) async {
@@ -60,7 +60,7 @@ Future<bool> checkProof(String censusMerkleRootHash, String base64Claim,
   }
 }
 
-/// Get the number of people in the census with the given Merkle Root Hash
+/// Get the number of people in the census with the given Merkle Root Hash.
 Future<int> getCensusSize(String censusMerkleRootHash, GatewayPool gw) async {
   if (!(censusMerkleRootHash is String) || !(gw is GatewayPool))
     throw Exception('Invalid parameters');

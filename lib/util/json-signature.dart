@@ -1,6 +1,7 @@
 import './json-content.dart';
 import 'package:dvote_crypto/dvote_crypto.dart';
 
+/// Wrapper for json signing methods
 class JSONSignature {
   /// Sign the given body using privateKey. Returns an hex-encoded string with the signature.
   static String signJsonPayload(Map<String, dynamic> body, String privateKey,

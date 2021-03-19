@@ -10,6 +10,7 @@ import '../constants.dart';
 
 // CONSTANTS
 
+/// The ens network info
 class NetworkInfo {
   final String name;
   final int chainId;
@@ -22,10 +23,12 @@ final RegExp addressRegExp = new RegExp(r"^0x[0-9A-Fa-f]{40}$");
 
 // FUNCTIONS
 
+/// Hashes the etherum address bytes
 Uint8List ensHashAddress(Uint8List address) {
   return keccak256(address);
 }
 
+/// Resolves the ethereum domain name
 Future<String> resolveName(String domain, String gatewayUri) async {
   if (!domainRegExp.hasMatch(domain)) return null;
 
@@ -101,6 +104,7 @@ Future<String> getResolver(String domain, String gatewayUri) async {
   return resolverAddress;
 }
 
+/// Hashes the ethereum [domain] name
 String hashDomainName(String domain) {
   domain = domain.toLowerCase();
 

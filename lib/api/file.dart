@@ -6,16 +6,16 @@ import "../util/timeout.dart";
 import "../wrappers/content-uri.dart";
 import 'package:http/http.dart' as http;
 
-/// Fetch the given content URI using a Vocdoni Gateway
-/// and return it as a string
+/// Fetches the given content URI using a Vocdoni Gateway
+/// and returns it as a string.
 Future<String> fetchFileString(ContentURI cUri,
     [GatewayPool gw, int gwTimeout]) {
   return fetchFileBytes(cUri, gw ?? null, gwTimeout)
       .then((Uint8List data) => utf8.decode(data.toList()));
 }
 
-/// Fetch the given content URI using a Vocdoni Gateway
-/// and return it as a byte array
+/// Fetches the given content URI using a Vocdoni Gateway
+/// and returns it as a byte array.
 Future<Uint8List> fetchFileBytes(ContentURI cUri,
     [GatewayPool gw, int gwTimeout]) async {
   if (cUri == null) throw Exception("Invalid Content URI");

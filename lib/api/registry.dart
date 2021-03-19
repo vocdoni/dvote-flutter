@@ -3,7 +3,7 @@ import 'package:dvote/dvote.dart';
 // HANDLERS
 
 /// Connects to the backend using the given HTTP DVoteGateway connection
-/// and registers the given user with the given signing key key
+/// and registers the given user with the given signing key.
 Future<Map<String, dynamic>> register(
     String entityId,
     String firstName,
@@ -38,7 +38,7 @@ Future<Map<String, dynamic>> register(
 }
 
 /// Connects to the backend using the given HTTP DVoteGateway connection
-/// and uses the given token to verify the user
+/// and uses the given token to verify the user.
 Future<Map<String, dynamic>> validateRegistrationToken(String entityId,
     String validationToken, DVoteGateway registryGw, String privateKey) async {
   if (entityId is! String ||
@@ -66,7 +66,7 @@ Future<Map<String, dynamic>> validateRegistrationToken(String entityId,
 
 /// Connects to the backend using the given HTTP DVoteGateway connection
 /// and checks whether the given public key is already registered on the entity.
-/// Returns `{ "registered": bool, "needsUpdate": bool }`
+/// Returns `{ "registered": bool, "needsUpdate": bool }`.
 Future<Map<String, dynamic>> registrationStatus(
     String entityId, DVoteGateway registryGw, String privateKey) async {
   if (entityId is! String ||

@@ -1,5 +1,6 @@
 import 'package:dvote/dvote.dart';
 
+/// A wrapper for the [state], [type], and [results] of a process
 class ProcessResults {
   List<List<String>> results;
   String state;
@@ -14,6 +15,7 @@ class ProcessResults {
   }
 }
 
+/// A digest of the raw process results with its human-readable metadata
 class ProcessResultsDigested {
   String state;
   String type;
@@ -36,6 +38,7 @@ class ProcessResultsDigested {
   }
 }
 
+/// A single field in a digested process results
 class ProcessResultItem {
   Map<String, String> description;
   List<VoteResults> voteResults;
@@ -48,6 +51,7 @@ class ProcessResultItem {
   }
 }
 
+/// The results of a single vote option
 class VoteResults {
   Map<String, String> title;
   BigInt votes;

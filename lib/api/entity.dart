@@ -12,6 +12,7 @@ import 'package:dvote/wrappers/entities.dart';
 import '../models/build/dart/metadata/entity.pb.dart';
 import './file.dart';
 
+/// Fetches the content URI for a given entity's metadata from the blockchain.
 Future<ContentURI> fetchEntityContentUri(
     EntityReference entityRef, GatewayPool gw) async {
   List<dynamic> result;
@@ -35,6 +36,7 @@ Future<ContentURI> fetchEntityContentUri(
   return ContentURI(result[0]);
 }
 
+/// Fetches a given entity's metadata using [ipfsUri] if provided.
 Future<EntityMetadata> fetchEntity(EntityReference entityRef, GatewayPool gw,
     {ContentURI ipfsUri}) async {
   String meta;

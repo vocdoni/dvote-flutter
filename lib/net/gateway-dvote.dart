@@ -244,6 +244,7 @@ class DVoteGateway {
   }
 }
 
+/// Contains the status information of a vocdoni-node gateway
 class DVoteGatewayStatus {
   int health;
   List<String> supportedApis;
