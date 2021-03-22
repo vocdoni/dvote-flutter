@@ -1,6 +1,7 @@
 # 1.0.0
 - Parse digested results by aggregation type
 - Improve package documentation
+- Upgrade dvote-protobuf
 
 # 0.19.2
 - Fix `pubKeysAreEqual` bug

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:dvote/dvote.dart';
-import 'package:dvote/models/build/dart/common/vote.pb.dart';
+import 'package:dvote/models/build/dart/vochain/vochain.pb.dart';
 import 'package:dvote/models/build/dart/vochain/vochain.pbserver.dart';
 import 'package:dvote/net/gateway-web3.dart';
 import 'package:dvote/util/bytes-signature.dart';
