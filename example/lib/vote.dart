@@ -1,5 +1,5 @@
 import 'package:dvote/dvote.dart';
-import 'package:dvote/models/build/dart/common/vote.pb.dart';
+import 'package:dvote/models/build/dart/vochain/vochain.pb.dart';
 import './constants.dart';
 import 'package:dvote_crypto/dvote_crypto.dart';
 
@@ -17,7 +17,6 @@ Future<void> vote() async {
   final wallet = EthereumWallet.fromMnemonic(MNEMONIC, hdPath: HD_PATH);
   // final wallet = EthereumNativeWallet.fromMnemonic(MNEMONIC, hdPath: HD_PATH);
 
-  final String privateKey = wallet.privateKey;
   final entityId = ENTITY_ID;
   final String address = wallet.address;
   final String pubKey = wallet.publicKey(uncompressed: false);

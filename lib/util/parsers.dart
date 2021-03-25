@@ -153,7 +153,7 @@ ProcessMetadata parseProcessMetadata(String json) {
       if (mapProcess["results"]["aggregation"] is String)
         results.aggregation = mapProcess["results"]["aggregation"];
       if (mapProcess["results"]["display"] is String)
-        results.aggregation = mapProcess["results"]["display"];
+        results.display = mapProcess["results"]["display"];
     }
     result.results = results;
     return result;

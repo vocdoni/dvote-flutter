@@ -2,6 +2,7 @@
 - Parse digested results by aggregation type
 - Improve package documentation
 - Upgrade dvote-protobuf
+- Implement AccountBackup library wrappers
 
 # 0.19.2
 - Fix `pubKeysAreEqual` bug
