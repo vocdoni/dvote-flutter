@@ -5,7 +5,7 @@ import 'package:dvote/models/build/dart/client-store/backup.pb.dart';
 import 'package:dvote_crypto/main/encryption.dart';
 
 /// A wrapper for AccountBackup uses
-class AccountBackupHandler {
+class AccountBackups {
   /// Encrypts the seed with [pin] + [answers] and returns an [AccountBackup] model
   static Future<AccountBackup> createBackup(
       String alias,
@@ -31,8 +31,7 @@ class AccountBackupHandler {
   /// Decrypts the key using [pin]+[answers]
   static Future<String> decryptKey(
       Uint8List encryptedKey, String pin, List<String> answers) async {
-    final normalizedAnswers =
-        AccountBackupHandler.normalizeAnswers(answers.join());
+    final normalizedAnswers = AccountBackups.normalizeAnswers(answers.join());
     final decryptedKey = await Symmetric.decryptStringAsync(
         base64.encode(encryptedKey), pin + normalizedAnswers);
     return decryptedKey;
