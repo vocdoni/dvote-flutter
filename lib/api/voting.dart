@@ -1275,7 +1275,7 @@ Future<SignedTx> packageVoteTx(
   if (signingPrivateKey is! String) throw Exception("Invalid parameters");
   final transaction = Tx(vote: voteEnvelope);
   final txBytes = transaction.writeToBuffer();
-  final signature = await BytesSignature.signBytesPayloadAsync(
+  final signature = await BytesSignature.signAsync(
       txBytes, signingPrivateKey.replaceAll("0x", ""));
   return SignedTx(
       tx: txBytes, signature: hex.decode(signature.replaceAll("0x", "")));
