@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dvote/models/build/dart/client-store/backup.pb.dart';
+import 'package:dvote/util/normalize.dart';
 import 'package:dvote_crypto/main/encryption.dart';
 
 /// A wrapper for AccountBackup uses
@@ -41,6 +42,7 @@ class AccountBackups {
   static String normalizeAnswers(String concatenatedAnswers) {
     String normalized = concatenatedAnswers.replaceAll(RegExp(r"\s+"), "");
     normalized = normalized.toLowerCase();
+    normalized = Normalize.removeDiacritics(normalized);
     return normalized;
   }
 
