@@ -2,40 +2,52 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dvote/models/build/dart/client-store/backup.pb.dart';
+import 'package:dvote/models/build/dart/client-store/wallet.pb.dart';
 import 'package:dvote/util/normalize.dart';
 import 'package:dvote_crypto/main/encryption.dart';
+import 'package:fixnum/fixnum.dart';
 
 /// A wrapper for AccountBackup uses
 class AccountBackups {
   /// Encrypts the seed with [pin] + [answers] and returns an [AccountBackup] model
-  static Future<AccountBackup> createBackup(
+  static Future<WalletBackup> createBackup(
       String alias,
       List<int> selectedQuestions,
-      AccountBackup_Auth auth,
-      String seed,
-      String pin,
+      Wallet wallet,
+      String passphrase,
       List<String> answers) async {
     // Encrypt seed with pin + questions
-    final encryptedSeed = await Symmetric.encryptStringAsync(
-        seed, pin + normalizeAnswers(answers.join("")));
+    final encryptedPassphrase = await Symmetric.encryptStringAsync(
+        passphrase, normalizeAnswers(answers.join("")));
     if (selectedQuestions
         .any((element) => !isValidBackupQuestionIndex(element)))
       throw Exception("Invalid question indexes");
-    return AccountBackup(
-        questions:
-            selectedQuestions.map((e) => AccountBackup_Questions.valueOf(e)),
-        auth: auth,
-        key: base64.decode(encryptedSeed),
-        alias: alias);
+    final recovery = WalletBackup_Recovery(
+        questionIds: selectedQuestions
+            .map((e) => WalletBackup_Recovery_QuestionEnum.valueOf(e)),
+        encryptedPassphrase: base64.decode(encryptedPassphrase));
+    return WalletBackup(
+      name: alias,
+      timestamp: Int64(DateTime.now().millisecondsSinceEpoch ~/ 1000),
+      passphraseRecovery: recovery,
+      wallet: wallet,
+    );
   }
 
-  /// Decrypts the key using [pin]+[answers]
-  static Future<String> decryptKey(
-      Uint8List encryptedKey, String pin, List<String> answers) async {
+  /// Decrypts first the passphrase, then the mnemonic, using [answers]
+  static Future<String> decryptBackupPin(
+      WalletBackup backup, List<String> answers) async {
     final normalizedAnswers = AccountBackups.normalizeAnswers(answers.join());
-    final decryptedKey = await Symmetric.decryptStringAsync(
-        base64.encode(encryptedKey), pin + normalizedAnswers);
-    return decryptedKey;
+    return await Symmetric.decryptStringAsync(
+        base64.encode(backup.passphraseRecovery.encryptedPassphrase),
+        normalizedAnswers);
+  }
+
+  /// Decrypts first the passphrase, then the mnemonic, using [answers]
+  static Future<String> decryptBackupMnemonic(
+      WalletBackup backup, String pin) async {
+    return await Symmetric.decryptStringAsync(
+        base64.encode(backup.wallet.encryptedMnemonic), pin);
   }
 
   /// Normalizes a set of concatenated answers to be used for backup generation
@@ -48,7 +60,7 @@ class AccountBackups {
 
   /// Retrieves the language key from the given question index
   static String getBackupQuestionLanguageKey(int idx) {
-    final name = AccountBackup_Questions.valueOf(idx).name;
+    final name = WalletBackup_Recovery_QuestionEnum.valueOf(idx).name;
     if (name == null || name.length == 0)
       throw Exception("Invalid question index");
     return name;
@@ -56,7 +68,7 @@ class AccountBackups {
 
   /// Determines if the given index is present in the enum of backup questions
   static bool isValidBackupQuestionIndex(int idx) {
-    return AccountBackup_Questions.values
+    return WalletBackup_Recovery_QuestionEnum.values
         .any((element) => element.value == idx);
   }
 }
