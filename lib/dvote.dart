@@ -16,8 +16,6 @@ export './net/bootnodes.dart';
 export './wrappers/content-uri.dart';
 export './wrappers/content-hashed-uri.dart';
 
-export './models/build/dart/client-store/identity.pb.dart';
-export './models/build/dart/client-store/key.pb.dart';
 export './models/build/dart/metadata/entity.pb.dart';
 export './models/build/dart/metadata/process.pb.dart';
 export './models/build/dart/metadata/feed.pb.dart';

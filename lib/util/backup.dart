@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dvote/models/build/dart/client-store/backup.pb.dart';
 import 'package:dvote/models/build/dart/client-store/wallet.pb.dart';
